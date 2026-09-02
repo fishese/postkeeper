@@ -1,0 +1,32 @@
+{
+  "manifest_version": 2,
+  "name": "PostKeeper",
+  "description": "Save the current rendered page to your local PostKeeper library.",
+  "version": "0.1.0",
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_title": "Save to PostKeeper"
+  },
+  "background": {
+    "page": "background.html",
+    "persistent": true
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "permissions": ["activeTab", "storage", "tabs"],
+  "optional_permissions": ["http://*/*", "https://*/*"],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "postkeeper@local.invalid",
+      "data_collection_permissions": {
+        "required": ["none"]
+      },
+      "strict_min_version": "140.0"
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
+    }
+  }
+}

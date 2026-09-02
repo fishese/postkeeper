@@ -1,0 +1,9 @@
+<!doctype html><title>Authenticated fixture</title>
+<script>
+  if (!document.cookie.includes('postkeeper-fixture-auth=1')) location.href = 'sign-in.html';
+</script>
+<article>
+  <h1>Authenticated fixture article</h1>
+  <p>This fixture is visible only after the harmless test cookie is present.</p>
+  <img alt="authenticated asset" src="assets/blue.svg" />
+</article>

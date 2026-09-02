@@ -1,0 +1,13 @@
+{
+  "name": "@postkeeper/local-store",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@postkeeper/capture-format": "file:../capture-format",
+    "@postkeeper/capture-processing": "file:../capture-processing",
+    "@postkeeper/domain": "file:../domain",
+    "@postkeeper/sync-core": "file:../sync-core"
+  }
+}

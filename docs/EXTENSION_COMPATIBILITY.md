@@ -1,0 +1,36 @@
+# Extension compatibility matrix
+
+Last updated: 2026-09-01
+
+Every required Milestone 3 runtime row has a recorded end-to-end pass. Package validation alone is not treated as runtime evidence.
+
+| Target                            | Version/build                                                                               | Public capture | Authenticated capture | Queue + PWA acknowledgement | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------------------- | -------------- | --------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Playwright bundled Chromium       | Chrome for Testing 151.0.7922.34                                                            | Pass           | Pass                  | Pass                        | Automated package-runtime test passes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Firefox desktop                   | Mozilla Firefox 154.0.1 (build 20260824154132)                                              | Pass           | Pass                  | Pass                        | Selenium/Marionette test installs the exact generated directory as a temporary add-on and passes two consecutive captures, images, secret filtering, capability-fragment cleanup, and queue acknowledgement. The local PWA origin is preauthorized in the disposable profile because WebDriver events do not carry Firefox's extension permission-request activation token.                                                                                                                                                                               |
+| Microsoft Edge Canary for Android | Microsoft Edge Canary 154.0.4249.0 (versionCode 424900023) on Android 16 / Samsung SM-S9280 | Pass           | Pass                  | Pass                        | The exact signed Chromium MV3 CRX passed through Edge's real developer CRX installer, toolbar popup, and optional-host prompt restricted to `127.0.0.1`. Public and cookie-authenticated captures imported with blob-backed images, no synthetic cookie/password probe reached the sandboxed reader, capability fragments were removed, an interrupted transfer remained queued and recovered after reopening the PWA, and fresh repeated capture ended with queue count 0. This exact build is the first supported minimum; no earlier build is claimed. |
+| Firefox for Android               | Mozilla Firefox 154.0.1 (versionCode 2016180583) on Android 16 / Samsung SM-S9280           | Pass           | Pass                  | Pass                        | The exact generated Firefox bundle passed on a physical device. A real optional-host permission prompt was approved from the popup gesture; public and cookie-authenticated captures imported with blob-backed images, the synthetic cookie/password probes were absent from the sandboxed reader, the capability fragment was removed, and the extension IndexedDB queue count was 0 after acknowledgement.                                                                                                                                              |
+
+## Automated evidence
+
+- `npm run test:extension` builds both browser bundles and runs Chromium public/authenticated capture through durable PWA import and acknowledgement.
+- `npm run test:extension:firefox-runtime` builds the PWA and both extension targets, then runs the installed desktop Firefox with a disposable profile through consecutive public/authenticated captures, image checks, credential-control filtering, capability-fragment cleanup, and queue acknowledgement.
+- `npm run test:extension:firefox-lint` validates the generated Firefox package with Mozilla `web-ext`.
+- `npm run package:firefox --workspace=@postkeeper/extension` produces the Firefox ZIP package.
+- `scripts/inspect-firefox-android.mjs` scopes Firefox Remote Debugging Protocol inspection to PostKeeper's two localhost fixtures and the exact `postkeeper@local.invalid` add-on. It supplied the physical-device assertions for reader sanitization, blob URL rewriting, fragment cleanup, and the zero-entry extension queue.
+- Edge Canary Android inspection used its package-specific DevTools endpoint and was scoped to `http://127.0.0.1:4173/`, `http://127.0.0.1:4174/`, and extension ID `hfiejgmacnhmlnlbfhplmgcgpacjmceb`. Edge's internal registry reported the extension enabled with the expected active/optional permissions and MV3 service worker.
+
+Mozilla's linter reports two accepted warnings in the bundled `@mozilla/readability` implementation. Both are `innerHTML` assignments used while Readability parses a detached cloned document; PostKeeper does not assign that output to extension UI, and the PWA independently sanitizes all imported reader HTML.
+
+## Physical/manual test checklist
+
+For each pending browser/version:
+
+1. Install the generated browser package without modifying its production manifest.
+2. Configure the local or deployed PostKeeper HTTPS origin and approve only that origin.
+3. Save the public fixture and confirm its local image renders offline.
+4. Sign in to the harmless authenticated fixture, save it, and confirm readable content imports.
+5. Inspect the capture/extension logs for the harmless cookie value and a synthetic password value; neither may appear.
+6. Interrupt the first transfer before acknowledgement and confirm it remains queued.
+7. reopen PostKeeper, complete import, and confirm the acknowledged queue entry is removed.
+8. Record exact browser/app version, OS version, device model, and pass/fail notes in this matrix.

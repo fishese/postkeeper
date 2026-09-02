@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Save to PostKeeper</title>
+    <link rel="stylesheet" href="extension.css" />
+    <script src="popup.js" defer></script>
+  </head>
+  <body class="popup">
+    <main>
+      <h1>PostKeeper</h1>
+      <p>Save the rendered page and available images to your local library.</p>
+      <label>
+        Destination
+        <select id="destination" disabled>
+          <option value="inbox">Inbox</option>
+        </select>
+      </label>
+      <button id="save" type="button">Save current page</button>
+      <p id="status" role="status">Ready.</p>
+      <p><a href="options.html" target="_blank">Connection settings</a></p>
+    </main>
+  </body>
+</html>

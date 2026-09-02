@@ -1,0 +1,10 @@
+{
+  "name": "@postkeeper/sync-google-drive",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@postkeeper/sync-core": "file:../sync-core"
+  }
+}

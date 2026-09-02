@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "strict": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "lib": ["ES2022", "DOM"],
+    "paths": {
+      "@postkeeper/capture-format": ["../capture-format/src/index.ts"],
+      "@postkeeper/capture-processing": ["../capture-processing/src/index.ts"],
+      "@postkeeper/domain": ["../domain/src/index.ts"],
+      "@postkeeper/sync-core": ["../sync-core/src/index.ts"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
+}

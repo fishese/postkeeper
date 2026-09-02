@@ -1,0 +1,11 @@
+<!doctype html><title>Hostile fixture</title>
+<article onclick="window.__hostileHandlerRan = true">
+  <h1>Hostile fixture</h1>
+  <form action="https://example.invalid"><input name="secret" /><button>Submit</button></form>
+  <img src="x" onerror="window.__hostileImageHandlerRan = true" />
+  <script>
+    window.__hostileScriptRan = true;
+  </script>
+  <iframe src="https://example.invalid"></iframe>
+  <p>Unsafe content is present for sanitizer tests.</p>
+</article>

@@ -1,0 +1,8 @@
+<!doctype html><title>Lazy image fixture</title>
+<article>
+  <h1>Lazy image fixture</h1>
+  <img alt="lazy fixture" data-src="assets/blue.svg" loading="lazy" />
+  <script>
+    for (const image of document.querySelectorAll('img[data-src]')) image.src = image.dataset.src;
+  </script>
+</article>

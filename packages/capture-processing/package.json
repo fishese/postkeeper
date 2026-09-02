@@ -1,0 +1,12 @@
+{
+  "name": "@postkeeper/capture-processing",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "@postkeeper/capture-format": "file:../capture-format",
+    "dompurify": "^3.4.14"
+  }
+}

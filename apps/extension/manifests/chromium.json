@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "PostKeeper",
+  "description": "Save the current rendered page to your local PostKeeper library.",
+  "version": "0.1.0",
+  "minimum_chrome_version": "120",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Save to PostKeeper"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options.html",
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"]
+}

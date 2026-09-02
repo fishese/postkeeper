@@ -1,0 +1,7 @@
+{
+  "name": "@postkeeper/capture-format",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": "./src/index.ts"
+}

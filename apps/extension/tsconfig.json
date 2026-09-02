@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "strict": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "WebWorker"],
+    "paths": {
+      "@postkeeper/capture-format": ["../../packages/capture-format/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

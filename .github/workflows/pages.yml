@@ -1,0 +1,58 @@
+name: Deploy PostKeeper to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VITE_GOOGLE_CLIENT_ID: ${{ vars.GDRIVEWEBID }}
+      POSTKEEPER_BASE_PATH: /
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Verify public OAuth configuration
+        shell: bash
+        run: |
+          if [[ -z "$VITE_GOOGLE_CLIENT_ID" ]]; then
+            echo "Set the GDRIVEWEBID repository variable to the Google Web client ID."
+            exit 1
+          fi
+      - run: npm install --global npm@11.16.0
+      - run: npm ci
+      - run: npm run validate
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: apps/web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

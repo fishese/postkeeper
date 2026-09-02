@@ -1,0 +1,48 @@
+{
+  "name": "postkeeper",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "license": "GPL-3.0-or-later",
+  "packageManager": "npm@11.16.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=@postkeeper/web && npm run build --workspace=@postkeeper/extension",
+    "dev": "npm run dev --workspace=@postkeeper/web",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p packages/domain --pretty false && tsc --noEmit -p packages/capture-format --pretty false && tsc --noEmit -p packages/capture-processing --pretty false && tsc --noEmit -p packages/local-store --pretty false && tsc --noEmit -p packages/sync-core --pretty false && tsc --noEmit -p packages/sync-google-drive --pretty false && tsc --noEmit -p packages/test-fixtures --pretty false && tsc --noEmit -p apps/web --pretty false && tsc --noEmit -p apps/extension --pretty false",
+    "test": "vitest run --passWithNoTests",
+    "test:browser": "playwright test",
+    "test:extension:firefox-lint": "web-ext lint --source-dir apps/extension/dist-firefox --no-config-discovery --no-input",
+    "pretest:extension:firefox-runtime": "npm run build",
+    "test:extension:firefox-runtime": "node scripts/test-firefox-extension.mjs",
+    "pretest:extension": "npm run build && npm run package:firefox --workspace=@postkeeper/extension",
+    "test:extension": "playwright test --config=playwright.extension.config.ts",
+    "validate": "npm run format && npm run lint && npm run typecheck && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.3.0",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "fake-indexeddb": "^6.2.1",
+    "globals": "^16.3.0",
+    "jsdom": "^30.0.1",
+    "playwright": "^1.55.0",
+    "prettier": "^3.6.2",
+    "selenium-webdriver": "^4.48.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.44.1",
+    "vitest": "^3.2.4",
+    "web-ext": "^10.6.0"
+  }
+}

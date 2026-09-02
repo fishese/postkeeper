@@ -1,0 +1,27 @@
+{
+  "name": "@postkeeper/web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@postkeeper/capture-format": "file:../../packages/capture-format",
+    "@postkeeper/capture-processing": "file:../../packages/capture-processing",
+    "@postkeeper/domain": "file:../../packages/domain",
+    "@postkeeper/local-store": "file:../../packages/local-store",
+    "@postkeeper/sync-core": "file:../../packages/sync-core",
+    "@postkeeper/sync-google-drive": "file:../../packages/sync-google-drive",
+    "@postkeeper/test-fixtures": "file:../../packages/test-fixtures",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "vite-plugin-pwa": "^1.0.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.2",
+    "vite": "^7.1.5"
+  }
+}

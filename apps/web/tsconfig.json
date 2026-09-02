@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@postkeeper/capture-format": ["../../packages/capture-format/src/index.ts"],
+      "@postkeeper/capture-processing": ["../../packages/capture-processing/src/index.ts"],
+      "@postkeeper/domain": ["../../packages/domain/src/index.ts"],
+      "@postkeeper/local-store": ["../../packages/local-store/src/index.ts"],
+      "@postkeeper/sync-core": ["../../packages/sync-core/src/index.ts"],
+      "@postkeeper/sync-google-drive": ["../../packages/sync-google-drive/src/index.ts"],
+      "@postkeeper/test-fixtures": ["../../packages/test-fixtures/src/index.ts"]
+    }
+  },
+  "include": ["src", "vite.config.ts"]
+}

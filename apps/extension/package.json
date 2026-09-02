@@ -1,0 +1,18 @@
+{
+  "name": "@postkeeper/extension",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "package:firefox": "web-ext build --source-dir dist-firefox --artifacts-dir build --overwrite-dest --no-config-discovery --no-input",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "@postkeeper/capture-format": "file:../../packages/capture-format"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
