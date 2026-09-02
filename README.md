@@ -6,7 +6,7 @@ The application code may be hosted as a static Progressive Web App (PWA), but th
 
 ## Current status
 
-Milestones 0 through 3 are complete. Milestone 4 is in progress: the encrypted operation log, recovery-key flow, provider-neutral sync engine, Google Drive `appDataFolder` adapter, and clean-client restore are implemented and pass deterministic tests. The permanent production origin is `https://keep.fishese.cc`, hosted by GitHub Pages from `fishese/postkeeper`. A browser OAuth client ID has been supplied; deployment and live Google OAuth/Drive acceptance are still pending.
+Milestones 0 through 3 are complete. Milestone 4 is in progress: the encrypted operation log, recovery-key flow, provider-neutral sync engine, Google Drive `appDataFolder` adapter, and clean-client restore are implemented and pass deterministic tests. The development preview is deployed at [keep.fishese.cc](https://keep.fishese.cc), hosted by GitHub Pages from `fishese/postkeeper`. A browser OAuth client ID is configured; live Google OAuth/Drive acceptance is still pending.
 
 Milestone 3 browser-extension support now passes its complete runtime matrix: packaged Chromium, desktop Firefox, Firefox Android 154.0.1, and Microsoft Edge Canary for Android 154.0.4249.0 (versionCode 424900023). Edge Canary 154.0.4249.0 is the first supported Android Chromium minimum; no earlier Edge build is claimed. See [Implementation Roadmap](docs/IMPLEMENTATION_ROADMAP.md), [Extension Compatibility](docs/EXTENSION_COMPATIBILITY.md), and [Project Status](docs/STATUS.md).
 

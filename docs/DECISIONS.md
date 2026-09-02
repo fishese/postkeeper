@@ -4,6 +4,15 @@ This file distinguishes accepted decisions from questions that must be resolved 
 
 ## Accepted decisions
 
+### D-021 — Google endpoints in the application shell CSP
+
+Date: 2026-09-02
+Status: accepted
+Context: The first deployed OAuth smoke check exposed the original local-only shell Content Security Policy blocking the GIS script and Drive REST calls.
+Decision: Permit the documented GIS script/style/connection/frame paths, the Drive v3 metadata/upload paths, and the OAuth revocation endpoint in the application shell only. Keep saved content in its empty-sandbox iframe with its independent `script-src 'none'` and `connect-src 'none'` policy.
+Consequences: Optional Google authorization and encrypted transfers can work without allowing arbitrary third-party scripts or network destinations. Browser regression tests exercise the production CSP using synthetic GIS/Drive responses and verify that the reader remains network-isolated.
+Supersedes: none
+
 ### D-020 — Public name, license, and initial publication
 
 Date: 2026-09-02

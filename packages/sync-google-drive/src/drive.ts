@@ -129,7 +129,7 @@ export class GoogleDriveObjectStore implements SyncObjectStore {
   private readonly pageSize: number;
 
   constructor(private readonly options: GoogleDriveObjectStoreOptions) {
-    this.fetcher = options.fetch ?? fetch;
+    this.fetcher = options.fetch ?? globalThis.fetch.bind(globalThis);
     this.pageSize = options.pageSize ?? 100;
   }
 

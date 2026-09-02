@@ -4,7 +4,7 @@ The selected repository is [fishese/postkeeper](https://github.com/fishese/postk
 
 ## Before publishing
 
-Resolve O-007 (distributable name and source license) and obtain the user's explicit approval before the initial public push. Do not include `.env.local`, generated outputs, browser profiles, or test artifacts. The local environment file is ignored; `.env.example` documents the public client-ID key.
+D-020 records the user's publication approval and GPL-3.0-or-later license selection. Do not include `.env.local`, generated outputs, browser profiles, or test artifacts in future commits. The local environment file is ignored; `.env.example` documents the public client-ID key.
 
 ## Repository settings
 
@@ -20,7 +20,7 @@ Resolve O-007 (distributable name and source license) and obtain the user's expl
    The target contains no protocol, slash, or repository name. Do not create a wildcard record.
 
 5. Wait for GitHub's DNS check and certificate provisioning, then enable **Enforce HTTPS**. DNS/certificate propagation can take up to 24 hours.
-6. After approved publication, the `main` push runs `.github/workflows/pages.yml`. It installs the lockfile, validates the workspace, and uploads **only `apps/web/dist`**. Subsequent `main` pushes or manual workflow dispatches redeploy. The remote workflow has not yet been executed.
+6. The `main` push runs `.github/workflows/pages.yml`. It installs the lockfile, validates the workspace, and uploads **only `apps/web/dist`**. Subsequent `main` pushes or manual workflow dispatches redeploy. The initial [build and deployment](https://github.com/fishese/postkeeper/actions/runs/33630165694) succeeded on 2026-09-02.
 
 Custom-workflow Pages deployments use the domain from repository settings; a `CNAME` file in the source/build is not required. See GitHub's [custom workflow guide](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) and [custom domain guide](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site).
 
