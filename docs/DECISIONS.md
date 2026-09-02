@@ -4,13 +4,23 @@ This file distinguishes accepted decisions from questions that must be resolved 
 
 ## Accepted decisions
 
+### D-023 — Inline local image data in the isolated reader
+
+Date: 2026-09-02
+Status: accepted
+Context: Live Drive acceptance restored the correct metadata and bytes but exposed broken images on both the original Android client and the clean desktop client. Chromium reported a blocked local blob URL in the opaque-origin sandbox; earlier browser checks asserted element visibility, not successful image decoding. Chrome's documented blob storage partitioning is consistent with this failure.
+Decision: Encode allowlisted local image bytes as base64 data URLs inside the reader document. Retain the empty iframe sandbox, no scripts, no network connections, and no host-origin privileges. Narrow the reader's image CSP to `data:`. Never interpolate an arbitrary synced MIME value into an attribute. Browser acceptance must check `complete` and a positive `naturalWidth`, including offline reading.
+Consequences: No storage or sync format changes are needed; original blob bytes remain in OPFS/IndexedDB. Reader rendering uses additional temporary memory for base64 (roughly one-third larger encoded content), which must be assessed during storage-pressure/release hardening. This also removes object-URL allocation and revocation from React render/effect lifecycles. No browser security setting or iframe privilege is relaxed.
+Reference: https://privacysandbox.google.com/cookies/storage-partitioning
+Supersedes: the reader's in-memory blob-URL presentation, not D-014's persistent blob storage.
+
 ### D-022 — Public privacy and terms pages
 
 Date: 2026-09-02
 Status: accepted
 Context: The user requested privacy and terms pages before later OAuth publication and selected the public GitHub issue tracker as the contact channel.
 Decision: Prepare `privacy.html` and `terms.html` as static Vite entry points at the existing GitHub Pages origin. They require no JavaScript, login, or Google resources. Link them from the homepage and immediately beside optional sync, opening a new tab to preserve in-memory keys. Precache them as documents and exclude them from the app-shell navigation fallback.
-Consequences: The policy distinguishes the absence of a maintainer library backend from local storage, encrypted Google storage, host request logs, and voluntary public support data. It discloses plaintext local storage, retained sync history, revocation/deletion limits, and lost-key risks. Terms preserve GPL rights and mandatory legal protections. No legal approval or Google verification is claimed. The user subsequently authorized publishing the pages to the existing GitHub Pages site. Changing the OAuth audience remains deferred until explicitly requested.
+Consequences: The policy distinguishes the absence of a maintainer library backend from local storage, encrypted Google storage, host request logs, and voluntary public support data. It discloses plaintext local storage, retained sync history, revocation/deletion limits, and lost-key risks. Terms preserve GPL rights and mandatory legal protections. No legal approval or Google verification is claimed. The user subsequently authorized publishing the pages to the existing GitHub Pages site and then reported independently changing the OAuth audience to published. The agent did not change OAuth settings; publication does not complete live sync acceptance or establish Google brand verification.
 Supersedes: none
 
 ### D-021 — Google endpoints in the application shell CSP

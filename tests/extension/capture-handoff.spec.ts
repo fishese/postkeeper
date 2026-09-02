@@ -174,6 +174,13 @@ test('captures a rendered page, imports it durably, and acknowledges the queue',
       reader.getByText('This local page represents readable public content.'),
     ).toBeVisible();
     await expect(reader.getByRole('img', { name: 'fixture' })).toBeVisible();
+    await expect
+      .poll(() =>
+        reader
+          .getByRole('img', { name: 'fixture' })
+          .evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
+      )
+      .toBe(true);
   } finally {
     await context.close();
   }
@@ -208,6 +215,13 @@ test('captures a cookie-authenticated page without exporting session data', asyn
       reader.getByText('This fixture is visible only after the harmless test cookie is present.'),
     ).toBeVisible();
     await expect(reader.locator('input')).toHaveCount(0);
+    await expect
+      .poll(() =>
+        reader
+          .getByRole('img', { name: 'authenticated asset' })
+          .evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
+      )
+      .toBe(true);
     await expect(postKeeper.locator('body')).not.toContainText('must-not-export');
     await expect.poll(() => pendingTransferCount(context)).toBe(0);
   } finally {

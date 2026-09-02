@@ -191,7 +191,7 @@ The reader must:
 - remove scripts, forms, event-handler attributes, refresh directives, plugins, and unsafe embeds;
 - remove or rewrite remote resource references;
 - block network access from saved documents by default;
-- serve images from local object URLs or safe application routes;
+- serve allowlisted local image bytes as data URLs inside the opaque-origin reader (D-023), without relying on cross-partition blob URL access;
 - use a restrictive Content Security Policy;
 - render saved documents in a sandboxed, unprivileged frame or equivalent isolated component;
 - ensure links require deliberate navigation and clearly indicate the destination;

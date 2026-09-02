@@ -70,6 +70,60 @@ describe('GoogleDriveObjectStore', () => {
     );
   });
 
+  it('finds existing immutable objects after an empty first results page', async () => {
+    const calls: Array<{ url: URL; method: string }> = [];
+    const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input));
+      calls.push({ url, method: init?.method ?? 'GET' });
+      if (init?.method === 'POST') {
+        return json({ id: 'unwanted-copy', name: 'pk1~blobs~remote', version: '1', size: '3' });
+      }
+      return url.searchParams.get('pageToken') === 'second-page'
+        ? json({ files: [{ id: 'existing', name: 'pk1~blobs~remote', version: '1', size: '3' }] })
+        : json({ files: [], nextPageToken: 'second-page' });
+    }) as typeof fetch;
+    const provider = new GoogleDriveObjectStore({ accessToken: () => 'token', fetch: fetcher });
+    const result = await provider.putImmutable('blobs/remote', new Uint8Array([1, 2, 3]));
+    expect(result.status).toBe('existing');
+    expect(calls.map((call) => call.method)).toEqual(['GET', 'GET']);
+    expect(calls[0]?.url.searchParams.get('fields')).toContain('nextPageToken');
+    expect(calls[1]?.url.searchParams.get('pageToken')).toBe('second-page');
+  });
+
+  it('selects the same duplicate object across every exact-match results page', async () => {
+    const downloads: string[] = [];
+    const fetcher = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.searchParams.get('alt') === 'media') {
+        downloads.push(url.pathname);
+        return new Response(new Uint8Array([1, 2, 3]));
+      }
+      const file = { name: 'pk1~blobs~remote', version: '1', size: '3' };
+      return url.searchParams.has('pageToken')
+        ? json({ files: [{ ...file, id: 'a-first' }] })
+        : json({ files: [{ ...file, id: 'z-later' }], nextPageToken: 'next' });
+    }) as typeof fetch;
+    const provider = new GoogleDriveObjectStore({ accessToken: () => 'token', fetch: fetcher });
+    await provider.get('blobs/remote');
+    expect(downloads).toEqual(['/drive/v3/files/a-first']);
+  });
+
+  it('rejects looping exact-match pagination without creating an object', async () => {
+    const methods: string[] = [];
+    const fetcher = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+      methods.push(init?.method ?? 'GET');
+      if (init?.method === 'POST') {
+        return json({ id: 'unwanted-copy', name: 'pk1~blobs~remote', version: '1', size: '3' });
+      }
+      return json({ files: [], nextPageToken: 'repeated' });
+    }) as typeof fetch;
+    const provider = new GoogleDriveObjectStore({ accessToken: () => 'token', fetch: fetcher });
+    await expect(provider.putImmutable('blobs/remote', new Uint8Array([1]))).rejects.toMatchObject({
+      code: 'invalid-response',
+    });
+    expect(methods).toEqual(['GET', 'GET']);
+  });
+
   it('uses the downloaded ETag for a conditional update', async () => {
     const calls: Array<{ url: string; init?: RequestInit }> = [];
     const file = { id: 'id-1', name: 'pk1~device-state~alpha', version: '2', size: '3' };

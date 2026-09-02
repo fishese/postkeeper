@@ -159,12 +159,26 @@ export class GoogleDriveObjectStore implements SyncObjectStore {
     url.searchParams.set('spaces', 'appDataFolder');
     url.searchParams.set('q', query);
     url.searchParams.set('pageSize', '100');
-    url.searchParams.set('fields', `files(${FILE_FIELDS})`);
-    const result = await this.requestJson<DriveFileList>(url.toString());
-    const matches = (result.files ?? [])
-      .filter((file) => file.name === name && file.id)
-      .sort((left, right) => String(left.id).localeCompare(String(right.id)));
-    return matches[0] ?? null;
+    url.searchParams.set('fields', `nextPageToken,files(${FILE_FIELDS})`);
+    let match: DriveFile | null = null;
+    let continuationToken: string | undefined;
+    const seenTokens = new Set<string>();
+    do {
+      if (continuationToken) url.searchParams.set('pageToken', continuationToken);
+      const result = await this.requestJson<DriveFileList>(url.toString());
+      for (const file of result.files ?? []) {
+        // Drive names are not unique. Use one locale-independent ordering across all pages.
+        if (file.name === name && file.id && (!match?.id || file.id < match.id)) match = file;
+      }
+      continuationToken = result.nextPageToken;
+      if (continuationToken) {
+        if (seenTokens.has(continuationToken)) {
+          throw new SyncProviderError('invalid-response', 'Drive repeated a continuation token.');
+        }
+        seenTokens.add(continuationToken);
+      }
+    } while (continuationToken);
+    return match;
   }
 
   async list(prefix: string, continuationToken?: string): Promise<RemoteObjectPage> {

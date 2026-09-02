@@ -1,12 +1,15 @@
 # Project Status
 
-Last updated: 2026-09-02
+Last updated: 2026-09-03
 
 ## Current state
 
 - Product planning: complete for initial implementation.
 - Application code: Milestone 4 implemented and undergoing acceptance; public development preview deployed at `https://keep.fishese.cc`.
 - Repository scaffold: complete.
+- OAuth audience: published (In production), as reported by the user; brand verification is not independently confirmed.
+- Live acceptance: the user saved/confirmed the key. Android uploaded 18 operations; a clean desktop client rejected a wrong key, safely failed an interrupted download, and restored all 18 operations plus both content blobs on retry. A broken-image check stopped the run before convergence and revocation; the reader fix is validated locally, and the user has approved its publication with the Drive pagination fix.
+- Live acceptance runner: opt-in `scripts/test-live-drive.mjs` uses the emulator's app-scoped token only in memory for the clean desktop client's GIS callback; Drive calls are real, but this is not an independent second OAuth consent test. The user approved a real consent-revocation test once sync/restore checks finish.
 - Active milestone: Milestone 4 — Encrypted sync core and Google Drive.
 - Next milestone: Milestone 4 — Encrypted sync core and Google Drive.
 
@@ -41,6 +44,12 @@ Last updated: 2026-09-02
 5. Do not mark later milestones in progress speculatively.
 
 ## Work log
+
+2026-09-03 — The user approved publishing the validated reader and Drive pagination fixes, then requested continuation to the next logical stop, documentation updates, and a copy-ready next-chat prompt. Resumed the release workflow for the existing GitHub Pages origin. ADB initially reported no devices; the previously approved Android Studio emulator is being reopened from its saved state. The phone remains out of scope.
+
+2026-09-02 — Live acceptance follow-up: with explicit emulator-debugging and saved-key approval, the production Android client uploaded 18 encrypted operations. A disposable desktop Chrome profile using an in-memory app-token relay rejected a wrong recovery key; an injected download interruption left the article list empty; retry restored 18 operations and two content blobs. The test then detected a broken fixture image on both source and restored clients (`complete=true`, `naturalWidth=0`, Chromium blocked-local-blob message), so convergence, remote-envelope read-back, and revocation were not claimed. The user approved the later real revocation test. No fixture data was deleted and the saved recovery key remains valid.
+
+2026-09-02 — D-023 fixes reader presentation with allowlisted image data URLs while preserving the opaque-origin sandbox and no-script/no-network policy. A strengthened Chromium image-decoding test failed before the fix and passes afterward. `npm run validate` passes 81 tests across 26 files plus formatting, lint, type checks, and both web/extension builds. The full Chromium/Firefox PWA matrix passes 18 tests in 17.2s, including decoded images before and after offline reload. Both packaged Chromium capture tests pass in 3.5s; the desktop Firefox extension runtime passes on the now-installed Firefox 155.0 with decoded public/authenticated images. One Firefox startup exited before tests and passed on retry. A separate flaky feasibility check was fixed to await service-worker readiness before reloading. The reader and earlier Drive pagination fixes remain local pending explicit approval for the public update; Milestone 4 remains In progress.
 
 2026-08-21 — Milestone 0 started. The workspace was confirmed to contain planning documents only; it is not a Git repository, so version control was not initialized.
 
@@ -187,3 +196,7 @@ Milestone 1 is Complete. Next milestone: Milestone 2 — Capture format and secu
 2026-09-02 — Policy-page validation passes: `npm run validate` (format, lint, type checks, 75 unit tests across 25 files, PWA and both extension builds); full Chromium/Firefox matrix (18 browser tests including JavaScript-disabled documents, new-tab links, and offline policy navigation); and `/postkeeper/` build checks for both policy documents, stylesheet paths, and precache entries. The normal root build was restored. A local preview was served successfully. Legal text remains a maintainer-review draft, not a compliance certification; review its accuracy/dates and applicable legal requirements before public OAuth launch.
 
 2026-09-02 — The user authorized publishing the policy pages and application links to the existing GitHub Pages site. Release commit `92578f4` deployed successfully in GitHub Actions run `33635433457`; clean-run validation, build, and deployment passed. Both `https://keep.fishese.cc/privacy.html` and `https://keep.fishese.cc/terms.html` return HTTPS 200 with the expected titles, public issue-tracker contact, no scripts, and a working stylesheet. Local validation also passed again (75 unit tests). The release includes only the prepared policy, navigation, build/test, and documentation changes. Google OAuth remains in Testing; this release does not change audience settings or complete milestone 4 acceptance.
+
+2026-09-02 — The user subsequently reported publishing the OAuth audience and requested Android Studio emulator testing instead of using their phone. Launched the existing `Pixel_10_Pro_emu` (Android 17, Chrome 149.0.7827.5), initially read-only and then with persistent saved state after explicit approval; resized its window to fit the desktop. The user reports signing in, and emulator inspection confirms Chrome is at `https://keep.fishese.cc/`, but its native accessibility tree does not expose the app's connection state. A temporary ADB forwarding request for Chrome DevTools was rejected by safety review because it exposes the authenticated browser's debugging surface. No forwarding connection was established. Explicit approval for temporary emulator debugging has been requested; no attempt was made to bypass the rejection. The phone was not used.
+
+2026-09-02 — Continued Milestone 4 audit while live acceptance awaited debugging approval. Exact-name Drive lookups omitted `nextPageToken` and only considered their first result page, potentially treating an existing encrypted object as missing and creating duplicates. The provider now exhausts exact-match pagination, chooses duplicate file IDs with a locale-independent ordering across pages, and rejects looping continuation tokens before creating an object. Three regression tests failed before the fix and pass afterward; Google's `files.list` reference confirms that populated `nextPageToken` requires further pages. `npm run validate` passes (format, lint, type checks, 78 tests across 25 files, PWA and both extension builds); the Chromium/Firefox browser suite passes all 18 tests in 16.2s. These changes remain local and are not deployed. Live encrypted upload, clean-client restore, convergence, and expiry acceptance remain pending; Milestone 4 is still In progress and Milestone 5 has not started.

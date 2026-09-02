@@ -37,6 +37,13 @@ test('library add, organize, restart, search, and read workflows', async ({ cont
   const reader = page.frameLocator('[data-testid="reader-frame"]');
   await expect(reader.getByRole('heading', { name: 'A public fixture article' })).toBeVisible();
   await expect(reader.getByRole('img', { name: 'fixture' })).toBeVisible();
+  await expect
+    .poll(() =>
+      reader
+        .getByRole('img', { name: 'fixture' })
+        .evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
+    )
+    .toBe(true);
 
   await expect
     .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
@@ -54,6 +61,14 @@ test('library add, organize, restart, search, and read workflows', async ({ cont
   await expect(
     page.frameLocator('[data-testid="reader-frame"]').getByRole('img', { name: 'fixture' }),
   ).toBeVisible();
+  await expect
+    .poll(() =>
+      page
+        .frameLocator('[data-testid="reader-frame"]')
+        .getByRole('img', { name: 'fixture' })
+        .evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
+    )
+    .toBe(true);
 });
 
 test('library releases its database connection when the UI unmounts', async ({ page }) => {

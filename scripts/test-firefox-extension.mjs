@@ -255,6 +255,13 @@ async function assertReader(driver, { absentText, imageAlt, text }) {
   }
   const image = await driver.findElement(By.css(`img[alt="${imageAlt}"]`));
   assert.equal(await image.isDisplayed(), true);
+  await driver.wait(
+    async () =>
+      (await image.getAttribute('complete')) === 'true' &&
+      Number(await image.getAttribute('naturalWidth')) > 0,
+    10_000,
+    'Captured image did not decode.',
+  );
   await driver.switchTo().defaultContent();
 }
 

@@ -16,6 +16,14 @@ test('capture packages import with local assets and visible partial warnings', a
   await expect(
     page.frameLocator('[data-testid="reader-frame"]').getByRole('img', { name: 'fixture' }),
   ).toBeVisible();
+  await expect
+    .poll(() =>
+      page
+        .frameLocator('[data-testid="reader-frame"]')
+        .getByRole('img', { name: 'fixture' })
+        .evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
+    )
+    .toBe(true);
 
   await page.getByRole('button', { name: 'Import hostile capture package' }).click();
   await expect(page.getByTestId('capture-status')).toContainText('Capture status: partial');
