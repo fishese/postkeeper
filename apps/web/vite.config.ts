@@ -11,10 +11,20 @@ export default defineConfig({
   base,
   // Workspace commands run from apps/web; local OAuth configuration lives at the repo root.
   envDir: resolve(__dirname, '../..'),
+  build: {
+    rollupOptions: {
+      input: {
+        app: resolve(__dirname, 'index.html'),
+        privacy: resolve(__dirname, 'privacy.html'),
+        terms: resolve(__dirname, 'terms.html'),
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({
       registerType: 'prompt',
+      includeAssets: ['LICENSE.txt', 'THIRD_PARTY_NOTICES.txt'],
       manifest: {
         name: 'PostKeeper',
         short_name: 'PostKeeper',
@@ -23,7 +33,13 @@ export default defineConfig({
         background_color: '#f7f5ef',
         theme_color: '#17212b',
       },
-      workbox: { navigateFallback: `${base}index.html`, cleanupOutdatedCaches: true },
+      workbox: {
+        navigateFallback: `${base}index.html`,
+        navigateFallbackDenylist: [
+          /\/(?:privacy\.html|terms\.html|LICENSE\.txt|THIRD_PARTY_NOTICES\.txt)$/u,
+        ],
+        cleanupOutdatedCaches: true,
+      },
     }),
   ],
   resolve: {

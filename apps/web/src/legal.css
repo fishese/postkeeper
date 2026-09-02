@@ -1,0 +1,137 @@
+:root {
+  color: #17212b;
+  background: #f7f5ef;
+  font-family: system-ui, sans-serif;
+  line-height: 1.65;
+  color-scheme: light;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+header,
+main,
+footer {
+  max-width: 49rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.brand {
+  font-size: 1.2rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+nav {
+  display: flex;
+  gap: 1.1rem;
+  flex-wrap: wrap;
+}
+a {
+  color: #283618;
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+}
+a:hover,
+a[aria-current='page'] {
+  text-decoration-thickness: 0.15em;
+}
+a:focus-visible {
+  outline: 3px solid #bc6c25;
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.15;
+  margin: 0.4rem 0 0.8rem;
+  letter-spacing: -0.03em;
+}
+h2 {
+  font-size: 1.25rem;
+  line-height: 1.35;
+  margin: 0 0 0.75rem;
+}
+p {
+  margin: 0.75rem 0;
+}
+.eyebrow {
+  color: #606c38;
+  font-weight: 650;
+}
+.updated {
+  color: #414833;
+  font-size: 0.95rem;
+}
+.summary {
+  background: #eef2df;
+  border-left: 4px solid #606c38;
+  padding: 0.8rem 1.2rem;
+  margin: 1.5rem 0 2rem;
+}
+section {
+  border-top: 1px solid #c8c6be;
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+}
+ul {
+  padding-left: 1.4rem;
+}
+li + li {
+  margin-top: 0.75rem;
+}
+code {
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+footer {
+  border-top: 1px solid #c8c6be;
+  font-size: 0.95rem;
+  margin-top: 1.5rem;
+  padding-bottom: 2.5rem;
+}
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -5rem;
+  padding: 0.6rem 1rem;
+  background: #fff;
+}
+.skip-link:focus {
+  top: 0.5rem;
+}
+@media print {
+  :root {
+    background: #fff;
+    color: #000;
+    font-size: 11pt;
+  }
+  header,
+  footer,
+  .skip-link {
+    display: none;
+  }
+  main {
+    max-width: none;
+    padding: 0;
+  }
+  h2 {
+    break-after: avoid;
+  }
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
+  }
+  .summary {
+    border-color: #000;
+  }
+}

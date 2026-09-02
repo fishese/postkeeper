@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="How PostKeeper handles local libraries, optional encrypted Google Drive sync, hosting requests, and support information."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'self'; manifest-src 'self'; script-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="canonical" href="https://keep.fishese.cc/privacy.html" />
+    <link rel="stylesheet" href="./src/legal.css" />
+    <title>Privacy Policy · PostKeeper</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header>
+      <a class="brand" href="./">PostKeeper</a>
+      <nav aria-label="Policy navigation">
+        <a href="./">Open app</a>
+        <a href="./privacy.html" aria-current="page">Privacy</a>
+        <a href="./terms.html">Terms</a>
+      </nav>
+    </header>
+    <main id="content">
+      <p class="eyebrow">Your library, on your devices</p>
+      <h1>Privacy Policy</h1>
+      <p class="updated">Last updated: <time datetime="2026-09-02">2 September 2026</time></p>
+      <div class="summary">
+        <p>
+          <strong>We do not operate a server that collects or stores your library.</strong>
+          PostKeeper processes saved content on your device. If you choose Google Drive sync,
+          encrypted copies are stored in your own Google account—not in a maintainer-controlled
+          library service.
+        </p>
+        <p>
+          This does not mean that no data exists or that no provider processes information. Your
+          device stores your library, Google handles optional authorization and sync, GitHub hosts
+          the website, and support issues are public.
+        </p>
+      </div>
+
+      <section aria-labelledby="scope">
+        <h2 id="scope">1. Who and what this policy covers</h2>
+        <p>
+          This policy covers the PostKeeper web app at
+          <a href="https://keep.fishese.cc/">keep.fishese.cc</a> and its companion browser
+          extensions. “We” means the maintainer of the
+          <a href="https://github.com/fishese/postkeeper">fishese/postkeeper project</a>.
+          Independently hosted or modified copies may have different operators and policies.
+        </p>
+        <p>
+          PostKeeper is a development preview. This policy describes implemented features, not
+          planned Android wrappers, backup tools, or self-hosted sync services.
+        </p>
+      </section>
+
+      <section aria-labelledby="local">
+        <h2 id="local">2. Data stored and used on your device</h2>
+        <p>
+          To provide offline reading, search, organization, and synchronization, PostKeeper stores
+          saved page text and HTML snapshots, images, titles, source URLs, categories, reading
+          flags, capture diagnostics, search indexes, device/library identifiers, and sync history
+          in browser storage (IndexedDB and, where available, OPFS). The app shell is cached by a
+          service worker.
+        </p>
+        <p>
+          <strong>Local library data is not encrypted by PostKeeper at rest.</strong> Protection
+          depends on your device, browser profile, operating system, and who can access them.
+        </p>
+        <p>
+          When you explicitly capture a page, the extension reads its rendered content and fetches
+          relevant assets using browser permissions and the existing website session. The website
+          can see these ordinary requests. PostKeeper does not request your website password or send
+          session cookies to a library server. Captured pages can still contain personal information
+          or sensitive links; choose what you save carefully.
+        </p>
+        <p>
+          The extension keeps a bounded local transfer queue until the app acknowledges an import.
+          Transfers expire after 30 minutes; expired records are removed when queue maintenance next
+          runs, not necessarily while the browser is closed.
+        </p>
+      </section>
+
+      <section aria-labelledby="google">
+        <h2 id="google">3. Optional Google Drive authorization and sync</h2>
+        <p>
+          Google is contacted when you select <strong>Load Google sign-in</strong>. Authorization
+          then occurs through Google. You can use the local library without a Google account or
+          Drive connection.
+        </p>
+        <p>
+          PostKeeper requests only <code>https://www.googleapis.com/auth/drive.appdata</code>. It
+          uses this permission to list, read, create, and synchronize PostKeeper objects in the
+          hidden application-data folder. It does not request access to unrelated Drive files,
+          Gmail, or your contacts, and does not request profile information for a PostKeeper
+          account.
+        </p>
+        <p>
+          Sync encrypts article contents and library metadata on your device before upload. Google
+          stores encrypted content, encrypted operations, and a recovery-key-wrapped master key.
+          Google can still observe your account, network requests, object identifiers, sizes, and
+          timing. Decryption and search take place on your device.
+        </p>
+        <p>
+          Google access tokens and unwrapped encryption keys remain in memory for the current app
+          session; PostKeeper does not persist a refresh token or send these secrets to the static
+          website host. A recovery key you copy elsewhere is under your control. We do not hold a
+          recovery copy and cannot reconstruct a lost key.
+        </p>
+        <p>
+          Google user data is used only to provide the sync and restore features you request. We do
+          not sell it, use it for advertising, transfer it to data brokers, or use it to train AI
+          models. PostKeeper's use and transfer of information received from Google APIs will adhere
+          to the
+          <a href="https://developers.google.com/terms/api-services-user-data-policy"
+            >Google API Services User Data Policy</a
+          >, including its Limited Use requirements.
+        </p>
+      </section>
+
+      <section aria-labelledby="providers">
+        <h2 id="providers">4. Hosting, cookies, and support</h2>
+        <p>
+          GitHub Pages serves the app files. Like other web hosts, GitHub processes technical
+          request information, such as IP addresses, browser information, requested paths, and
+          timestamps, for operating and protecting its services. PostKeeper does not send saved
+          article contents, recovery keys, or Google tokens to that host.
+        </p>
+        <p>
+          PostKeeper includes no advertising, analytics, session replay, automatic crash reporting,
+          or tracking cookies. Browser storage is used for app functionality. Google and GitHub may
+          use their own cookies and process data under their policies when you interact with their
+          services. They may process information outside your country.
+        </p>
+        <p>
+          If you voluntarily open an issue, your GitHub identity, message, and attachments are
+          available to the maintainers and the public. We use that information to respond to
+          questions and maintain the project; it remains subject to GitHub's retention and deletion
+          controls.
+        </p>
+        <p>
+          See <a href="https://policies.google.com/privacy">Google's Privacy Policy</a> and
+          <a
+            href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"
+            >GitHub's Privacy Statement</a
+          >
+          for their practices.
+        </p>
+      </section>
+
+      <section aria-labelledby="controls">
+        <h2 id="controls">5. Retention, revocation, and deletion</h2>
+        <ul>
+          <li>
+            <strong>Local copies:</strong> use your browser's site-data controls for the exact
+            PostKeeper origin to remove its local library and caches. Remove extension data
+            separately through your browser. Uninstalling a PWA alone may not clear site data.
+            Clearing one device does not erase other devices or Drive.
+          </li>
+          <li>
+            <strong>Google access:</strong> use <strong>Disconnect Google Drive</strong> to request
+            revocation, or remove access through
+            <a href="https://myaccount.google.com/connections">Google Account connections</a>.
+            Disconnecting does not delete local or remote library data.
+          </li>
+          <li>
+            <strong>Remote copies:</strong> use Google Drive's application-management controls to
+            delete PostKeeper's hidden app data. Stop sync on every device first; a device with
+            retained data and authorization can upload it again. Deleting hidden app data can be
+            irreversible and removes the remote recovery copy.
+          </li>
+          <li>
+            <strong>History:</strong> the current sync format retains operations, snapshot versions,
+            and deletion markers. Removing something from a visible view is not a secure erasure of
+            its history. Automatic history purging and an in-app remote wipe are not currently
+            provided.
+          </li>
+        </ul>
+        <p>
+          Retention of local copies depends on your actions and browser storage policies; browsers
+          can also evict data. Google controls retention of data in its systems. We cannot delete
+          copies on your devices or in your Google account on your behalf.
+        </p>
+      </section>
+
+      <section aria-labelledby="security">
+        <h2 id="security">6. Security and policy changes</h2>
+        <p>
+          HTTPS, encrypted sync, and an isolated reader reduce risks but do not guarantee security
+          or prevent every loss. An unlocked device, malicious extension, compromised software, or
+          exposed recovery key can compromise your library.
+        </p>
+        <p>
+          We will update this page and its date when practices change. Material changes to Google
+          data use will be disclosed in the app and any required new consent obtained before that
+          new use begins. This policy is not consent to undisclosed uses.
+        </p>
+      </section>
+
+      <section aria-labelledby="contact">
+        <h2 id="contact">7. Questions and privacy requests</h2>
+        <p>
+          Contact the maintainer through the
+          <a href="https://github.com/fishese/postkeeper/issues">PostKeeper issue tracker</a>.
+          <strong>Issues are public.</strong> Do not post passwords, tokens, recovery keys, saved
+          articles, or other private information. For a sensitive concern, ask for a private contact
+          method without including the sensitive details.
+        </p>
+        <p>
+          Depending on applicable law, you may have rights concerning your personal information. We
+          can address information you have provided to the project, but do not possess your local
+          library or encrypted Drive account data. Direct provider-held data requests to Google or
+          GitHub as appropriate.
+        </p>
+      </section>
+    </main>
+    <footer>
+      <a href="./terms.html">Terms of Service</a> · <a href="./">Back to PostKeeper</a>
+    </footer>
+  </body>
+</html>

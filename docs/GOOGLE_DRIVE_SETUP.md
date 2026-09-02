@@ -21,6 +21,28 @@ If the OAuth audience is **External / Testing**, add each Google account used in
 
 The current official setup references are Google's [web client-ID guide](https://developers.google.com/identity/oauth2/web/guides/get-google-api-clientid), [Drive JavaScript quickstart](https://developers.google.com/workspace/drive/api/quickstart/js), and [application-data folder guide](https://developers.google.com/workspace/drive/api/guides/appdata).
 
+## Later OAuth publication and policy URLs
+
+The user reports that adding their Google account as a test user resolved the access block. That confirms user-reported authorization success, not the remaining two-client sync/restore acceptance tests.
+
+The following static pages are included in the GitHub Pages deployment. Confirm that they are reachable before submitting their URLs to Google:
+
+| Google Auth Platform field        | Value                                          |
+| --------------------------------- | ---------------------------------------------- |
+| App name                          | PostKeeper                                     |
+| Application home page             | `https://keep.fishese.cc/`                     |
+| Application privacy policy link   | `https://keep.fishese.cc/privacy.html`         |
+| Application terms of service link | `https://keep.fishese.cc/terms.html`           |
+| Authorized domain                 | `fishese.cc`                                   |
+| Authorized JavaScript origin      | `https://keep.fishese.cc`                      |
+| Public policy contact             | `https://github.com/fishese/postkeeper/issues` |
+
+Google's separate user-support email and developer-contact fields still require an address selected in Cloud Console; using the issue tracker on the policy pages does not replace those fields. Do not put secrets in any public field.
+
+`drive.appdata` is [non-sensitive](https://developers.google.com/workspace/drive/api/guides/api-specific-auth), so it does not require sensitive/restricted-scope review. That is not a guarantee of no verification: [brand verification](https://developers.google.com/identity/protocols/oauth2/production-readiness/brand-verification) can apply to public display names/logos and can fall back from automated checks to manual review. Check the project's Branding and Verification Center status before moving the Audience to In production. Verify domain ownership when required and review/remove any obsolete scopes from the repurposed app's configuration. Do not change unrelated OAuth clients without checking their use.
+
+These pages are implementation-aligned drafts, not a legal compliance certification. Before public OAuth launch, the maintainer should review their accuracy, effective dates, operator/contact details, and any jurisdiction-specific requirements with qualified legal advice as appropriate. Do not state “we store no data”: the app stores local data, optional Drive ciphertext, and technical/support information is processed by providers. Future data-handling changes require corresponding policy updates and any required consent. Publishing the policy pages does not change the OAuth audience; it remains in Testing until the maintainer explicitly chooses to change it.
+
 ## Local smoke test
 
 1. Build or serve PostKeeper with `VITE_GOOGLE_CLIENT_ID` set.

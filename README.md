@@ -21,6 +21,7 @@ Milestone 3 browser-extension support now passes its complete runtime matrix: pa
 - [Extension Compatibility](docs/EXTENSION_COMPATIBILITY.md) — tested browser versions and Milestone 3 runtime evidence.
 - [Google Drive Setup](docs/GOOGLE_DRIVE_SETUP.md) — OAuth configuration and the remaining live-provider smoke test.
 - [GitHub Pages Setup](docs/GITHUB_PAGES_SETUP.md) — deployment workflow, custom domain, and DNS configuration.
+- [Privacy Policy](https://keep.fishese.cc/privacy.html) and [Terms of Service](https://keep.fishese.cc/terms.html) — public static pages; GitHub issues are the contact channel.
 
 ## Product summary
 

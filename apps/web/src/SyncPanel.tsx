@@ -146,6 +146,21 @@ export function SyncPanel({
       <p className={`sync-state sync-state-${phase}`} role="status" data-testid="sync-state">
         <strong>{phase}</strong> · {message}
       </p>
+      <p className="sync-note">
+        Optional sync sends encrypted library data to your Google Drive.{' '}
+        <a
+          href={`${import.meta.env.BASE_URL}privacy.html`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Privacy Policy
+        </a>{' '}
+        ·{' '}
+        <a href={`${import.meta.env.BASE_URL}terms.html`} target="_blank" rel="noopener noreferrer">
+          Terms of Service
+        </a>{' '}
+        (open in a new tab).
+      </p>
       {!clientId ? (
         <p>
           This build has no Google OAuth client ID. Set <code>VITE_GOOGLE_CLIENT_ID</code> at build

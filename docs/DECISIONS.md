@@ -4,6 +4,15 @@ This file distinguishes accepted decisions from questions that must be resolved 
 
 ## Accepted decisions
 
+### D-022 — Public privacy and terms pages
+
+Date: 2026-09-02
+Status: accepted
+Context: The user requested privacy and terms pages before later OAuth publication and selected the public GitHub issue tracker as the contact channel.
+Decision: Prepare `privacy.html` and `terms.html` as static Vite entry points at the existing GitHub Pages origin. They require no JavaScript, login, or Google resources. Link them from the homepage and immediately beside optional sync, opening a new tab to preserve in-memory keys. Precache them as documents and exclude them from the app-shell navigation fallback.
+Consequences: The policy distinguishes the absence of a maintainer library backend from local storage, encrypted Google storage, host request logs, and voluntary public support data. It discloses plaintext local storage, retained sync history, revocation/deletion limits, and lost-key risks. Terms preserve GPL rights and mandatory legal protections. No legal approval or Google verification is claimed. The user subsequently authorized publishing the pages to the existing GitHub Pages site. Changing the OAuth audience remains deferred until explicitly requested.
+Supersedes: none
+
 ### D-021 — Google endpoints in the application shell CSP
 
 Date: 2026-09-02

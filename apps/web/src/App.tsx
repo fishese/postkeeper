@@ -33,9 +33,24 @@ export default function App() {
       {hash === '#feasibility' || hash === '#/feasibility' ? <FeasibilityApp /> : <LibraryApp />}
       <footer>
         <p>
+          Save webpages for offline reading and organization, with optional encrypted Google Drive
+          sync.
+        </p>
+        <p>
           Development preview — live Drive sync and recovery acceptance are pending. Use test data.
         </p>
-        <a href="https://github.com/fishese/postkeeper">Source code</a> ·{' '}
+        <a
+          href={`${import.meta.env.BASE_URL}privacy.html`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Privacy Policy
+        </a>{' '}
+        ·{' '}
+        <a href={`${import.meta.env.BASE_URL}terms.html`} target="_blank" rel="noopener noreferrer">
+          Terms of Service
+        </a>{' '}
+        · <a href="https://github.com/fishese/postkeeper">Source code</a> ·{' '}
         <a href={`${import.meta.env.BASE_URL}LICENSE.txt`}>GPLv3-or-later · no warranty</a> ·{' '}
         <a href={`${import.meta.env.BASE_URL}THIRD_PARTY_NOTICES.txt`}>Third-party notices</a>
       </footer>
