@@ -1,5 +1,7 @@
 # Smaller-Model Build Handoff
 
+For the current project checkpoint, use [Next Chat Prompt](NEXT_CHAT_PROMPT.md). The initial-build prompt below is historical; it is not the current milestone status or publication authorization.
+
 ## Recommended model usage
 
 Use GPT-5.6 Terra with medium reasoning for the initial implementation milestone. It is the smaller GPT-5.6 tier intended to balance intelligence and cost, making it a safer default for repository setup and multi-file coding than the most cost-optimized tier.

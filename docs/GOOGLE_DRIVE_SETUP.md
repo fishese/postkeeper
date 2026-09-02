@@ -59,6 +59,14 @@ Use harmless fixtures for localhost testing. Store real production data only at 
 
 ## Opt-in emulator live acceptance runner
 
+### Current checkpoint (2026-09-03)
+
+The existing emulator library has one harmless fixture already associated with a real encrypted Drive library (18 operations and two content blobs restored successfully in the prior run). Do not initialize a different library or discard the saved key. Restarting the emulator preserved local data but cleared session-only authorization and key material. To resume, select **Connect Google Drive**, enter the previously saved key directly in **Restore or unlock with a recovery key**, select **Verify and restore**, and check **I saved the recovery key**. If the Google loader button is shown instead, select **Load Google sign-in** first. Never send the key in chat or save it in repository/test output. Leave the tab open while running acceptance.
+
+The corrected production reader has now passed real desktop/emulator image decoding and offline reload. Remaining checks are independent offline edits/convergence, interrupted-upload retry, encrypted remote-object read-back, and real consent revocation. The user approved the final revocation test; it has not been performed. The last temporary debugging forward was removed. See `docs/NEXT_CHAT_PROMPT.md` for the exact continuation scope.
+
+### Runner safety and use
+
 `scripts/test-live-drive.mjs` is an explicitly opt-in live test, not a CI test. It requires approval to attach Chrome debugging to a signed-in Android emulator. The debugging endpoint exposes the browser session, so use only a trusted loopback connection, inspect only PostKeeper, and remove the ADB forwarding rule afterward. Never attach to the user's phone without permission.
 
 Prepare the emulator at `https://keep.fishese.cc/` with only the development fixture and a connected Google Drive account. Before first upload, the user must save the displayed recovery key and check its confirmation box. The runner refuses to confirm that box on the source client's behalf. Do not overwrite an existing remote library; inspect the initial recovery lookup first and stop if a different library already exists.

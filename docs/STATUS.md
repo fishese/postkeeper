@@ -8,24 +8,25 @@ Last updated: 2026-09-03
 - Application code: Milestone 4 implemented and undergoing acceptance; public development preview deployed at `https://keep.fishese.cc`.
 - Repository scaffold: complete.
 - OAuth audience: published (In production), as reported by the user; brand verification is not independently confirmed.
-- Live acceptance: the user saved/confirmed the key. Android uploaded 18 operations; a clean desktop client rejected a wrong key, safely failed an interrupted download, and restored all 18 operations plus both content blobs on retry. A broken-image check stopped the run before convergence and revocation; the reader fix is validated locally, and the user has approved its publication with the Drive pagination fix.
+- Live acceptance: Android previously uploaded 18 operations; a clean desktop client rejected a wrong key, safely failed an interrupted download, and restored all 18 operations plus both content blobs on retry. The reader and Drive pagination fixes are now deployed as `66a2466`. Real desktop and emulator images decode online and after offline reload. Two-client live convergence, interrupted-upload retry, remote-envelope read-back, and actual consent revocation remain unverified.
+- Current stop: restarting the emulator preserved its one fixture article but cleared the session-only key and Drive connection. The emulator is open at **Connect Google Drive**. The user must reconnect, enter the previously saved key in **Restore or unlock with a recovery key**, select **Verify and restore**, then confirm the saved-key checkbox. Never create a replacement key for this existing library or put the saved key in chat. Temporary ADB forwarding has been removed.
 - Live acceptance runner: opt-in `scripts/test-live-drive.mjs` uses the emulator's app-scoped token only in memory for the clean desktop client's GIS callback; Drive calls are real, but this is not an independent second OAuth consent test. The user approved a real consent-revocation test once sync/restore checks finish.
 - Active milestone: Milestone 4 — Encrypted sync core and Google Drive.
 - Next milestone: Milestone 4 — Encrypted sync core and Google Drive.
 
 ## Milestones
 
-| Milestone                               | Status      | Evidence                                                                                                                                                                                                                         |
-| --------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0. Foundation and feasibility           | Complete    | Static root/subpath builds, toolchain, fixtures, and Chromium/Firefox feasibility evidence recorded.                                                                                                                             |
-| 1. Local-first PWA library              | Complete    | IndexedDB library, OPFS/IndexedDB blobs, views, search rebuild, trusted fixture import, and Chromium/Firefox workflow tests recorded.                                                                                            |
-| 2. Capture format and secure import     | Complete    | Versioned validation/limits, chunk receiver, hash checks, Readability/DOMPurify processing, atomic metadata import, raw snapshots, recapture, warnings, and deterministic tests.                                                 |
-| 3. Browser extensions                   | Complete    | Shared Chromium/Firefox builds, durable queue, secure handoff, desktop runtime passes, and physical Firefox Android 154.0.1 plus Edge Canary Android 154.0.4249.0 passes.                                                        |
-| 4. Encrypted sync core and Google Drive | In progress | Encrypted operations/blobs, recovery, provider contract, GIS, and clean-client restore pass automated tests. D-019 fixes the production origin; the client ID is configured. Live Google OAuth/Drive acceptance remains pending. |
-| 5. Sharing, PDF/print, and backup       | Not started | —                                                                                                                                                                                                                                |
-| 6. Android PWA integration and wrapper  | Not started | —                                                                                                                                                                                                                                |
-| 7. Self-hosted sync provider            | Not started | —                                                                                                                                                                                                                                |
-| 8. Release hardening                    | Not started | —                                                                                                                                                                                                                                |
+| Milestone                               | Status      | Evidence                                                                                                                                                                                                                      |
+| --------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0. Foundation and feasibility           | Complete    | Static root/subpath builds, toolchain, fixtures, and Chromium/Firefox feasibility evidence recorded.                                                                                                                          |
+| 1. Local-first PWA library              | Complete    | IndexedDB library, OPFS/IndexedDB blobs, views, search rebuild, trusted fixture import, and Chromium/Firefox workflow tests recorded.                                                                                         |
+| 2. Capture format and secure import     | Complete    | Versioned validation/limits, chunk receiver, hash checks, Readability/DOMPurify processing, atomic metadata import, raw snapshots, recapture, warnings, and deterministic tests.                                              |
+| 3. Browser extensions                   | Complete    | Shared Chromium/Firefox builds, durable queue, secure handoff, desktop runtime passes, and physical Firefox Android 154.0.1 plus Edge Canary Android 154.0.4249.0 passes.                                                     |
+| 4. Encrypted sync core and Google Drive | In progress | Automated sync/recovery passes; real wrong-key rejection, interrupted download/retry, 18-operation restore, and corrected offline images verified. Remaining live acceptance needs the user to reconnect/unlock the emulator. |
+| 5. Sharing, PDF/print, and backup       | Not started | —                                                                                                                                                                                                                             |
+| 6. Android PWA integration and wrapper  | Not started | —                                                                                                                                                                                                                             |
+| 7. Self-hosted sync provider            | Not started | —                                                                                                                                                                                                                             |
+| 8. Release hardening                    | Not started | —                                                                                                                                                                                                                             |
 
 ## Documentation completed
 
@@ -34,6 +35,7 @@ Last updated: 2026-09-03
 - Implementation roadmap.
 - Decision log.
 - Smaller-model build handoff.
+- Current-session continuation prompt and emulator checkpoint: `docs/NEXT_CHAT_PROMPT.md`.
 
 ## Instructions for implementation agents
 
@@ -44,6 +46,12 @@ Last updated: 2026-09-03
 5. Do not mark later milestones in progress speculatively.
 
 ## Work log
+
+2026-09-03 — Published reader isolation/image and exact-name Drive pagination corrections as commit `66a2466`; [GitHub Actions run 33659560481](https://github.com/fishese/postkeeper/actions/runs/33659560481) passed clean validation, build (1m5s), and deployment (14s). Local `npm run validate` also passes 81 tests across 26 files, formatting, lint, type checks, and web/extension builds. `npm run test:browser -- --reporter=list` passes all 18 tests in 19.2s. Prior corrected-source packaged Chromium (2 tests) and Firefox 155.0 runtime passes remain applicable. Pages actions still report the non-blocking Node 20-to-24 runtime warning.
+
+2026-09-03 — Public HTTPS smoke checks return 200 for the homepage, privacy, terms, manifest, and service worker. A disposable desktop Chrome 152.0.7977.65 profile loaded the deployed `app-BtsItKCW.js` bundle, imported the harmless fixture, and verified a positive image `naturalWidth`, an empty reader sandbox, and successful offline reload. The existing `Pixel_10_Pro_emu` was reopened (Android 17 / Chrome 149.0.7827.5 / ADB serial `emulator-5580`) and kept at 564 × 1186 pixels. Its existing local fixture survived. After updating only its service-worker app shell, the same stored image decoded online and after offline reload. No origin storage was cleared, no new key was generated, and no Drive API calls were made this session.
+
+2026-09-03 — Logical stopping point: the emulator shutdown cleared the in-memory recovery key and OAuth connection, so remaining live-provider acceptance requires user reconnection and entry of the already-saved key directly in PostKeeper. The Google sign-in script is loaded and **Connect Google Drive** is ready. Network access was restored; the temporary ADB forward was removed and `adb forward --list` returned empty. The phone was not used. No actual revocation has occurred yet; the user's prior approval remains recorded for the final acceptance test. Milestone 4 remains In progress, Milestone 5 is Not started. `docs/NEXT_CHAT_PROMPT.md` records the continuation steps and boundaries.
 
 2026-09-03 — The user approved publishing the validated reader and Drive pagination fixes, then requested continuation to the next logical stop, documentation updates, and a copy-ready next-chat prompt. Resumed the release workflow for the existing GitHub Pages origin. ADB initially reported no devices; the previously approved Android Studio emulator is being reopened from its saved state. The phone remains out of scope.
 

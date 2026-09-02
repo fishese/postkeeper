@@ -6,7 +6,7 @@ The application code may be hosted as a static Progressive Web App (PWA), but th
 
 ## Current status
 
-Milestones 0 through 3 are complete. Milestone 4 is in progress: the encrypted operation log, recovery-key flow, provider-neutral sync engine, Google Drive `appDataFolder` adapter, and clean-client restore are implemented and pass deterministic tests. The development preview is deployed at [keep.fishese.cc](https://keep.fishese.cc), hosted by GitHub Pages from `fishese/postkeeper`. A browser OAuth client ID is configured, and the user reports OAuth publication and successful sign-in; live Drive sync/restore acceptance is still pending.
+Milestones 0 through 3 are complete. Milestone 4 is in progress: the encrypted operation log, recovery-key flow, provider-neutral sync engine, Google Drive `appDataFolder` adapter, and clean-client restore are implemented and pass deterministic tests. The development preview is deployed at [keep.fishese.cc](https://keep.fishese.cc), hosted by GitHub Pages from `fishese/postkeeper`. Real Drive restore and wrong-key/interrupted-download checks have passed; corrected reader images work offline on desktop and the Android emulator. Remaining live convergence, upload-retry, encrypted-object read-back, and revocation checks await reconnection and the user's saved recovery key. See the [current continuation prompt](docs/NEXT_CHAT_PROMPT.md).
 
 Milestone 3 browser-extension support now passes its complete runtime matrix: packaged Chromium, desktop Firefox, Firefox Android 154.0.1, and Microsoft Edge Canary for Android 154.0.4249.0 (versionCode 424900023). Edge Canary 154.0.4249.0 is the first supported Android Chromium minimum; no earlier Edge build is claimed. See [Implementation Roadmap](docs/IMPLEMENTATION_ROADMAP.md), [Extension Compatibility](docs/EXTENSION_COMPATIBILITY.md), and [Project Status](docs/STATUS.md).
 
@@ -16,7 +16,8 @@ Milestone 3 browser-extension support now passes its complete runtime matrix: pa
 - [Technical Architecture](docs/TECHNICAL_ARCHITECTURE.md) — components, storage, capture, synchronization, and security boundaries.
 - [Implementation Roadmap](docs/IMPLEMENTATION_ROADMAP.md) — ordered milestones and their completion criteria.
 - [Decision Log](docs/DECISIONS.md) — accepted and unresolved product and technical decisions.
-- [Smaller-Model Handoff](docs/SMALLER_MODEL_HANDOFF.md) — model guidance and a copy-ready prompt for a new Codex task.
+- [Current Continuation Prompt](docs/NEXT_CHAT_PROMPT.md) — the latest checkpoint, required user action, and copy-ready next-chat prompt.
+- [Smaller-Model Handoff](docs/SMALLER_MODEL_HANDOFF.md) — original milestone templates; use the current continuation prompt when resuming this session.
 - [Project Status](docs/STATUS.md) — the canonical record of completed and active milestones.
 - [Extension Compatibility](docs/EXTENSION_COMPATIBILITY.md) — tested browser versions and Milestone 3 runtime evidence.
 - [Google Drive Setup](docs/GOOGLE_DRIVE_SETUP.md) — OAuth configuration and the remaining live-provider smoke test.
