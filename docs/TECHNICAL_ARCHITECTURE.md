@@ -377,6 +377,8 @@ Provide local diagnostics that users can inspect and export deliberately:
 
 ## 14. External references
 
+The user-requested 0.6.1 presentation follow-up is specified by D-026 and [UI and localization](UI_AND_LOCALIZATION.md): shared CSS tokens, separate reader/print sheets, typed English catalogs, native XML/string resources, and a versioned GitHub APK link in About. This changes presentation only; capture, storage, encryption and isolation boundaries above remain in force.
+
 - Readeck describes browser-assisted full-page submission and the risks of storing paywall credentials: <https://github.com/readeck/readeck/blob/main/README.md>
 - GitHub Pages is static hosting: <https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages>
 - Google Drive app-specific data: <https://developers.google.com/workspace/drive/api/guides/appdata>

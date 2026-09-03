@@ -1,3 +1,4 @@
+import { importFixture } from './ui-helpers';
 import { expect, test } from '@playwright/test';
 
 test.describe.configure({ timeout: 60_000 });
@@ -6,7 +7,7 @@ test('capture packages import with local assets and visible partial warnings', a
   await page.goto('/');
   await expect(page.getByTestId('storage-status')).toContainText(/Storage:/, { timeout: 15_000 });
 
-  await page.getByRole('button', { name: 'Import public capture package' }).click();
+  await importFixture(page, 'Import public capture package');
   await expect(page.getByRole('button', { name: /A public fixture article/ })).toBeVisible();
   await expect(
     page
@@ -25,8 +26,8 @@ test('capture packages import with local assets and visible partial warnings', a
     )
     .toBe(true);
 
-  await page.getByRole('button', { name: 'Import hostile capture package' }).click();
-  await expect(page.getByTestId('capture-status')).toContainText('Capture status: partial');
+  await importFixture(page, 'Import hostile capture package');
+  await expect(page.getByTestId('capture-status')).toContainText('Capture status: Partial capture');
   await expect(page.getByTestId('capture-status')).toContainText(
     'missing-asset:https://fixtures.postkeeper.local/missing.png',
   );

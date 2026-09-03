@@ -1,0 +1,17 @@
+<resources>
+    <style name="PostKeeperTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">@color/pk_accent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowBackground">@color/pk_paper</item>
+        <item name="android:textColorPrimary">@color/pk_ink</item>
+    </style>
+    <style name="CaptureIconButton">
+        <item name="android:layout_width">@dimen/pk_touch_target</item>
+        <item name="android:layout_height">@dimen/pk_touch_target</item>
+        <item name="android:background">?android:attr/selectableItemBackgroundBorderless</item>
+        <item name="android:tint">@color/pk_ink</item>
+        <item name="android:padding">12dp</item>
+    </style>
+</resources>

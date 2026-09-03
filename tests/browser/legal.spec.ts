@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openSettings } from './ui-helpers';
 
 test.describe('static policy pages without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
@@ -35,13 +36,14 @@ test('policy links preserve the app session and the PWA serves policy pages offl
   await expect
     .poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
     .toBe(true);
+  await openSettings(page, 'About PostKeeper');
   const policyLink = page.getByRole('link', { name: 'Privacy Policy', exact: true }).first();
   await expect(policyLink).toHaveAttribute('target', '_blank');
   const opened = page.waitForEvent('popup');
   await policyLink.click();
   const policy = await opened;
   await expect(policy.getByRole('heading', { name: 'Privacy Policy', exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'PostKeeper', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Settings', exact: true })).toBeVisible();
   await policy.getByRole('link', { name: 'Terms', exact: true }).click();
   await expect(
     policy.getByRole('heading', { name: 'Terms of Service', exact: true }),

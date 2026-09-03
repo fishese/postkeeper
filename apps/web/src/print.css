@@ -1,0 +1,108 @@
+@media screen {
+  body {
+    max-width: 180mm;
+    padding: 1rem;
+    margin: auto;
+  }
+}
+.print-help {
+  font:
+    14px/1.5 system-ui,
+    sans-serif;
+  padding: 1em;
+  background: #eef2df;
+}
+@media print {
+  .print-help {
+    display: none;
+  }
+}
+@page {
+  size: auto;
+  margin: 16mm;
+}
+html,
+body {
+  margin: 0;
+  font:
+    11pt/1.5 Georgia,
+    serif;
+  color: #000;
+  background: #fff;
+}
+body {
+  overflow-wrap: anywhere;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  break-after: avoid;
+  page-break-after: avoid;
+  line-height: 1.2;
+}
+h1 {
+  font-size: 23pt;
+}
+h2 {
+  font-size: 17pt;
+}
+h3 {
+  font-size: 14pt;
+}
+p,
+li {
+  orphans: 3;
+  widows: 3;
+}
+img {
+  max-width: 100%;
+  max-height: 230mm;
+  object-fit: contain;
+  height: auto;
+  break-inside: avoid;
+}
+figure,
+tr {
+  break-inside: avoid;
+}
+figure {
+  margin: 1em 0;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+td,
+th {
+  border: 1px solid #aaa;
+  padding: 0.3em;
+}
+thead {
+  display: table-header-group;
+}
+pre {
+  white-space: pre-wrap;
+}
+blockquote {
+  margin-inline: 1em;
+}
+a {
+  color: #000;
+  text-decoration: underline;
+}
+a[href^='http']::after {
+  content: ' (' attr(href) ')';
+  font-size: 9pt;
+  overflow-wrap: anywhere;
+}
+.print-source {
+  border-bottom: 1px solid #aaa;
+  padding-bottom: 0.8em;
+  margin-bottom: 1.2em;
+  font:
+    10pt/1.5 system-ui,
+    sans-serif;
+}

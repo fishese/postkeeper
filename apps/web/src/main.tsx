@@ -4,6 +4,10 @@ import { registerSW } from 'virtual:pwa-register';
 import App from './App';
 import './styles.css';
 import { isNativeAndroid } from './nativeBridge';
+import { locale, direction } from './i18n';
+
+document.documentElement.lang = locale;
+document.documentElement.dir = direction;
 
 if (!isNativeAndroid())
   registerSW({

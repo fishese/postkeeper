@@ -62,6 +62,7 @@ test('shared POST is handled locally and pending links survive offline reload', 
 test('invalid fragment share leaves the library usable and empty', async ({ page }) => {
   await page.goto('/#share=' + encodeURIComponent(JSON.stringify({ url: 'javascript:alert(1)' })));
   await expect(page.getByTestId('article-list').locator('li')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Add link', exact: true }).first().click();
   await page.getByLabel('Page URL', { exact: true }).fill('https://example.com/safe');
   await page.getByRole('button', { name: 'Save link to inbox' }).click();
   await expect(page.getByTestId('article-list').locator('li')).toHaveCount(1);

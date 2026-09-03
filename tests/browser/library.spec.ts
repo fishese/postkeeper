@@ -1,3 +1,10 @@
+import {
+  importFixture,
+  createCategory,
+  articleDetails,
+  openSettings,
+  closeSettings,
+} from './ui-helpers';
 import { expect, test } from '@playwright/test';
 
 test.describe.configure({ timeout: 60_000 });
@@ -6,18 +13,18 @@ test('library add, organize, restart, search, and read workflows', async ({ cont
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'PostKeeper' })).toBeVisible();
   await expect(page.getByTestId('storage-status')).toContainText(/Storage:/, { timeout: 15_000 });
-  await page.getByRole('button', { name: 'Import development fixture' }).click();
+  await importFixture(page, 'Import development fixture');
   await expect(page.getByRole('button', { name: /A public fixture article/ })).toBeVisible();
   await page.getByRole('button', { name: /A public fixture article/ }).click();
 
-  await page.getByLabel('New category').fill('Field notes');
-  await page.getByRole('button', { name: 'Create category' }).click();
+  await createCategory(page, 'Field notes');
+  await articleDetails(page);
   await expect(page.getByRole('button', { name: 'Field notes' })).toBeVisible();
   const membership = page.getByRole('checkbox', { name: 'Field notes' });
   await membership.click();
   await expect(membership).toBeChecked();
   await page.getByRole('button', { name: 'Inbox', exact: true }).click();
-  await expect(page.getByText('No articles in this view.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Make room for a good read' })).toBeVisible();
   await page.getByRole('button', { name: 'Field notes' }).click();
   await page.getByRole('button', { name: /A public fixture article/ }).click();
   await page.getByRole('button', { name: 'Favorite', exact: true }).click();
@@ -25,8 +32,10 @@ test('library add, organize, restart, search, and read workflows', async ({ cont
 
   await page.getByRole('searchbox', { name: 'Search library' }).fill('alpine marmot');
   await expect(page.getByRole('button', { name: /A public fixture article/ })).toBeVisible();
+  await openSettings(page, 'Storage and maintenance');
   await page.getByRole('button', { name: 'Rebuild search index' }).click();
   await expect(page.getByTestId('rebuild-status')).toContainText('Rebuilt');
+  await closeSettings(page);
 
   await page.reload();
   await expect(page.getByTestId('storage-status')).toContainText(/Storage:/, { timeout: 15_000 });

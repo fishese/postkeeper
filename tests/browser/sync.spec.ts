@@ -1,11 +1,15 @@
+import { importFixture, openSettings } from './ui-helpers';
 import { expect, test } from '@playwright/test';
 
 test('encrypted sync setup requires recovery-key confirmation and connection', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByTestId('sync-state')).toContainText('local');
+  await openSettings(page, 'Encrypted sync');
+  await expect(page.getByTestId('sync-state')).toContainText('Local only');
   await expect(
     page
-      .getByText('This build has no Google OAuth client ID')
+      .getByText(
+        'Google Drive sync is not configured for this build. Your local library is ready to use.',
+      )
       .or(page.getByRole('button', { name: 'Load Google sign-in' })),
   ).toBeVisible();
 
@@ -39,8 +43,13 @@ test('production CSP permits GIS and Drive while the saved reader remains networ
     });
   });
   await page.goto('/');
+  await openSettings(page, 'Encrypted sync');
   test.skip(
-    await page.getByText('This build has no Google OAuth client ID').isVisible(),
+    await page
+      .getByText(
+        'Google Drive sync is not configured for this build. Your local library is ready to use.',
+      )
+      .isVisible(),
     'OAuth-enabled build required.',
   );
   await page.getByRole('button', { name: 'Load Google sign-in' }).click();
@@ -49,9 +58,9 @@ test('production CSP permits GIS and Drive while the saved reader remains networ
   await page.getByRole('button', { name: 'Create library recovery key' }).click();
   await page.getByRole('checkbox', { name: /I saved the recovery key/u }).check();
   await page.getByRole('button', { name: 'Sync now', exact: true }).click();
-  await expect(page.getByTestId('sync-state')).toContainText('reconnect-required');
+  await expect(page.getByTestId('sync-state')).toContainText('Reconnect required');
   expect(driveRequests).toBeGreaterThan(0);
-  await page.getByRole('button', { name: 'Import development fixture', exact: true }).click();
+  await importFixture(page, 'Import development fixture');
   const reader = page.getByTestId('reader-frame');
   await expect(reader).toHaveAttribute('sandbox', '');
   await expect(reader).toHaveAttribute('srcdoc', /connect-src 'none'/u);

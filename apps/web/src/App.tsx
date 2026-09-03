@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import { useEffect, useState } from 'react';
 import { FeasibilityApp } from './FeasibilityApp';
 import { LibraryApp } from './LibraryApp';
@@ -27,31 +28,11 @@ export default function App() {
     <>
       {updateAvailable && (
         <p className="update-banner" role="status">
-          A newer app version is ready; reload when convenient.
+          {t('app.aNewerAppVersionIsReady')}
         </p>
       )}
       {hash === '#feasibility' || hash === '#/feasibility' ? <FeasibilityApp /> : <LibraryApp />}
-      <footer>
-        <p>
-          Save webpages for offline reading and organization, with optional encrypted Google Drive
-          sync.
-        </p>
-        <p>Development preview — release hardening is pending. Use test data.</p>
-        <a
-          href={`${import.meta.env.BASE_URL}privacy.html`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Privacy Policy
-        </a>{' '}
-        ·{' '}
-        <a href={`${import.meta.env.BASE_URL}terms.html`} target="_blank" rel="noopener noreferrer">
-          Terms of Service
-        </a>{' '}
-        · <a href="https://github.com/fishese/postkeeper">Source code</a> ·{' '}
-        <a href={`${import.meta.env.BASE_URL}LICENSE.txt`}>GPLv3-or-later · no warranty</a> ·{' '}
-        <a href={`${import.meta.env.BASE_URL}THIRD_PARTY_NOTICES.txt`}>Third-party notices</a>
-      </footer>
+      <p className="print-app-help">{t('print.appHelp')}</p>
     </>
   );
 }

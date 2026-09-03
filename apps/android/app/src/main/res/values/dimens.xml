@@ -1,0 +1,7 @@
+<resources>
+    <dimen name="pk_touch_target">48dp</dimen>
+    <dimen name="pk_inset">16dp</dimen>
+    <dimen name="pk_small_inset">8dp</dimen>
+    <dimen name="pk_body_text">14sp</dimen>
+    <dimen name="pk_caption_text">12sp</dimen>
+</resources>

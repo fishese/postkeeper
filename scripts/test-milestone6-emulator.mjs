@@ -21,6 +21,9 @@ const adb = (...args) =>
   });
 const pkg = 'cc.fishese.postkeeper.debug';
 async function tapNative(text) {
+  if (text === 'Clear this site' || text === 'Clear all browsing data') {
+    await tapNative('Browser options');
+  }
   let bounds;
   await expect
     .poll(
@@ -31,9 +34,9 @@ async function tapNative(text) {
           .map((match) => match[0])
           .find(
             (node) =>
-              node.toLowerCase().includes(`text="${text.toLowerCase()}"`) &&
-              node.includes('enabled="true"') &&
-              node.includes('android.widget.Button'),
+              (node.toLowerCase().includes(`text="${text.toLowerCase()}"`) ||
+                node.toLowerCase().includes(`content-desc="${text.toLowerCase()}"`)) &&
+              node.includes('enabled="true"'),
           );
         bounds = node?.match(/bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/u);
         return !!bounds;
@@ -113,8 +116,13 @@ async function checkReader(title) {
   await expect(main.locator('[title="Safe reader"]')).toHaveAttribute('sandbox', '');
   await expect(main.getByText('Pending link', { exact: true })).toHaveCount(0);
 }
+async function openLibraryItem(name) {
+  const back = main.getByRole('button', { name: 'Back to library', exact: true });
+  if (await back.isVisible()) await back.click();
+  await main.getByRole('button', { name }).click();
+}
 try {
-  await expect(main.getByRole('heading', { name: 'Save a link' })).toBeVisible();
+  await expect(main.getByRole('heading', { name: 'PostKeeper', exact: true })).toBeVisible();
   await share('/public');
   const publicPage = await openCapture('http://127.0.0.1:4186/public');
   await expect(publicPage.getByRole('heading', { name: 'M6 public article' })).toBeVisible();
@@ -210,14 +218,14 @@ try {
   await expect(second.getByRole('heading', { name: 'Fixture sign-in' })).toBeVisible();
   await tapNative('Library');
   await expect(main.getByTestId('article-list').locator('li')).toHaveCount(preserved + 1);
-  await main.getByRole('button', { name: /M6 authenticated article/ }).click();
+  await openLibraryItem(/M6 authenticated article/);
   const firstAfterAll = await openCapture('http://127.0.0.1:4186/private');
   await expect(firstAfterAll.getByRole('heading', { name: 'Fixture sign-in' })).toBeVisible();
   assert.equal(await firstAfterAll.evaluate(() => localStorage.getItem('m6-site')), null);
   await tapNative('Library');
   console.log('PASS: clear-all browsing data preserves the independent native library.');
   // Test origin guards on the normal opaque-origin saved reader.
-  await main.getByRole('button', { name: /M6 public article/ }).click();
+  await openLibraryItem(/M6 public article/);
   assert.equal(
     await main
       .frameLocator('[title="Safe reader"]')
@@ -226,7 +234,7 @@ try {
     'undefined',
   );
   await main.reload();
-  await main.getByRole('button', { name: /M6 authenticated article/ }).click();
+  await openLibraryItem(/M6 authenticated article/);
   await checkReader('M6 authenticated article');
   console.log(
     JSON.stringify({

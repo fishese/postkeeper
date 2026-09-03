@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import {
   ChunkedCaptureReceiver,
   decodeCapturePackage,
@@ -57,7 +58,7 @@ function startExtensionTransfer(
   const postRequest = () => {
     if (started || finished) return;
     started = true;
-    onStatus('Receiving capture from the browser extension…');
+    onStatus(t('transfer.receiving'));
     window.postMessage(
       {
         channel: 'postkeeper-pwa',
@@ -86,7 +87,7 @@ function startExtensionTransfer(
       return;
     }
     if (message.type === 'postkeeper:transfer-error') {
-      onStatus(`Extension transfer failed: ${message.error ?? 'unknown error'}`);
+      onStatus(t('transfer.failed', { reason: message.error ?? t('transfer.unknown') }));
       return;
     }
     if (
@@ -100,7 +101,7 @@ function startExtensionTransfer(
       return;
     }
     if (payloadSha256 !== null && payloadSha256 !== message.payloadSha256) {
-      onStatus('Extension transfer failed: payload hash changed during transfer.');
+      onStatus(t('transfer.failed', { reason: t('transfer.changed') }));
       return;
     }
     payloadSha256 = message.payloadSha256;
@@ -116,7 +117,7 @@ function startExtensionTransfer(
       .then(async (receipt) => {
         if (!receipt.complete) return;
         if ((await sha256Hex(receipt.bytes)) !== payloadSha256) {
-          throw new Error('Complete payload hash mismatch.');
+          throw new Error(t('transfer.mismatch'));
         }
         const article = await library.importCapturePackage(decodeCapturePackage(receipt.bytes));
         finished = true;
@@ -136,11 +137,11 @@ function startExtensionTransfer(
           '',
           `${window.location.pathname}${window.location.search}`,
         );
-        onStatus(`Imported “${article.title}” from the browser extension.`);
+        onStatus(t('transfer.imported', { title: article.title }));
       })
       .catch((cause: unknown) => {
         onStatus(
-          `Extension transfer failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+          t('transfer.failed', { reason: cause instanceof Error ? cause.message : String(cause) }),
         );
       });
   };

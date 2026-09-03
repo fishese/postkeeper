@@ -1,3 +1,4 @@
+import readerCss from './reader.css?inline';
 import { SUPPORTED_CAPTURE_MEDIA_TYPES } from '@postkeeper/capture-format';
 import { sanitizeStoredReaderHtml } from '@postkeeper/capture-processing';
 import { rewriteReaderHtml, type ReaderContent } from '@postkeeper/local-store';
@@ -13,7 +14,9 @@ function imageDataUrl(bytes: Uint8Array, mediaType: string): string {
   return `data:${mediaType};base64,${btoa(chunks.join(''))}`;
 }
 
-export function createReaderDocument(content: Pick<ReaderContent, 'html' | 'assets'>): string {
+export function createReaderDocument(
+  content: Pick<ReaderContent, 'html' | 'assets'> & Partial<Pick<ReaderContent, 'article'>>,
+): string {
   const urls = new Map<string, string>();
   for (const asset of content.assets) {
     // Never interpolate an untrusted MIME string into an HTML attribute.
@@ -21,5 +24,10 @@ export function createReaderDocument(content: Pick<ReaderContent, 'html' | 'asse
     urls.set(asset.id, imageDataUrl(asset.bytes, asset.mediaType));
   }
   const body = rewriteReaderHtml(sanitizeStoredReaderHtml(content.html), urls);
-  return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none';"><style>html,body{margin:0;font:16px/1.5 system-ui,sans-serif;color:#17212b;background:#fff}img{max-width:100%;height:auto}a{pointer-events:none;color:#283618}</style></head><body>${body}</body></html>`;
+  // Content language is independent of the interface locale; an empty tag means unknown.
+  const suppliedLanguage = content.article?.language ?? '';
+  const language = /^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$/.test(suppliedLanguage)
+    ? suppliedLanguage
+    : '';
+  return `<!doctype html><html lang="${language}" dir="auto"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none';"><style>${readerCss}</style></head><body>${body}</body></html>`;
 }

@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import { useMemo } from 'react';
 import type { ReaderContent } from '@postkeeper/local-store';
 import { createReaderDocument } from './readerDocument';
@@ -8,7 +9,7 @@ export function Reader({ content }: { content: ReaderContent }) {
   return (
     <iframe
       className="reader-frame"
-      title="Safe reader"
+      title={t('reader.safeReader')}
       sandbox=""
       referrerPolicy="no-referrer"
       data-testid="reader-frame"

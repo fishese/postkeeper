@@ -1,8 +1,10 @@
 # Project Status
 
-Last updated: 2026-09-03
+Last updated: 2026-09-04
 
 ## Current state
+
+- User-requested follow-up: **0.6.1 compact UI/localization redesign complete locally** (D-026). CSS tokens, mobile reader/navigation, dialog sheets, typed English catalog, native XML resources, and Settings → About APK download. Hosted signing/publication verification is in progress; M7 remains Not started. See `UI_AND_LOCALIZATION.md`.
 
 - Product planning: complete for initial implementation.
 - Application code: Milestones 0–6 complete and published. M6 (web/native 0.6.0) was committed/pushed as `c32aae9`; signing-runner path fix `f5d139c` is also published. Pages deployments `33763974272` and `33764183745` succeeded at `https://keep.fishese.cc`; the public manifest's POST share target was verified.
@@ -47,6 +49,10 @@ Last updated: 2026-09-03
 5. Do not mark later milestones in progress speculatively.
 
 ## Work log
+
+2026-09-04 — Implemented the explicitly requested UI/i18n follow-up (D-026). Moved sync, backup, maintenance, and fixture controls behind Settings; added compact library navigation, mobile reader/back action, labeled icon controls, and modal add/category sheets. Shared CSS tokens replace screen-specific inline styling; reader and print styling are separate CSS sources. Primary UI/notification text uses a typed English catalog, complete named messages, Intl plurals/numbers/dates, English fallback and logical CSS. Native capture toolbar uses XML resources and an overflow menu; full address remains inspectable and destructive confirmations remain. The user also requested GitHub APK hosting; About links the matching version's release asset. Web/native version is 0.6.1, Android versionCode 7 (not Milestone 7). No storage/schema/provider/crypto change or new runtime dependency.
+
+2026-09-04 — Verification: full local validation passes **109 tests / 31 files**, formatting, ESLint, type checking, and web/extension builds. Chromium/Firefox browser matrix passes **33 tests, 1 intentional Firefox POST-share skip**, including 320/390 px mobile flows, 150% text and simulated RTL overflow checks, modal Escape/focus restoration, offline organization/decoded images, security, backup/print and sync regressions. Initial narrow-text overflow was fixed; policy tests now open About. Mobile/desktop screenshots were visually reviewed. Native debug/unsigned release builds and two JVM tests pass. Native toolbar-only instrumentation passed after waiting for layout before measuring: 48 dp targets, accessible labels, actual address and screenshot. The capture screen was visually inspected on the existing Pixel_10_Pro_emu, restarted headlessly as emulator-5554; the debug app was updated in place. No phone, key-vault operation, real Drive call or release-app install occurred. Full M6 capture/clearing was not rerun; its runner selectors were adjusted for the new menu/navigation, with prior evidence preserved. Final hosted build and cleanup are recorded in the next entry when complete.
 
 2026-09-03 — **GitHub signed APK accepted.** The user saved four repository secrets and requested verification/build. Checked names only: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`; no values were read through GitHub APIs or displayed. Published M6/workflow as `c32aae9`. Android Studio had generated local `.idea` metadata and `app/release` outputs; added ignore rules and excluded them from staging while preserving them on disk. No keystore, generated APK, or local IDE cache was committed. First APK run `33763991596` failed before signing because `sdkmanager` was not on the runner PATH. Committed/pushed `f5d139c` to use its absolute installed SDK path in both jobs; retry **33764185135 passed**, with build in 2m30s and sign in 15s. Hosted `npm run validate` and Android JVM/lint/release gates passed. The signing job used the user's secrets only on its separate runner, deleted the temporary keystore, verified the signature, and uploaded the signed artifact.
 

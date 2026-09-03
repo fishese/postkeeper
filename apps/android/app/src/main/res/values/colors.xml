@@ -1,0 +1,7 @@
+<resources>
+    <color name="pk_paper">#FFFFFF</color>
+    <color name="pk_canvas">#F5F6F2</color>
+    <color name="pk_ink">#243C39</color>
+    <color name="pk_muted">#657773</color>
+    <color name="pk_accent">#245E51</color>
+</resources>

@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import { useEffect, useRef, useState } from 'react';
 import type { SyncDiagnostics } from './diagnostics';
 import type { Library } from '@postkeeper/local-store';
@@ -27,7 +28,7 @@ export function SyncPanel({
   const authorizer = useRef<GoogleIdentityAuthorizer | null>(null);
   const provider = useRef<GoogleDriveObjectStore | null>(null);
   const [phase, setPhase] = useState<SyncPhase>('local');
-  const [message, setMessage] = useState('Local only. Google Drive sync is optional.');
+  const [message, setMessage] = useState(t('syncPanel.localOnlyGoogleDriveSyncIs'));
   const [connected, setConnected] = useState(false);
   const [identityReady, setIdentityReady] = useState(false);
   const [loadingIdentity, setLoadingIdentity] = useState(false);
@@ -56,7 +57,7 @@ export function SyncPanel({
       const identity = await loadGoogleIdentityServices();
       authorizer.current = new GoogleIdentityAuthorizer(clientId, identity);
       setIdentityReady(true);
-      setMessage('Google sign-in is ready. Select Connect Google Drive to authorize.');
+      setMessage(t('syncPanel.googleSignInIsReadySelect'));
     } catch (cause) {
       showError(cause);
     } finally {
@@ -73,7 +74,7 @@ export function SyncPanel({
       provider.current = new GoogleDriveObjectStore({ accessToken: () => auth.token() });
       setConnected(true);
       setPhase('local');
-      setMessage('Google Drive connected. Local data remains authoritative until you sync.');
+      setMessage(t('syncPanel.googleDriveConnectedLocalDataRemains'));
     } catch (cause) {
       showError(cause);
     }
@@ -84,7 +85,7 @@ export function SyncPanel({
       setKeys(await createLibraryKeyMaterial());
       setConfirmedRecovery(false);
       setPhase('local');
-      setMessage('Recovery key created in memory. Save it before the first upload.');
+      setMessage(t('syncPanel.recoveryKeyCreatedInMemorySave'));
     } catch (cause) {
       showError(cause);
     }
@@ -93,20 +94,23 @@ export function SyncPanel({
   async function syncNow() {
     if (!provider.current || !keys) return;
     setPhase('pending');
-    setMessage('Encrypting local changes and synchronizing…');
+    setMessage(t('syncPanel.encryptingLocalChangesAndSynchronizing'));
     try {
       const result = await synchronizeLibrary(library, provider.current, keys);
       if (result.state === 'conflict') {
         setPhase('conflict');
-        setMessage(
-          `${result.materialized.conflicts.length} conflict(s) need review; both variants were retained.`,
-        );
+        setMessage(t('sync.conflicts', { count: result.materialized.conflicts.length }));
         return;
       }
       setPhase('synced');
       setLastSuccess(new Date().toISOString());
       setMessage(
-        `Synced ${result.operations.length} operation(s); uploaded ${result.uploaded}, downloaded ${result.downloaded}, restored ${result.restoredBlobs} blob(s).`,
+        t('sync.result', {
+          operations: result.operations.length,
+          uploaded: result.uploaded,
+          downloaded: result.downloaded,
+          blobs: result.restoredBlobs,
+        }),
       );
       await onLibraryChanged();
     } catch (cause) {
@@ -117,7 +121,7 @@ export function SyncPanel({
   async function restore() {
     if (!provider.current || !recoveryInput.trim()) return;
     setPhase('pending');
-    setMessage('Verifying the recovery key and restoring encrypted data…');
+    setMessage(t('syncPanel.verifyingTheRecoveryKeyAndRestoring'));
     try {
       const restored = await restoreLibraryFromRemote(
         library,
@@ -127,13 +131,16 @@ export function SyncPanel({
       setKeys(restored.keys);
       if (restored.result.state === 'conflict') {
         setPhase('conflict');
-        setMessage('Restore retained conflicting snapshot variants for review.');
+        setMessage(t('syncPanel.restoreRetainedConflictingSnapshotVariantsFor'));
         return;
       }
       setPhase('synced');
       setLastSuccess(new Date().toISOString());
       setMessage(
-        `Restore complete: ${restored.result.operations.length} operation(s), ${restored.result.restoredBlobs} blob(s).`,
+        t('sync.restored', {
+          operations: restored.result.operations.length,
+          blobs: restored.result.restoredBlobs,
+        }),
       );
       await onLibraryChanged();
     } catch (cause) {
@@ -148,46 +155,45 @@ export function SyncPanel({
     setConnected(false);
     setIdentityReady(false);
     setPhase('local');
-    setMessage('Disconnected from Google Drive. The local library is still usable.');
+    setMessage(t('syncPanel.disconnectedFromGoogleDriveTheLocal'));
   }
 
   return (
     <section className="sync-panel" aria-labelledby="sync-heading">
-      <h2 id="sync-heading">Encrypted sync</h2>
+      <h3 className="visually-hidden" id="sync-heading">
+        {t('syncPanel.encryptedSync')}
+      </h3>
       <p className={`sync-state sync-state-${phase}`} role="status" data-testid="sync-state">
-        <strong>{phase}</strong> · {message}
+        <strong>{t(`sync.phase.${phase}`)}</strong> · {message}
       </p>
       <p className="sync-note">
-        Optional sync sends encrypted library data to your Google Drive.{' '}
+        {t('syncPanel.optionalSyncSendsEncryptedLibraryData')}{' '}
         <a
           href={`${import.meta.env.BASE_URL}privacy.html`}
           target="_blank"
           rel="noopener noreferrer"
         >
-          Privacy Policy
+          {t('about.privacyPolicy')}
         </a>{' '}
         ·{' '}
         <a href={`${import.meta.env.BASE_URL}terms.html`} target="_blank" rel="noopener noreferrer">
-          Terms of Service
+          {t('about.termsOfService')}
         </a>{' '}
-        (open in a new tab).
+        {t('syncPanel.openInANewTab')}
       </p>
       {!clientId ? (
         <p>
           {native ? (
-            'Google Drive sync is available in the browser/PWA. This Android preview keeps its own local library; use a portable backup to transfer it.'
+            t('syncPanel.googleDriveSyncIsAvailableIn')
           ) : (
-            <>
-              This build has no Google OAuth client ID. Set <code>VITE_GOOGLE_CLIENT_ID</code> at
-              build time to enable Drive sync.
-            </>
+            <>{t('syncPanel.googleDriveSyncIsNotConfigured')}</>
           )}
         </p>
       ) : (
         <div className="sync-actions">
           {identityReady ? (
             <button type="button" onClick={() => void (connected ? disconnect() : connect())}>
-              {connected ? 'Disconnect Google Drive' : 'Connect Google Drive'}
+              {connected ? t('syncPanel.disconnectGoogleDrive') : t('syncPanel.connectGoogleDrive')}
             </button>
           ) : (
             <button
@@ -195,27 +201,29 @@ export function SyncPanel({
               disabled={loadingIdentity}
               onClick={() => void prepareConnection()}
             >
-              {loadingIdentity ? 'Loading Google sign-in…' : 'Load Google sign-in'}
+              {loadingIdentity
+                ? t('syncPanel.loadingGoogleSignIn')
+                : t('syncPanel.loadGoogleSignIn')}
             </button>
           )}
         </div>
       )}
       <div className="sync-actions">
         <button type="button" onClick={() => void createRecovery()}>
-          Create library recovery key
+          {t('syncPanel.createLibraryRecoveryKey')}
         </button>
       </div>
       {keys && (
         <div className="recovery-key-box">
           <label>
-            Recovery key — store this somewhere safe
+            {t('syncPanel.recoveryKeyStoreThisSomewhereSafe')}
             <textarea readOnly value={keys.recoveryKey} rows={3} data-testid="recovery-key" />
           </label>
           <button
             type="button"
             onClick={() => void navigator.clipboard?.writeText(keys.recoveryKey)}
           >
-            Copy recovery key
+            {t('syncPanel.copyRecoveryKey')}
           </button>
           <label className="check">
             <input
@@ -223,20 +231,20 @@ export function SyncPanel({
               checked={confirmedRecovery}
               onChange={(event) => setConfirmedRecovery(event.target.checked)}
             />
-            I saved the recovery key. Losing every copy makes remote data unrecoverable.
+            {t('syncPanel.iSavedTheRecoveryKeyLosing')}
           </label>
           <button
             type="button"
             disabled={!connected || !confirmedRecovery || phase === 'pending'}
             onClick={() => void syncNow()}
           >
-            Sync now
+            {t('syncPanel.syncNow')}
           </button>
         </div>
       )}
       <div className="restore-box">
         <label>
-          Restore or unlock with a recovery key
+          {t('syncPanel.restoreOrUnlockWithARecovery')}
           <textarea
             value={recoveryInput}
             onChange={(event) => setRecoveryInput(event.target.value)}
@@ -250,51 +258,45 @@ export function SyncPanel({
           disabled={!connected || !recoveryInput.trim() || phase === 'pending'}
           onClick={() => void restore()}
         >
-          Verify and restore
+          {t('syncPanel.verifyAndRestore')}
         </button>
       </div>
       {native && (
         <div className="sync-actions">
-          <p>
-            Optional device copy: Android encrypts your recovery key with Keystore. Keep a separate
-            recovery copy. This does not enable Drive sync in the wrapper.
-          </p>
+          <p>{t('syncPanel.optionalDeviceCopyAndroidEncryptsYour')}</p>
           <button
             disabled={!recoveryInput.trim() && !keys}
             onClick={() =>
               void nativeRequest('saveKey', {
                 key: recoveryInput.trim() || keys?.recoveryKey,
-              }).then(() => setMessage('Recovery key encrypted on this device.'), showError)
+              }).then(() => setMessage(t('syncPanel.recoveryKeyEncryptedOnThisDevice')), showError)
             }
           >
-            Save key on this device
+            {t('syncPanel.saveKeyOnThisDevice')}
           </button>
           <button
             onClick={() =>
               void nativeRequest<string>('loadKey').then((value) => {
                 setRecoveryInput(value);
-                setMessage('Device key loaded into the recovery field.');
+                setMessage(t('syncPanel.deviceKeyLoadedIntoTheRecovery'));
               }, showError)
             }
           >
-            Load device key
+            {t('syncPanel.loadDeviceKey')}
           </button>
           <button
             onClick={() =>
               void nativeRequest('forgetKey').then(
-                () => setMessage('Device key copy removed.'),
+                () => setMessage(t('syncPanel.deviceKeyCopyRemoved')),
                 showError,
               )
             }
           >
-            Forget device key
+            {t('syncPanel.forgetDeviceKey')}
           </button>
         </div>
       )}
-      <p className="sync-note">
-        Drive receives encrypted objects in its hidden app-data folder. Keys and access tokens stay
-        in memory for this session unless you explicitly save an encrypted Android device copy.
-      </p>
+      <p className="sync-note">{t('syncPanel.driveReceivesEncryptedObjectsInIts')}</p>
     </section>
   );
 }

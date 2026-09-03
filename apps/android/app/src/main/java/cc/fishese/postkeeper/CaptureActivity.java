@@ -33,8 +33,8 @@ public class CaptureActivity extends Activity {
       finish();
       return;
     }
-    LinearLayout layout = new LinearLayout(this);
-    layout.setOrientation(LinearLayout.VERTICAL);
+    setContentView(R.layout.capture_activity);
+    LinearLayout layout = findViewById(R.id.capture_root);
     layout.setOnApplyWindowInsetsListener(
         (view, insets) -> {
           view.setPadding(
@@ -44,43 +44,38 @@ public class CaptureActivity extends Activity {
               insets.getSystemWindowInsetBottom());
           return insets;
         });
-    location = new TextView(this);
-    location.setTextIsSelectable(true);
-    layout.addView(location);
-    status = new TextView(this);
-    status.setText(
-        "Sign in on the website if needed, then select Save page. This browser has a separate site"
-            + " session.");
-    layout.addView(status);
-    LinearLayout controls = new LinearLayout(this);
-    save = new Button(this);
-    save.setText("Save page");
+    location = findViewById(R.id.capture_location);
+    location.setOnClickListener(
+        v ->
+            new AlertDialog.Builder(this)
+                .setTitle(R.string.show_full_address)
+                .setMessage(location.getText())
+                .setPositiveButton(android.R.string.ok, null)
+                .show());
+    status = findViewById(R.id.capture_status);
+    save = findViewById(R.id.capture_save);
     save.setEnabled(false);
     save.setOnClickListener(v -> capture());
-    controls.addView(save);
-    Button back = new Button(this);
-    back.setText("Library");
-    back.setOnClickListener(v -> finish());
-    controls.addView(back);
-    Button previous = new Button(this);
-    previous.setText("Back page");
-    previous.setOnClickListener(
-        v -> {
-          if (web.canGoBack() && !capturing) web.goBack();
-        });
-    controls.addView(previous);
-    layout.addView(controls);
-    LinearLayout clearControls = new LinearLayout(this);
-    Button clearSite = new Button(this);
-    clearSite.setText("Clear this site");
-    clearSite.setOnClickListener(v -> confirmClear(false));
-    clearControls.addView(clearSite);
-    Button clearAll = new Button(this);
-    clearAll.setText("Clear all browsing data");
-    clearAll.setOnClickListener(v -> confirmClear(true));
-    clearControls.addView(clearAll);
-    layout.addView(clearControls);
-    web = new WebView(this);
+    findViewById(R.id.capture_library).setOnClickListener(v -> finish());
+    findViewById(R.id.capture_menu)
+        .setOnClickListener(
+            v -> {
+              PopupMenu menu = new PopupMenu(this, v);
+              menu.getMenu()
+                  .add(0, 1, 0, R.string.back_page)
+                  .setEnabled(web.canGoBack() && !capturing);
+              menu.getMenu().add(0, 2, 1, R.string.clear_this_site).setEnabled(!capturing);
+              menu.getMenu().add(0, 3, 2, R.string.clear_all_browsing_data).setEnabled(!capturing);
+              menu.setOnMenuItemClickListener(
+                  item -> {
+                    if (item.getItemId() == 1) {
+                      if (!capturing && web.canGoBack()) web.goBack();
+                    } else confirmClear(item.getItemId() == 3);
+                    return true;
+                  });
+              menu.show();
+            });
+    web = findViewById(R.id.capture_web);
     WebViewCompat.setProfile(web, SafeUrls.profile(startingUrl));
     profile = WebViewCompat.getProfile(web);
     web.getSettings().setJavaScriptEnabled(true);
@@ -103,7 +98,8 @@ public class CaptureActivity extends Activity {
           @Override
           public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             if (!SafeUrls.captureAllowed(request.getUrl().toString(), BuildConfig.DEBUG)) {
-              status.setText("Blocked unsupported URL. Use HTTPS to browse.");
+              status.setText(
+                  getString(R.string.native_blocked_unsupported_url_use_https_to_browse));
               return true;
             }
             return false;
@@ -125,14 +121,18 @@ public class CaptureActivity extends Activity {
           @Override
           public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
             location.setText(
-                (url.startsWith("https:") ? "HTTPS · " : "Unencrypted local test · ") + url);
+                getString(
+                    url.startsWith("https:") ? R.string.https_address : R.string.local_address,
+                    url));
             save.setEnabled(false);
           }
 
           @Override
           public void onPageFinished(WebView view, String url) {
             location.setText(
-                (url.startsWith("https:") ? "HTTPS · " : "Unencrypted local test · ") + url);
+                getString(
+                    url.startsWith("https:") ? R.string.https_address : R.string.local_address,
+                    url));
             save.setEnabled(!capturing && SafeUrls.captureAllowed(url, BuildConfig.DEBUG));
           }
 
@@ -141,27 +141,22 @@ public class CaptureActivity extends Activity {
               WebView view, SslErrorHandler handler, android.net.http.SslError error) {
             handler.cancel();
             save.setEnabled(false);
-            status.setText("TLS certificate error. This page cannot be opened or captured.");
+            status.setText(getString(R.string.native_tls_certificate_error_this_page_cannot_be));
           }
         });
-    layout.addView(web, new LinearLayout.LayoutParams(-1, 0, 1));
-    setContentView(layout);
     web.loadUrl(startingUrl);
   }
 
   private void confirmClear(boolean all) {
     if (capturing) return;
     new AlertDialog.Builder(this)
-        .setTitle("Clear capture browsing data?")
+        .setTitle(getString(R.string.native_clear_capture_browsing_data))
         .setMessage(
             all
-                ? "Remove every capture-browser session, including cookies and website storage?"
-                    + " Your saved library and device key remain."
-                : "Remove the session for "
-                    + SafeUrls.origin(startingUrl)
-                    + ", including sign-in redirects? Your saved library and device key remain.")
-        .setPositiveButton("Clear", (d, w) -> clear(all))
-        .setNegativeButton("Cancel", null)
+                ? getString(R.string.native_remove_every_capture_browser_session_including_cookies)
+                : getString(R.string.clear_site_message, SafeUrls.origin(startingUrl)))
+        .setPositiveButton(getString(R.string.native_clear), (d, w) -> clear(all))
+        .setNegativeButton(getString(R.string.native_cancel), null)
         .show();
   }
 
@@ -179,7 +174,7 @@ public class CaptureActivity extends Activity {
 
   private void clearNext(List<String> names, int index) {
     if (index >= names.size()) {
-      status.setText("Browsing data cleared. Your saved library is unchanged.");
+      status.setText(getString(R.string.native_browsing_data_cleared_your_saved_library_is));
       web.loadUrl(startingUrl);
       return;
     }
@@ -198,7 +193,7 @@ public class CaptureActivity extends Activity {
     if (!SafeUrls.captureAllowed(pageUrl, BuildConfig.DEBUG)) return;
     capturing = true;
     save.setEnabled(false);
-    status.setText("Saving this page and available images…");
+    status.setText(getString(R.string.native_saving_this_page_and_available_images));
     try {
       String script =
           new String(
@@ -348,9 +343,7 @@ public class CaptureActivity extends Activity {
   private void failed() {
     capturing = false;
     save.setEnabled(true);
-    status.setText(
-        "Capture failed or exceeded its limit. Your pending link remains. Retry when the page"
-            + " finishes loading.");
+    status.setText(getString(R.string.native_capture_failed_or_exceeded_its_limit_your));
   }
 
   static byte[] readBounded(InputStream stream, int limit) throws IOException {

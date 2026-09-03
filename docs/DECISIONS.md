@@ -4,6 +4,14 @@ This file distinguishes accepted decisions from questions that must be resolved 
 
 ## Accepted decisions
 
+### D-026 — Compact shared UI and English localization resources
+
+Date: 2026-09-04
+Status: accepted
+Context: The user requested a mobile redesign, reusable CSS, preparation for additional languages, and an unobtrusive web link to a GitHub-hosted APK.
+Decision: Use a library-first layout, separate mobile reader, native HTML dialog sheets for add/settings/categories, and progressive disclosure of setup and diagnostic controls. Keep mounted panels to preserve session state. Centralize web styling in CSS custom properties and component classes, with separate imported reader/print CSS. Put primary UI messages in a typed English catalog with named interpolation, Intl formatting/plurals, and English fallback. Keep native capture controls outside website content, using Android XML layouts and resource strings. Publish the signed APK as a versioned GitHub Release asset linked from Settings → About.
+Consequences: No runtime dependency or storage/sync format change. English remains the only language; domain diagnostic errors, existing saved content, extension/probe UI, and static legal translations are explicitly outside this preparation. A second language requires catalog registration, native resource translations, and acceptance. This is an explicitly requested M6 follow-up, not M7 implementation or M8 completion. See `UI_AND_LOCALIZATION.md`.
+
 ### D-025 — Thin Android shell, profile isolation, and local share receipt
 
 Date: 2026-09-03

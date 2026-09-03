@@ -1,8 +1,10 @@
+import { t } from './i18n';
 import { useMemo, useRef, useState } from 'react';
 import type { ReaderContent } from '@postkeeper/local-store';
 import { originalHttpUrl } from './originalUrl';
 import { createPrintDocument, openPrintWindow } from './printDocument';
 import { isNativeAndroid, nativeRequest } from './nativeBridge';
+import { Icon } from './ui/Icon';
 
 export function ArticleSharing({ content }: { content: ReaderContent }) {
   const [message, setMessage] = useState('');
@@ -13,30 +15,48 @@ export function ArticleSharing({ content }: { content: ReaderContent }) {
     try {
       if (!url || !navigator.clipboard) throw new Error();
       await navigator.clipboard.writeText(url);
-      setMessage('Original URL copied.');
+      setMessage(t('articleSharing.originalUrlCopied'));
     } catch {
-      setMessage('Clipboard unavailable. Select and copy the original URL shown above.');
+      setMessage(t('articleSharing.clipboardUnavailableSelectAndCopyThe'));
     }
   }
   return (
     <div className="sharing-actions">
       <iframe
         ref={launcher}
-        title="Print window launcher"
+        title={t('articleSharing.printWindowLauncher')}
         hidden
         sandbox="allow-same-origin allow-modals allow-popups"
         referrerPolicy="no-referrer"
       />
       <div className="article-actions">
         {url && (
-          <a href={url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">
-            Open original URL
+          <a
+            className="icon-button"
+            aria-label={t('articleSharing.openOriginalUrl')}
+            title={t('articleSharing.openOriginalUrl')}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            referrerPolicy="no-referrer"
+          >
+            <Icon name="external" />
           </a>
         )}
-        <button type="button" disabled={!url} onClick={() => void copy()}>
-          Copy original URL
+        <button
+          className="icon-button"
+          type="button"
+          aria-label={t('articleSharing.copyOriginalUrl')}
+          title={t('articleSharing.copyOriginalUrl')}
+          disabled={!url}
+          onClick={() => void copy()}
+        >
+          <Icon name="copy" />
         </button>
         <button
+          className="icon-button"
+          aria-label={t('articleSharing.printSaveAsPdf')}
+          title={t('articleSharing.printSaveAsPdf')}
           type="button"
           onClick={() =>
             void (
@@ -47,15 +67,17 @@ export function ArticleSharing({ content }: { content: ReaderContent }) {
               () =>
                 setMessage(
                   isNativeAndroid()
-                    ? 'Android print preview opened.'
-                    : 'Print preview opened in a separate tab.',
+                    ? t('articleSharing.androidPrintPreviewOpened')
+                    : t('articleSharing.printPreviewOpenedInASeparate'),
                 ),
               (cause: unknown) =>
-                setMessage(cause instanceof Error ? cause.message : 'Printing failed.'),
+                setMessage(
+                  cause instanceof Error ? cause.message : t('articleSharing.printingFailed'),
+                ),
             )
           }
         >
-          Print / Save as PDF
+          <Icon name="print" />
         </button>
       </div>
       {message && <p role="status">{message}</p>}

@@ -1,3 +1,4 @@
+import { t, formatDate } from './i18n';
 import { useEffect, useRef, useState } from 'react';
 import {
   BACKUP_MAX_FILE_BYTES,
@@ -63,35 +64,31 @@ export function BackupPanel({
     try {
       await action();
     } catch {
-      setMessage(
-        'The operation failed. No backup records were committed. Check that the file is a valid, complete PostKeeper backup within the size limits, has no conflicting records, and that device storage has room.',
-      );
+      setMessage(t('backupPanel.theOperationFailedNoBackupRecords'));
     } finally {
       setBusy(false);
     }
   }
   async function load(file: File) {
     cancel();
-    if (file.size > BACKUP_MAX_FILE_BYTES) throw new Error('File too large');
+    if (file.size > BACKUP_MAX_FILE_BYTES) throw new Error(t('backupPanel.fileTooLarge'));
     const next = await stageBackup(await file.text());
     stageRef.current = next;
     setStage(next);
   }
   return (
     <section className="backup-panel" aria-labelledby="backup-heading">
-      <h2 id="backup-heading">Backup and diagnostics</h2>
-      <p>
-        A portable backup contains your article metadata, categories, every saved snapshot, and
-        local images. Version 1 uses plaintext. Keep the file somewhere private; it is readable
-        without a recovery key.
-      </p>
+      <h3 className="visually-hidden" id="backup-heading">
+        {t('backupPanel.backupAndDiagnostics')}
+      </h3>
+      <p>{t('backupPanel.aPortableBackupContainsYourArticle')}</p>
       <label className="check">
         <input
           type="checkbox"
           checked={plaintext}
           onChange={(e) => setPlaintext(e.target.checked)}
         />
-        I choose a plaintext backup containing my saved content.
+        {t('backupPanel.iChooseAPlaintextBackupContaining')}
       </label>
       <button
         disabled={busy || !plaintext}
@@ -102,20 +99,15 @@ export function BackupPanel({
               applicationVersion: __APP_VERSION__,
             });
             await download(text, `postkeeper-backup-${new Date().toISOString().slice(0, 10)}.json`);
-            setMessage('Backup ready. Keep the downloaded file private.');
+            setMessage(t('backupPanel.backupReadyKeepTheDownloadedFile'));
           })
         }
       >
-        Export portable backup
+        {t('backupPanel.exportPortableBackup')}
       </button>
-      <p>
-        Import validates the complete file before you confirm. It adds records and preserves
-        existing records; conflicting IDs reject the whole import. To restore an older version with
-        conflicting records, use an empty browser library. Sync settings and recovery keys are never
-        imported. Limits: 128 MiB file, 64 MiB decoded content, 10 MiB per blob.
-      </p>
+      <p>{t('backupPanel.importValidatesTheCompleteFileBefore')}</p>
       <label>
-        Choose PostKeeper backup
+        {t('backupPanel.choosePostkeeperBackup')}
         <input
           type="file"
           accept=".json,application/json"
@@ -130,9 +122,14 @@ export function BackupPanel({
       {stage && (
         <div role="status" className="backup-review">
           <p>
-            Validated backup: {stage.articles} articles, {stage.categories} categories,{' '}
-            {stage.snapshots} snapshots, {stage.blobs} blobs ({stage.byteLength} bytes). Created{' '}
-            {stage.createdAt}. The active library has not changed.
+            {t('backup.review', {
+              articles: stage.articles,
+              categories: stage.categories,
+              snapshots: stage.snapshots,
+              blobs: stage.blobs,
+              bytes: stage.byteLength,
+              date: formatDate(stage.createdAt),
+            })}
           </p>
           <button
             disabled={busy}
@@ -140,33 +137,26 @@ export function BackupPanel({
               void run(async () => {
                 await library.commitBackup(stage);
                 cancel();
-                setMessage(
-                  'Backup imported. Existing library records and sync settings were preserved.',
-                );
+                setMessage(t('backupPanel.backupImportedExistingLibraryRecordsAnd'));
                 await onLibraryChanged().catch(() =>
-                  setMessage(
-                    'Backup imported successfully. Reload the app to refresh the library view.',
-                  ),
+                  setMessage(t('backupPanel.backupImportedSuccessfullyReloadTheApp')),
                 );
               })
             }
           >
-            Import validated backup
+            {t('backupPanel.importValidatedBackup')}
           </button>{' '}
           <button disabled={busy} onClick={cancel}>
-            Cancel import
+            {t('backupPanel.cancelImport')}
           </button>
         </div>
       )}
-      <p>
-        Diagnostics include counts, storage usage, browser and processing versions, and sync status.
-        Article content, URLs, credentials, and logs are omitted. Review before sharing.
-      </p>
+      <p>{t('backupPanel.diagnosticsIncludeCountsStorageUsageBrowser')}</p>
       <button
         disabled={busy}
         onClick={() => void run(async () => setDiagnostics(await createDiagnostics(library, sync)))}
       >
-        Review local diagnostics
+        {t('backupPanel.reviewLocalDiagnostics')}
       </button>
       {diagnostics && (
         <div>
@@ -174,11 +164,11 @@ export function BackupPanel({
           <button
             onClick={() => void run(() => download(diagnostics, 'postkeeper-diagnostics.json'))}
           >
-            Export redacted diagnostics
+            {t('backupPanel.exportRedactedDiagnostics')}
           </button>
         </div>
       )}
-      {busy && <p role="status">Working locally…</p>}
+      {busy && <p role="status">{t('backupPanel.workingLocally')}</p>}
       {message && <p role="status">{message}</p>}
     </section>
   );

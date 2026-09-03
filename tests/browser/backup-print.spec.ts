@@ -1,3 +1,4 @@
+import { importFixture, createCategory, articleDetails, openSettings } from './ui-helpers';
 import { expect, test, type Download, type Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 
@@ -8,12 +9,14 @@ async function downloadText(download: Download): Promise<string> {
   return Buffer.concat(parts).toString('utf8');
 }
 async function backup(page: Page) {
+  await openSettings(page, 'Backup and diagnostics');
   await page.getByLabel('I choose a plaintext backup containing my saved content.').check();
   const downloaded = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export portable backup' }).click();
   return downloadText(await downloaded);
 }
 async function upload(page: Page, text: string) {
+  await openSettings(page, 'Backup and diagnostics');
   await page.getByLabel('Choose PostKeeper backup').setInputFiles({
     name: 'fixture-backup.json',
     mimeType: 'application/json',
@@ -26,12 +29,12 @@ test('portable backup downloads, stages, cancels, restores offline, and rejects 
   page,
 }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Import public capture package' }).click();
+  await importFixture(page, 'Import public capture package');
   await expect(
     page.getByRole('heading', { name: 'A public fixture article', exact: true }),
   ).toBeVisible();
-  await page.getByLabel('New category').fill('Backup field notes');
-  await page.getByRole('button', { name: 'Create category' }).click();
+  await createCategory(page, 'Backup field notes');
+  await articleDetails(page);
   await page.getByRole('checkbox', { name: 'Backup field notes' }).click();
   await expect(page.getByRole('checkbox', { name: 'Backup field notes' })).toBeChecked();
   await page.getByRole('button', { name: 'Favorite', exact: true }).click();
@@ -73,6 +76,7 @@ test('portable backup downloads, stages, cancels, restores offline, and rejects 
           .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
       )
       .toBe(true);
+    await articleDetails(target);
     await expect(target.getByRole('checkbox', { name: 'Backup field notes' })).toBeChecked();
     await target.getByRole('searchbox').fill('public content');
     await expect(target.getByTestId('article-list').locator('li')).toHaveCount(1);
@@ -87,7 +91,7 @@ test('original links, clipboard feedback, and deliberately reviewed redacted dia
   context,
 }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Import development fixture' }).click();
+  await importFixture(page, 'Import development fixture');
   await expect(page.getByRole('link', { name: 'Open original URL' })).toHaveAttribute(
     'href',
     'https://fixtures.postkeeper.local/public-article',
@@ -104,6 +108,7 @@ test('original links, clipboard feedback, and deliberately reviewed redacted dia
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
       'https://fixtures.postkeeper.local/public-article',
     );
+  await openSettings(page, 'Backup and diagnostics');
   await page.getByRole('button', { name: 'Review local diagnostics' }).click();
   const reviewed = await page.locator('.diagnostics-preview').innerText();
   expect(reviewed).not.toContain('fixtures.postkeeper');
@@ -119,7 +124,7 @@ test('long offline print preview preserves headings, links, decoded images, and 
   context,
 }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Import long print fixture' }).click();
+  await importFixture(page, 'Import long print fixture');
   await expect(
     page.getByRole('heading', { name: 'A long printable fixture', exact: true }),
   ).toBeVisible();

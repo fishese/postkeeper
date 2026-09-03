@@ -32,9 +32,7 @@ public class MainActivity extends Activity {
         || !WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)
         || !WebViewFeature.isFeatureSupported(WebViewFeature.DELETE_BROWSING_DATA)) {
       TextView error = new TextView(this);
-      error.setText(
-          "Update Android System WebView to use PostKeeper. Isolated profiles and origin-restricted"
-              + " messaging are required.");
+      error.setText(getString(R.string.native_update_android_system_webview_to_use_postkeeper));
       setContentView(error);
       return;
     }
@@ -64,7 +62,7 @@ public class MainActivity extends Activity {
                   "text/plain",
                   "utf-8",
                   404,
-                  "Not found",
+                  "Not found", // HTTP reason phrases must remain ASCII, not translated UI text.
                   null,
                   new ByteArrayInputStream(new byte[0]));
             return local;
@@ -210,7 +208,10 @@ public class MainActivity extends Activity {
             }
           });
       AlertDialog dialog =
-          new AlertDialog.Builder(this).setView(document).setPositiveButton("Close", null).create();
+          new AlertDialog.Builder(this)
+              .setView(document)
+              .setPositiveButton(getString(R.string.native_close), null)
+              .create();
       dialog.setOnDismissListener(d -> document.destroy());
       document.loadUrl(uri.toString());
       dialog.show();
@@ -221,7 +222,9 @@ public class MainActivity extends Activity {
       SafeUrls.origin(uri.toString());
       startActivity(new Intent(Intent.ACTION_VIEW, uri).addCategory(Intent.CATEGORY_BROWSABLE));
     } catch (Exception ignored) {
-      Toast.makeText(this, "Only HTTP and HTTPS links can be opened.", Toast.LENGTH_SHORT).show();
+      Toast.makeText(
+              this, getString(R.string.native_only_http_and_https_links_can_be), Toast.LENGTH_SHORT)
+          .show();
     }
   }
 
@@ -263,7 +266,7 @@ public class MainActivity extends Activity {
     } catch (Exception ignored) {
       Toast.makeText(
               this,
-              "Unable to queue share. Share one short URL after opening PostKeeper.",
+              getString(R.string.native_unable_to_queue_share_share_one_short),
               Toast.LENGTH_LONG)
           .show();
     }
@@ -286,10 +289,10 @@ public class MainActivity extends Activity {
 
   private void confirm(String message, Runnable yes, Runnable cancel) {
     new AlertDialog.Builder(this)
-        .setTitle("PostKeeper")
+        .setTitle(getString(R.string.native_postkeeper))
         .setMessage(message)
-        .setPositiveButton("Continue", (d, w) -> yes.run())
-        .setNegativeButton("Cancel", (d, w) -> cancel.run())
+        .setPositiveButton(getString(R.string.native_continue), (d, w) -> yes.run())
+        .setNegativeButton(getString(R.string.native_cancel), (d, w) -> cancel.run())
         .setOnCancelListener(d -> cancel.run())
         .show();
   }
@@ -326,7 +329,7 @@ public class MainActivity extends Activity {
             String url = data.getString("url");
             if (!SafeUrls.captureAllowed(url, BuildConfig.DEBUG))
               throw new IllegalArgumentException(
-                  "Capture requires HTTPS (debug builds also allow local fixtures).");
+                  getString(R.string.native_capture_requires_https_debug_builds_also_allow));
             captureReply = port;
             captureRequestId = id;
             startActivityForResult(
@@ -360,12 +363,10 @@ public class MainActivity extends Activity {
           {
             confirm(
                 action.equals("saveKey")
-                    ? "Store this recovery key encrypted on this device? Keep a separate recovery"
-                          + " copy. This replaces any device convenience copy."
+                    ? getString(R.string.native_store_this_recovery_key_encrypted_on_this)
                     : action.equals("loadKey")
-                        ? "Load the saved recovery key into this app session?"
-                        : "Remove only this device's saved recovery-key copy? Your library"
-                              + " remains.",
+                        ? getString(R.string.native_load_the_saved_recovery_key_into_this)
+                        : getString(R.string.native_remove_only_this_device_s_saved_recovery),
                 () -> {
                   try {
                     KeyVault vault = new KeyVault(this);
@@ -379,11 +380,10 @@ public class MainActivity extends Activity {
                         port,
                         id,
                         null,
-                        "The device key action failed. Your separate recovery copy is still"
-                            + " needed.");
+                        getString(R.string.native_the_device_key_action_failed_your_separate));
                   }
                 },
-                () -> reply(port, id, null, "Cancelled."));
+                () -> reply(port, id, null, getString(R.string.native_cancelled)));
             break;
           }
         case "exportStart":
@@ -423,7 +423,7 @@ public class MainActivity extends Activity {
             String html = data.getString("html");
             if (html.length() > 3_500_000)
               throw new IllegalArgumentException(
-                  "Printable content is too large for this Android preview.");
+                  getString(R.string.native_printable_content_is_too_large_for_this));
             if (printView != null) printView.destroy();
             printView = new WebView(this);
             printView.getSettings().setJavaScriptEnabled(false);
@@ -436,8 +436,9 @@ public class MainActivity extends Activity {
                   public void onPageFinished(WebView view, String url) {
                     ((android.print.PrintManager) getSystemService(PRINT_SERVICE))
                         .print(
-                            "PostKeeper article",
-                            view.createPrintDocumentAdapter("PostKeeper article"),
+                            getString(R.string.native_postkeeper_article),
+                            view.createPrintDocumentAdapter(
+                                getString(R.string.native_postkeeper_article)),
                             new android.print.PrintAttributes.Builder().build());
                     reply(port, id, true, null);
                   }
@@ -446,7 +447,7 @@ public class MainActivity extends Activity {
             break;
           }
         default:
-          reply(port, id, null, "Unsupported Android action.");
+          reply(port, id, null, getString(R.string.native_unsupported_android_action));
       }
     } catch (Exception e) {
       reply(
@@ -455,7 +456,7 @@ public class MainActivity extends Activity {
           null,
           e instanceof IllegalArgumentException && e.getMessage() != null
               ? e.getMessage()
-              : "Android action failed. Retry without changing your library.");
+              : getString(R.string.native_android_action_failed_retry_without_changing_your));
     }
   }
 
@@ -485,7 +486,7 @@ public class MainActivity extends Activity {
             captureReply,
             captureRequestId,
             null,
-            "Capture result was unavailable. The pending link is preserved.");
+            getString(R.string.native_capture_result_was_unavailable_the_pending_link));
       } finally {
         captureReply = null;
       }
@@ -501,7 +502,11 @@ public class MainActivity extends Activity {
         }
         reply(exportReply, exportRequestId, true, null);
       } catch (Exception e) {
-        reply(exportReply, exportRequestId, null, "Export cancelled or could not be saved.");
+        reply(
+            exportReply,
+            exportRequestId,
+            null,
+            getString(R.string.native_export_cancelled_or_could_not_be_saved));
       } finally {
         exportReply = null;
         exportBytes = null;

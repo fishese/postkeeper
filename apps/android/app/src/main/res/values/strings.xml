@@ -1,0 +1,41 @@
+<resources>
+    <string name="library">Library</string>
+    <string name="capture_browser">Capture browser</string>
+    <string name="save_page">Save page</string>
+    <string name="back_page">Back page</string>
+    <string name="browser_options">Browser options</string>
+    <string name="clear_this_site">Clear this site</string>
+    <string name="clear_all_browsing_data">Clear all browsing data</string>
+    <string name="show_full_address">Show full address</string>
+    <string name="capture_hint">Sign in if needed, then save this page.</string>
+    <string name="https_address">HTTPS · %1$s</string>
+    <string name="local_address">Unencrypted local test · %1$s</string>
+    <string name="clear_site_message">Remove the session for %1$s, including sign-in redirects? Your saved library and device key remain.</string>
+    <string name="native_update_android_system_webview_to_use_postkeeper">Update Android System WebView to use PostKeeper. Isolated profiles and origin-restricted messaging are required.</string>
+    <string name="native_close">Close</string>
+    <string name="native_only_http_and_https_links_can_be">Only HTTP and HTTPS links can be opened.</string>
+    <string name="native_unable_to_queue_share_share_one_short">Unable to queue share. Share one short URL after opening PostKeeper.</string>
+    <string name="native_postkeeper" translatable="false">PostKeeper</string>
+    <string name="native_continue">Continue</string>
+    <string name="native_cancel">Cancel</string>
+    <string name="native_capture_requires_https_debug_builds_also_allow">Capture requires HTTPS (debug builds also allow local fixtures).</string>
+    <string name="native_store_this_recovery_key_encrypted_on_this">Store this recovery key encrypted on this device? Keep a separate recovery copy. This replaces any device convenience copy.</string>
+    <string name="native_load_the_saved_recovery_key_into_this">Load the saved recovery key into this app session?</string>
+    <string name="native_remove_only_this_device_s_saved_recovery">Remove only this device\'s saved recovery-key copy? Your library remains.</string>
+    <string name="native_the_device_key_action_failed_your_separate">The device key action failed. Your separate recovery copy is still needed.</string>
+    <string name="native_cancelled">Cancelled.</string>
+    <string name="native_printable_content_is_too_large_for_this">Printable content is too large for this Android preview.</string>
+    <string name="native_postkeeper_article">PostKeeper article</string>
+    <string name="native_unsupported_android_action">Unsupported Android action.</string>
+    <string name="native_android_action_failed_retry_without_changing_your">Android action failed. Retry without changing your library.</string>
+    <string name="native_capture_result_was_unavailable_the_pending_link">Capture result was unavailable. The pending link is preserved.</string>
+    <string name="native_export_cancelled_or_could_not_be_saved">Export cancelled or could not be saved.</string>
+    <string name="native_blocked_unsupported_url_use_https_to_browse">Blocked unsupported URL. Use HTTPS to browse.</string>
+    <string name="native_tls_certificate_error_this_page_cannot_be">TLS certificate error. This page cannot be opened or captured.</string>
+    <string name="native_clear_capture_browsing_data">Clear capture browsing data?</string>
+    <string name="native_remove_every_capture_browser_session_including_cookies">Remove every capture-browser session, including cookies and website storage? Your saved library and device key remain.</string>
+    <string name="native_clear">Clear</string>
+    <string name="native_browsing_data_cleared_your_saved_library_is">Browsing data cleared. Your saved library is unchanged.</string>
+    <string name="native_saving_this_page_and_available_images">Saving this page and available images…</string>
+    <string name="native_capture_failed_or_exceeded_its_limit_your">Capture failed or exceeded its limit. Your pending link remains. Retry when the page finishes loading.</string>
+</resources>

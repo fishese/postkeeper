@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import { useState } from 'react';
 import type { Article, Library } from '@postkeeper/local-store';
 import { validateCapturePackage } from '@postkeeper/capture-format';
@@ -24,7 +25,7 @@ export function CaptureActions({
       });
       if (!info) return;
       if (!Number.isSafeInteger(info.length) || info.length > 20 * 1024 * 1024 || info.length <= 0)
-        throw new Error('Capture is too large.');
+        throw new Error(t('captureActions.captureIsTooLarge'));
       let text = '';
       for (let offset = 0; offset < info.length; offset += 48 * 1024)
         text += await nativeRequest<string>('captureChunk', { id: info.id, offset });
@@ -39,24 +40,25 @@ export function CaptureActions({
       );
       await nativeRequest('ackCapture', { id: info.id });
       await onSaved(saved);
-      setMessage('Page saved for offline reading.');
+      setMessage(t('captureActions.pageSavedForOfflineReading'));
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Capture failed.');
+      setMessage(error instanceof Error ? error.message : t('captureActions.captureFailed'));
     } finally {
       setBusy(false);
     }
   }
+  if (!pending && !isNativeAndroid() && !message) return null;
   return (
-    <div className="capture-warning">
+    <div className={pending ? 'capture-warning' : 'capture-actions'}>
       {pending && (
         <p>
-          <strong>Pending link</strong> — only the URL is saved. Open it in an extension-capable
-          browser to capture it, or keep it as a bookmark.
+          <strong>{t('captureActions.pendingLink')}</strong>
+          {t('captureActions.onlyTheUrlIsSavedCapture')}
         </p>
       )}
       {isNativeAndroid() && (
         <button disabled={busy} onClick={() => void capture()}>
-          {busy ? 'Capture browser open…' : 'Open capture browser'}
+          {busy ? t('captureActions.captureBrowserOpen') : t('captureActions.openCaptureBrowser')}
         </button>
       )}
       {message && <p role="status">{message}</p>}
