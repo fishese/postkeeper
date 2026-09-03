@@ -6,7 +6,7 @@ Checkpoint: 2026-09-04. Canonical progress is in `STATUS.md`.
 
 Milestones 0–6 are complete. **Do not start Milestone 7 or resolve O-006 without an explicit request.** The user separately requested a compact mobile redesign, reusable CSS, English localization resources, and an unobtrusive link from the web app to a GitHub-hosted signed APK.
 
-That follow-up is implemented as **0.6.1**, Android versionCode **7** (not Milestone 7), under D-026. GitHub signing/release publication is the remaining active step at this checkpoint. The About link uses the matching `v0.6.1/postkeeper-release.apk` asset, not an expiring Actions artifact URL.
+That follow-up is implemented as **0.6.1**, Android versionCode **7** (not Milestone 7), under D-026. The follow-up is committed, deployed and published. No user-input blocker remains. The About link uses the matching `v0.6.1/postkeeper-release.apk` asset, not an expiring Actions artifact URL.
 
 ## Required reading
 
@@ -32,7 +32,7 @@ Use the emulator unless stuck and a phone test is needed. **Tell the user before
 
 ## Signing and limitations
 
-The four repository signing secrets already work: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Check names only if necessary; never read/display values or change the signing identity. The manual Build signed Android APK workflow builds and signs on separate runners. Previous 0.6.0 run **33764185135** passed; its source was f5d139c. The new 0.6.1 APK should be built from the committed/pushed follow-up and verified before uploading as a GitHub preview release.
+The four repository signing secrets already work: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Check names only if necessary; never read/display values or change the signing identity. The manual Build signed Android APK workflow builds and signs on separate runners. Previous 0.6.0 run **33764185135** passed; its source was f5d139c. Current 0.6.1 signing run **33785611302** passed for `081389f5c48b442d163cab9dafa396848f574ded`; the UI commit is `ebac455`. Artifact **postkeeper-signed-apk-4**, ID `9905378918`, was independently verified and uploaded to **https://github.com/fishese/postkeeper/releases/tag/v0.6.1**. The APK is 2,978,363 bytes, versionCode 7, non-debuggable, minimum API 28 / target 36; SHA-256 `b5568b45e8f19b79f5783800ef4e6659bfbfaf1464e86d714811ed075aadf3a8`. Its certificate matches 0.6.0. Pages run **33785609975** passed. A fresh anonymous live-site download through Settings → About matched the checksum. Local copy: `apps/android/app/build/outputs/apk/github-33785611302/postkeeper-signed-apk-4/postkeeper-release.apk`. No signing values were retrieved or printed. The earlier run `33785440977` was cancelled to include a final print-table correction; six backup/print checks passed after that correction.
 
 Package `cc.fishese.postkeeper` is separate from PostKeeper Dev (`cc.fishese.postkeeper.debug`). No Play Store submission is configured. Existing native PDF saving remains unverified after zero-byte emulator saves; M5's six-page phone result applies to Chrome/PWA only. Wrapper Google Drive remains unavailable; browser/PWA Drive and portable backups remain supported. Full translated-copy, screen-reader, minimum-API and physical wrapper acceptance are future work. M7 and M8 have not started.
 
@@ -41,7 +41,7 @@ Package `cc.fishese.postkeeper` is separate from PostKeeper Dev (`cc.fishese.pos
 ```text
 Continue PostKeeper in D:\Projects\PostKeeper. Read docs/NEXT_CHAT_PROMPT.md and all listed source-of-truth documents completely, including docs/STATUS.md and docs/UI_AND_LOCALIZATION.md. Follow all AGENTS.md restrictions and preserve user data and unrelated changes.
 
-Milestones 0–6 are complete. The user-requested 0.6.1 compact UI/i18n follow-up is implemented and tested. Finish or verify the recorded GitHub signing/release publication and versioned Download for Android link in Settings → About. Preserve the release signing identity; never request secret/key values in chat. Do not start Milestone 7 unless I explicitly request it.
+Milestones 0–6 are complete. The user-requested 0.6.1 compact UI/i18n follow-up is implemented and tested. The signed preview APK is published at https://github.com/fishese/postkeeper/releases/tag/v0.6.1 and the live Settings → About download was verified anonymously. There is no unfinished signing/setup task; use the recorded evidence and work only on my next explicit request. Preserve the release signing identity; never request secret/key values in chat. Do not start Milestone 7 unless I explicitly request it.
 
-Use the emulator, and notify me before any necessary wireless-phone test. Preserve existing libraries, categories, Drive associations and recovery keys. No Drive reconnection is needed. Update status and this continuation prompt with final evidence, publication links and any limitations.
+Use the emulator, and notify me before any necessary wireless-phone test. Preserve existing libraries, categories, Drive associations and recovery keys. No Drive reconnection is needed. Keep status and the continuation prompt current after any new requested work. Do not repeat completed acceptance or reconnect Drive without a concrete reason.
 ```

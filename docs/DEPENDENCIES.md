@@ -27,6 +27,8 @@ Maintenance and current package metadata were reviewed from the official npm and
 
 No telemetry dependency is included. D-025 selects a small AndroidX shell for M6; Capacitor is not adopted. Backend dependencies remain uninstalled until their milestone.
 
+The 0.6.1 UI/localization follow-up adds no runtime dependency: CSS custom properties, local SVG icons, native HTML dialogs, a typed message catalog and standard `Intl` APIs are sufficient. Native layouts and translations use Android resources.
+
 ## Milestone 3 additions
 
 Maintenance and current package metadata were reviewed from the official project and npm sources on 2026-08-29.

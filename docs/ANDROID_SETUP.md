@@ -1,6 +1,6 @@
 # Android preview and URL sharing
 
-Milestone 6 uses web package 0.6.0 and the thin Java/AndroidX shell chosen in D-025. The shared browser UI, extension capture format, backup format 1, and sync records remain compatible. The Android app has its own local library; it does not automatically see Chrome/PWA or extension storage.
+Milestone 6 introduced web package 0.6.0 and the thin Java/AndroidX shell chosen in D-025. The 0.6.1 follow-up adds the compact UI and localization resources in D-026; see [UI and localization](UI_AND_LOCALIZATION.md). The shared browser UI, extension capture format, backup format 1, and sync records remain compatible. The Android app has its own local library; it does not automatically see Chrome/PWA or extension storage.
 
 ## Build
 
@@ -22,9 +22,9 @@ The APK is `apps/android/app/build/outputs/apk/debug/app-debug.apk`, package `cc
 
 ## Using the app
 
-Share a page URL from Android to **PostKeeper Dev**, or enter **Page URL** in the app. A pending link appears in Inbox; the label explicitly says the content has not been captured. Open the item, choose **Open capture browser**, sign in directly on the website if needed, and press the native **Save page** button. The shared validator/sanitizer imports the standard capture package. A successful capture replaces the pending placeholder while preserving its organization. Missing images remain visible as partial-capture warnings.
+Share a page URL from Android to **PostKeeper Dev**, or choose **Add link** and enter **Page URL** in the app. A pending link appears in Inbox; the label explicitly says the content has not been captured. Open the item, choose **Open capture browser**, sign in directly on the website if needed, and press the native **Save page** button. The shared validator/sanitizer imports the standard capture package. A successful capture replaces the pending placeholder while preserving its organization. Missing images remain visible as partial-capture warnings.
 
-The capture toolbar shows the current URL, **Save page**, **Library**, **Back page**, **Clear this site**, and **Clear all browsing data**. Per-site means the session associated with the starting URL's origin, including subsequent sign-in redirects. Distinct starting origins have independent sessions. Clearing requires native confirmation and removes cookies, cache, and website storage from only the relevant capture profiles. Saved articles/images and the device key remain intact.
+The compact capture toolbar shows the current URL, **Save page**, a **Library** back icon and **Browser options**. The options menu contains **Back page**, **Clear this site**, and **Clear all browsing data**. Tap the address to see its full value. Per-site means the session associated with the starting URL's origin, including subsequent sign-in redirects. Distinct starting origins have independent sessions. Clearing requires native confirmation and removes cookies, cache, and website storage from only the relevant capture profiles. Saved articles/images and the device key remain intact.
 
 Optional recovery-key convenience storage uses explicit native save/load/forget confirmations. The encrypted file is in Android's no-backup area and the AES-GCM wrapping key stays in Android Keystore. There is no biometric requirement; this protects the stored copy, not an unlocked app session or compromised OS. Keep a separate recovery copy. App uninstall/storage clearing loses the library and device convenience copy. System cloud/device-transfer backup is excluded.
 
