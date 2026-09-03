@@ -4,6 +4,19 @@ This file distinguishes accepted decisions from questions that must be resolved 
 
 ## Accepted decisions
 
+### D-025 — Thin Android shell, profile isolation, and local share receipt
+
+Date: 2026-09-03
+Status: accepted
+Context: M6 adds native integration while retaining the shared React library and preventing website JavaScript from reaching native privileges.
+Decision: Use a small Java/AndroidX WebKit shell, an equivalent thin wrapper to the proposed Capacitor baseline, without a general plugin bridge. Bundle the existing web UI behind WebViewAssetLoader at the exact app-assets HTTPS origin. Expose an origin-restricted WebMessageListener only to the trusted main frame. Use a separate named WebView profile for each capture session's initial site, never the library profile; websites receive no native message listener or JavaScript interface. Capture runs only from a native Save action and reuses the extension's credential-scrubbed DOM/Readability extraction, followed by the standard receiving validator/sanitizer. Retain site profiles until explicitly cleared; clear one/all capture profiles without touching the library. Store an optional recovery-key convenience copy encrypted by Android Keystore, outside backups, only after explicit consent; retrieval also requires a native confirmation. Embedded Google OAuth remains unavailable; the existing browser/PWA Drive workflow remains supported.
+
+Represent pending links as ordinary version-1 article/snapshot records with `captureMethod: pending-link`, a `pending-link` warning, and an explanatory placeholder instead of claiming archived content. This keeps backup/sync compatibility without a schema migration. PWA sharing uses an installed service worker to intercept a bounded POST locally and redirect through a fragment, never a shared-URL query sent to hosting. Native ACTION_SEND queues only bounded text until the web library durably acknowledges it. Native capture restricts HTTP to debug loopback; release capture requires HTTPS and always cancels TLS errors.
+
+Consequences: AndroidX multi-profile and origin-restricted messaging are required and capability-checked; unsupported WebViews fail closed. Different starting-site profiles intentionally do not share SSO sessions. Capture size is bounded and missing images are reported. No website credential, cookie, OAuth token, or saved key enters the package or logs. Native debug/release identities and stores are separate from browser libraries. Optional background sync is deferred. No M7 provider work.
+
+References: https://developer.android.com/reference/androidx/webkit/WebViewCompat ; https://developer.android.com/reference/androidx/webkit/ProfileStore ; https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec ; https://developer.chrome.com/docs/capabilities/web-apis/web-share-target
+
 ### D-024 — Portable snapshot backups, atomic additive restore, and isolated printing
 
 Date: 2026-09-03
@@ -181,7 +194,7 @@ Resolved by D-014. IndexedDB holds transactional records; OPFS stores blobs when
 
 ### O-005 — Android wrapper framework
 
-The proposed baseline is Capacitor or an equivalent thin wrapper around the shared PWA. Validate capture-browser isolation and platform bridge security before selecting it.
+Resolved by D-025: a thin Java/AndroidX WebKit shell around the shared PWA, with explicit profile and bridge isolation.
 
 Decision deadline: before Milestone 6.
 

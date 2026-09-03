@@ -1,0 +1,21 @@
+PostKeeper Android runtime notices
+
+PostKeeper source: https://github.com/fishese/postkeeper
+PostKeeper is GPL-3.0-or-later. No third-party project endorses this application.
+
+AndroidX WebKit 1.14.0 and transitive AndroidX annotation, annotation-experimental,
+core, lifecycle-runtime/common, arch.core, versionedparcelable, and collection:
+Copyright The Android Open Source Project. Apache License, Version 2.0.
+https://android.googlesource.com/platform/frameworks/support/
+
+Kotlin standard library/common 1.7.10 and JetBrains annotations 13.0:
+Copyright JetBrains s.r.o. and Kotlin Programming Language contributors.
+Apache License, Version 2.0. https://github.com/JetBrains/kotlin
+https://github.com/JetBrains/java-annotations
+
+JSpecify 1.0.0:
+Copyright The JSpecify Authors. Apache License, Version 2.0.
+https://github.com/jspecify/jspecify
+
+The full Apache license follows these notices in the bundled web notices.
+The shared web runtime's original notices are retained unchanged.

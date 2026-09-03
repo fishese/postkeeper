@@ -1,6 +1,6 @@
 # Portable backups and printing
 
-Milestone 5 uses application version 0.5.0 and backup format version 1.
+Milestone 5 introduced application version 0.5.0 and backup format version 1. Milestone 6 uses application version 0.6.0 with the same backup format. Pending links are ordinary article/snapshot records marked `pending-link`; backups preserve their placeholder state and organization. Android capture snapshots use `android-capture-browser`.
 
 ## Export and restore
 
@@ -45,7 +45,9 @@ Sandbox behavior follows the [HTML iframe documentation](https://developer.mozil
 
 Native Android acceptance passed on 2026-09-03 using Samsung SM-S9280 / Android 16 / Chrome 152.0.7977.64. The actual Android Print Spooler and Samsung My Files save produced a 57,048-byte, six-page Letter PDF. All six pages were rendered with Poppler and visually inspected for headings, complete lines, local image, final text, links, and page breaks; extracted text and the clickable link annotation also passed. Desktop Chromium A4 PDF layout and Chromium/Firefox printable documents pass. The source and print tabs remained open until saving finished.
 
-Known limitation: the API 37.1 emulator with Chrome 149.0.7827.5 and 152.0.7977.75 displayed the six-page preview but produced empty PDFs with native `onTrimMemory` crashes. A post-reboot plain control save was never verified. The phone pass does not resolve that emulator failure. Physical-printer output and Android JSON Download Manager delivery are not claimed. See `STATUS.md` and `NEXT_CHAT_PROMPT.md`; the public site does not yet contain Milestone 5.
+Known limitation: the API 37.1 emulator with Chrome 149.0.7827.5 and 152.0.7977.75 displayed the six-page preview but produced empty PDFs with native `onTrimMemory` crashes. A post-reboot plain control save was never verified. The phone pass does not resolve that emulator failure. Physical-printer output and browser Android JSON Download Manager delivery are not claimed. Milestone 5 is now public at release `dec19b6`.
+
+Milestone 6's wrapper uses Android's system document picker rather than browser Download Manager. Actual native export saved an 8,588-byte fixture JSON; native file selection, staging, and confirmed idempotent import passed. This is separate from the earlier browser delivery limitation. Print uses the same sanitized document in a script-disabled, network-blocked native WebView. Its one-page preview opened, but the emulator saved a zero-byte PDF; wrapper PDF saving is unverified and the Chrome/PWA phone result is not generalized to it. Native printable HTML is limited to 3.5 million characters; native JSON export retains the 128 MiB file limit. See `ANDROID_SETUP.md` for isolation and device evidence.
 
 ## Diagnostics
 

@@ -1,0 +1,102 @@
+name: Build signed Android APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Android SDK packages
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - run: npm install --global npm@11.16.0
+      - run: npm ci
+      - run: npm run validate
+      - run: npm run prepare:android
+      - name: Build and check unsigned release
+        run: bash apps/android/gradlew -p apps/android --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleRelease
+      - uses: actions/upload-artifact@v7
+        with:
+          name: unsigned-android-apk
+          path: apps/android/app/build/outputs/apk/release/app-release-unsigned.apk
+          if-no-files-found: error
+          retention-days: 1
+
+  sign:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # Separate runner: application/npm/Gradle build processes never receive signing secrets.
+    steps:
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: sdkmanager 'build-tools;36.0.0'
+      - uses: actions/download-artifact@v8
+        with:
+          name: unsigned-android-apk
+          path: unsigned
+      - name: Sign and verify APK
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          umask 077
+          export PK_SIGNING_STORE="$RUNNER_TEMP/postkeeper-release.jks"
+          trap 'rm -f -- "$PK_SIGNING_STORE"' EXIT
+          python3 - <<'PY'
+          import base64, os, pathlib
+          names = ['ANDROID_KEYSTORE_BASE64', 'ANDROID_KEYSTORE_PASSWORD', 'ANDROID_KEY_ALIAS', 'ANDROID_KEY_PASSWORD']
+          missing = [name for name in names if not os.environ.get(name)]
+          if missing:
+              raise SystemExit('Missing repository secrets: ' + ', '.join(missing))
+          try:
+              encoded = ''.join(os.environ['ANDROID_KEYSTORE_BASE64'].split())
+              decoded = base64.b64decode(encoded, validate=True)
+              if not decoded:
+                  raise ValueError()
+          except ValueError:
+              raise SystemExit('ANDROID_KEYSTORE_BASE64 must contain the complete base64-encoded keystore.')
+          pathlib.Path(os.environ['PK_SIGNING_STORE']).write_bytes(decoded)
+          PY
+          mkdir -p signed
+          tools="$ANDROID_HOME/build-tools/36.0.0"
+          "$tools/zipalign" -c -P 16 4 unsigned/app-release-unsigned.apk
+          "$tools/apksigner" sign \
+            --ks "$PK_SIGNING_STORE" \
+            --ks-key-alias "$ANDROID_KEY_ALIAS" \
+            --ks-pass env:ANDROID_KEYSTORE_PASSWORD \
+            --key-pass env:ANDROID_KEY_PASSWORD \
+            --v4-signing-enabled false \
+            --out signed/postkeeper-release.apk unsigned/app-release-unsigned.apk
+          "$tools/apksigner" verify --verbose signed/postkeeper-release.apk
+          (cd signed && sha256sum postkeeper-release.apk > SHA256SUMS.txt)
+      - uses: actions/upload-artifact@v7
+        with:
+          name: postkeeper-signed-apk-${{ github.run_number }}
+          path: |
+            signed/postkeeper-release.apk
+            signed/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30

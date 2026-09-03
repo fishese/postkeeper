@@ -25,7 +25,7 @@ Maintenance and current package metadata were reviewed from the official npm and
 | DOMPurify 3.4.14           | MPL-2.0 OR Apache-2.0 | Active security-maintained release              | DOM-based allowlist sanitization of every imported reader document. |
 | jsdom 30                   | MIT                   | Active; test-only                               | Browser-equivalent DOM parser for sanitizer/extractor unit tests.   |
 
-Capacitor and backend dependencies remain uninstalled until their milestones. No telemetry dependency is included.
+No telemetry dependency is included. D-025 selects a small AndroidX shell for M6; Capacitor is not adopted. Backend dependencies remain uninstalled until their milestone.
 
 ## Milestone 3 additions
 
@@ -44,3 +44,13 @@ The extension reuses `@mozilla/readability`; it has no telemetry, remote backend
 ## Milestone 4 additions
 
 Milestone 4 adds no third-party runtime dependency. The sync core uses the browser's standard Web Crypto APIs (HKDF, HMAC-SHA-256, AES-GCM, and cryptographically secure random values). Google authorization uses the official Google Identity Services browser script loaded from `https://accounts.google.com/gsi/client`, and the Drive provider calls the documented REST/CORS endpoints directly. Access tokens and unwrapped keys are held in memory only.
+
+## Milestone 6 additions
+
+The Android shell pins AndroidX WebKit 1.14.0 (Apache-2.0), maintained in the active AndroidX project, for multi-profile WebViews, local asset loading, origin-restricted messaging, and profile data deletion. This is a pinned, tested version, not a claim to use the newest release. Feature detection is required even on supported Android API levels. It reuses the existing Readability/esbuild capture implementation. No new web runtime package is added.
+
+Build tooling pins Android Gradle Plugin 8.13.0 and Gradle 8.14.3 (Apache-2.0); Java 17 language level, compile/target SDK 36, minimum API 28. JUnit 4.13.2 (EPL-1.0) is test-only. The emulator Keystore runner uses platform instrumentation directly. Google Java Format 1.24.0 (Apache-2.0) was used as a temporary development tool; it is not bundled.
+
+Resolved Android runtime transitive dependencies are AndroidX annotations 1.8.1, annotation-experimental 1.4.1, core 1.1.0, lifecycle/common and arch.core 2.0.0, versionedparcelable 1.1.0, collection 1.0.0; Kotlin standard library/common 1.7.10, JetBrains annotations 13.0, and JSpecify 1.0.0. These use Apache-2.0. `apps/android/NOTICE.txt` and the full Apache license are appended to the APK's shared runtime notices. Gradle's dependency report is the authoritative resolved graph; future upgrades need regression and license review. Android Lint's upgrade suggestions are documented, not automatically applied.
+
+References: [AndroidX WebKit releases](https://developer.android.com/jetpack/androidx/releases/webkit), [AGP 8.13 requirements](https://developer.android.com/build/releases/agp-8-13-0-release-notes), and [Android setup](ANDROID_SETUP.md).

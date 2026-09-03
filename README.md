@@ -6,7 +6,9 @@ The application code may be hosted as a static Progressive Web App (PWA), but th
 
 ## Current status
 
-Milestones 0 through 5 are complete locally. Real Google Drive acceptance passed clean-client recovery, wrong-key rejection, interrupted download/upload retries, independent offline edits and convergence on 37 operations, encrypted-object read-back, and consent revocation with continued local reading/editing. The development preview is deployed at [keep.fishese.cc](https://keep.fishese.cc), hosted by GitHub Pages from `fishese/postkeeper`. Sync acceptance used the Android emulator and a disposable desktop client with an in-memory app-token relay; it does not establish a second independent OAuth consent flow. Milestone 5 passed native PDF saving on Samsung SM-S9280 / Android 16 / Chrome 152.0.7977.64: all six saved pages were rendered and visually inspected. Desktop PDF, backup round-trip/corruption, and diagnostics checks also pass. Milestone 5 remains unpublished; the deployed site still contains Milestone 4. See the [current continuation prompt](docs/NEXT_CHAT_PROMPT.md).
+Milestones 0 through 6 are complete locally. Milestone 5 is committed/pushed as `dec19b6` and deployed at [keep.fishese.cc](https://keep.fishese.cc); Pages run `33756881944` succeeded. Milestone 6 is local and unpublished: URL sharing/pending links, a thin Android wrapper, isolated authenticated capture, native key convenience storage, and capture-session clearing. Emulator acceptance passed sharing, public/authenticated capture and images, absent website native bridges, clearing without library loss, and native JSON export/import. See [Android setup and limitations](docs/ANDROID_SETUP.md) and the [continuation prompt](docs/NEXT_CHAT_PROMPT.md). Milestone 7 has not started.
+
+Real Google Drive acceptance passed clean-client recovery, wrong-key rejection, interrupted transfers, offline convergence on 37 operations, encrypted-object read-back, and consent revocation with continued local use. Its disposable desktop client used an in-memory token relay, not a second independent OAuth consent flow. Milestone 5 Chrome/PWA PDF saving passed on Samsung SM-S9280 / Android 16 / Chrome 152.0.7977.64 with all six saved pages inspected. The M6 native wrapper has a separate library, does not offer embedded Google sign-in, and its emulator PDF save remains unverified after producing an empty file. No M6 phone test was performed.
 
 Milestone 3 browser-extension support now passes its complete runtime matrix: packaged Chromium, desktop Firefox, Firefox Android 154.0.1, and Microsoft Edge Canary for Android 154.0.4249.0 (versionCode 424900023). Edge Canary 154.0.4249.0 is the first supported Android Chromium minimum; no earlier Edge build is claimed. See [Implementation Roadmap](docs/IMPLEMENTATION_ROADMAP.md), [Extension Compatibility](docs/EXTENSION_COMPATIBILITY.md), and [Project Status](docs/STATUS.md).
 
@@ -19,6 +21,8 @@ Milestone 3 browser-extension support now passes its complete runtime matrix: pa
 - [Current Continuation Prompt](docs/NEXT_CHAT_PROMPT.md) — the latest checkpoint, required user action, and copy-ready next-chat prompt.
 - [Smaller-Model Handoff](docs/SMALLER_MODEL_HANDOFF.md) — original milestone templates; use the current continuation prompt when resuming this session.
 - [Backup Format](docs/BACKUP_FORMAT.md) — portable format, import behavior, limits, printing, and diagnostics.
+- [Android Setup](docs/ANDROID_SETUP.md) — wrapper builds, share/capture workflow, profile security, emulator acceptance, and limits.
+- [Android Signing](docs/ANDROID_SIGNING.md) — release keystore, GitHub repository secrets, and manual signed-APK artifacts.
 - [Project Status](docs/STATUS.md) — the canonical record of completed and active milestones.
 - [Extension Compatibility](docs/EXTENSION_COMPATIBILITY.md) — tested browser versions and Milestone 3 runtime evidence.
 - [Google Drive Setup](docs/GOOGLE_DRIVE_SETUP.md) — OAuth configuration and the remaining live-provider smoke test.
@@ -50,4 +54,4 @@ Website login credentials remain in the browser or the optional capture-browser 
 
 PostKeeper is free software licensed under the GNU General Public License, version 3 or (at your option) any later version. See [LICENSE](LICENSE). It is provided without any warranty. Third-party dependencies retain their own licenses; bundled notices are provided with the web build.
 
-This is a development preview, not an accepted initial release. Milestone 4 sync/recovery and Milestone 5 PDF/backup acceptance are complete locally; later milestones, including release hardening, remain unfinished. Use harmless test data for now.
+This is a development preview, not an accepted initial release. Milestones 0–6 are complete locally; self-hosted sync and release hardening remain unfinished. Use harmless test data for now.

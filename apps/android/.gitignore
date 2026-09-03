@@ -1,0 +1,7 @@
+.gradle/
+.idea/
+app/release/
+local.properties
+**/build/
+app/src/main/assets/web/
+app/src/main/assets/capture.js

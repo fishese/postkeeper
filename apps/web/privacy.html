@@ -49,13 +49,13 @@
         <p>
           This policy covers the PostKeeper web app at
           <a href="https://keep.fishese.cc/">keep.fishese.cc</a> and its companion browser
-          extensions. “We” means the maintainer of the
+          extensions and Android app. “We” means the maintainer of the
           <a href="https://github.com/fishese/postkeeper">fishese/postkeeper project</a>.
           Independently hosted or modified copies may have different operators and policies.
         </p>
         <p>
-          PostKeeper is a development preview. This policy describes implemented features, not
-          planned Android wrappers or self-hosted sync services.
+          PostKeeper is a development preview. This policy describes implemented features; a
+          self-hosted sync service remains planned.
         </p>
       </section>
 
@@ -95,6 +95,29 @@
           The extension keeps a bounded local transfer queue until the app acknowledges an import.
           Transfers expire after 30 minutes; expired records are removed when queue maintenance next
           runs, not necessarily while the browser is closed.
+        </p>
+        <p>
+          Shared URLs initially create pending links, not archived pages. An installed compatible
+          PWA handles shared POST data locally in its service worker. The Android app queues shared
+          text in its private storage until the local library acknowledges it. No shared page URL or
+          content is sent to the static host by these flows.
+        </p>
+        <p>
+          The Android capture browser stores cookies and website storage in separate site-session
+          profiles on your device. You sign in directly on the website; requests go to that website
+          as in an ordinary browser. Website JavaScript has no PostKeeper native bridge. Explicit
+          capture reads a credential-scrubbed page snapshot and retrieves available same-origin
+          images with that profile's session. Temporary capture files live in private app cache.
+          Clear this site or Clear all browsing data removes capture sessions without deleting your
+          saved library. The Android library is separate from your browser/PWA library.
+        </p>
+        <p>
+          You may explicitly save a recovery-key convenience copy in the Android app. It is
+          encrypted with Android Keystore and stored outside system and portable backups. Loading or
+          removing it requires a native confirmation; it is not protected by a separate biometric
+          prompt. Keep an independent recovery copy. Removing the app or losing device keys can make
+          this copy unavailable. The Android preview does not perform embedded Google authorization;
+          use the browser/PWA for Drive sync.
         </p>
       </section>
 

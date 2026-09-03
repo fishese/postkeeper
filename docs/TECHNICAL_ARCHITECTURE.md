@@ -182,6 +182,10 @@ The wrapper's capture browser is an isolated WebView-based capability, not the p
 
 This path is retained even when Chromium and Firefox extensions work because it is the universal fallback.
 
+Milestone 6 implements D-025 in `apps/android`: a Java/AndroidX WebKit shell loads the bundled React UI through WebViewAssetLoader. A WebMessageListener is restricted to the exact app-assets origin and trusted main document; arbitrary websites receive no listener or JavaScriptInterface. The library uses its own named profile. Each capture starting origin maps to a different profile, including any login redirects in that session. Capability-checked WebStorageCompat clearing removes cookies, network cache, and JavaScript storage from the chosen capture profile(s), without touching the library profile or Android Keystore.
+
+Native ACTION_SEND receipt persists bounded shared text until the web library acknowledges it. Installed Chromium PWA receipt uses a local, bounded POST handler and a fragment-only handoff. Pending links use existing version-1 article/snapshot records with `pending-link` capture method/warning and explanatory placeholder content; actual capture upgrades the snapshot while preserving organization. No database schema change is required. Optional device recovery-key copies use AES-GCM with a non-exportable Android Keystore key and no-backup private files. Browser/PWA Google sync remains unchanged; the wrapper does not embed OAuth. See `ANDROID_SETUP.md` for build steps, acceptance evidence, and explicit preview limitations.
+
 ## 7. Safe content rendering
 
 Saved content is hostile until processed.

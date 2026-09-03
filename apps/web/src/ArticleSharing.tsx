@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import type { ReaderContent } from '@postkeeper/local-store';
 import { originalHttpUrl } from './originalUrl';
 import { createPrintDocument, openPrintWindow } from './printDocument';
+import { isNativeAndroid, nativeRequest } from './nativeBridge';
 
 export function ArticleSharing({ content }: { content: ReaderContent }) {
   const [message, setMessage] = useState('');
@@ -38,8 +39,17 @@ export function ArticleSharing({ content }: { content: ReaderContent }) {
         <button
           type="button"
           onClick={() =>
-            void openPrintWindow(printDocument, launcher.current).then(
-              () => setMessage('Print preview opened in a separate tab.'),
+            void (
+              isNativeAndroid()
+                ? nativeRequest('print', { html: printDocument })
+                : openPrintWindow(printDocument, launcher.current)
+            ).then(
+              () =>
+                setMessage(
+                  isNativeAndroid()
+                    ? 'Android print preview opened.'
+                    : 'Print preview opened in a separate tab.',
+                ),
               (cause: unknown) =>
                 setMessage(cause instanceof Error ? cause.message : 'Printing failed.'),
             )

@@ -20,6 +20,8 @@ import { listenForExtensionTransfer } from './extensionTransfer';
 import { ArticleSharing } from './ArticleSharing';
 import { BackupPanel } from './BackupPanel';
 import { LOCAL_SYNC_DIAGNOSTICS } from './diagnostics';
+import { SharedLinks } from './SharedLinks';
+import { CaptureActions } from './CaptureActions';
 
 const NAV_VIEWS: Array<{ id: Exclude<LibraryView, { categoryId: string }>; label: string }> = [
   { id: 'inbox', label: 'Inbox' },
@@ -108,6 +110,19 @@ export function LibraryApp() {
       ) ?? null,
     );
   }, []);
+
+  const onSharedSaved = useCallback(
+    async (article: ArticleListItem | { id: ArticleListItem['id'] }) => {
+      if (!library) return;
+      setView('inbox');
+      setQuery('');
+      setSelectedId(article.id);
+      selectedIdRef.current = article.id;
+      await refresh(library, 'inbox', '');
+      setReader(await library.getReader(article.id));
+    },
+    [library, refresh],
+  );
 
   useEffect(() => {
     if (!library) return;
@@ -251,7 +266,7 @@ export function LibraryApp() {
     <div className="library-shell">
       <header className="library-header">
         <div>
-          <p className="eyebrow">Milestone 5 · Sharing and portable backups</p>
+          <p className="eyebrow">Save, capture, and read offline</p>
           <h1>PostKeeper</h1>
         </div>
         <p data-testid="storage-status" className="storage-status">
@@ -272,6 +287,7 @@ export function LibraryApp() {
         onLibraryChanged={() => refresh(library, view, query)}
         onDiagnosticsChange={setSyncDiagnostics}
       />
+      <SharedLinks library={library} onSaved={onSharedSaved} />
       <BackupPanel
         library={library}
         sync={syncDiagnostics}
@@ -446,6 +462,7 @@ export function LibraryApp() {
                 {selected.author} · {selected.siteName}
               </p>
               <p className="original-url">{selected.originalUrl}</p>
+              <CaptureActions article={selected} library={library} onSaved={onSharedSaved} />
               <ArticleSharing key={selected.id} content={{ ...reader, article: selected }} />
               {(selected.captureStatus !== 'complete' || selected.warnings.length > 0) && (
                 <div className="capture-warning" role="status" data-testid="capture-status">

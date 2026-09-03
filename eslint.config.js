@@ -13,12 +13,22 @@ export default tseslint.config(
       '**/node_modules/**',
       'playwright-report/**',
       'test-results/**',
+      'apps/android/**/assets/**',
+      'apps/android/.gradle/**',
     ],
   },
   js.configs.recommended,
+  {
+    files: ['scripts/prepare-android.mjs', 'scripts/m6-fixture-server.mjs'],
+    languageOptions: { globals: globals.node },
+  },
   ...tseslint.configs.recommended,
   {
-    files: ['scripts/test-milestone5-emulator.mjs'],
+    files: [
+      'scripts/test-milestone5-emulator.mjs',
+      'scripts/test-milestone6-emulator.mjs',
+      'apps/web/public/share-target.js',
+    ],
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
   },
   {

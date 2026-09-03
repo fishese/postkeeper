@@ -3,3 +3,10 @@ dist
 dist-*
 playwright-report
 test-results
+apps/android/.gradle
+apps/android/.idea
+apps/android/app/release
+apps/android/**/build
+apps/android/app/src/main/assets
+apps/android/gradle
+apps/android/gradlew*

@@ -1,6 +1,7 @@
 import {
   articleId,
   articleMatchesView,
+  parseSharedLink,
   blobId,
   categoryId,
   extractSearchText,
@@ -626,7 +627,32 @@ export class Library {
     return article;
   }
 
-  async importCapturePackage(value: unknown): Promise<Article> {
+  async savePendingLink(input: { url?: string; text?: string; title?: string }): Promise<Article> {
+    const shared = parseSharedLink(input);
+    const existing = (await this.getAll<Article>('articles')).find(
+      (item) =>
+        !item.isDeleted && (item.canonicalUrl === shared.url || item.originalUrl === shared.url),
+    );
+    if (existing) return existing;
+    return this.importCapturePackage({
+      formatVersion: 1,
+      captureId: createSortableId(),
+      capturedAt: new Date().toISOString(),
+      captureMethod: 'pending-link',
+      sourceBrowser: 'PostKeeper share target',
+      originalUrl: shared.url,
+      canonicalUrl: shared.url,
+      metadata: { title: shared.title, siteName: new URL(shared.url).hostname },
+      renderedDom:
+        '<article><p>Only the link is saved. Capture this page to read its content offline.</p></article>',
+      extractedReaderHtml:
+        '<article><p>Only the link is saved. Capture this page to read its content offline.</p></article>',
+      assets: [],
+      warnings: ['pending-link'],
+    });
+  }
+
+  async importCapturePackage(value: unknown, pendingId?: ArticleId): Promise<Article> {
     const processed = await processCapturePackage(value);
     const capture = processed.capture;
     const storedAssets: SnapshotAsset[] = [];
@@ -648,9 +674,16 @@ export class Library {
       new TextEncoder().encode(html),
       'text/html;charset=utf-8',
     );
-    const existing = (await this.getAll<Article>('articles')).find(
-      (article) => !article.isDeleted && article.canonicalUrl === capture.canonicalUrl,
-    );
+    const allArticles = await this.getAll<Article>('articles');
+    const pending = pendingId
+      ? allArticles.find(
+          (a) => a.id === pendingId && !a.isDeleted && a.warnings.includes('pending-link'),
+        )
+      : undefined;
+    const existing =
+      allArticles.find(
+        (article) => !article.isDeleted && article.canonicalUrl === capture.canonicalUrl,
+      ) ?? pending;
     const now = new Date().toISOString();
     const nextSnapshotId = snapshotId(createSortableId());
     const metadata = processed.metadata;
@@ -714,6 +747,20 @@ export class Library {
       ['articles', 'snapshots', 'searchDocs'],
       'readwrite',
     );
+    if (capture.captureMethod === 'pending-link') {
+      const current = (await requestPromise(
+        transaction.objectStore('articles').getAll(),
+      )) as Article[];
+      const duplicate = current.find(
+        (a) =>
+          !a.isDeleted &&
+          (a.canonicalUrl === capture.canonicalUrl || a.originalUrl === capture.originalUrl),
+      );
+      if (duplicate) {
+        await transactionDone(transaction);
+        return duplicate;
+      }
+    }
     transaction.objectStore('articles').put(article);
     transaction.objectStore('snapshots').put(snapshot);
     transaction.objectStore('searchDocs').put({

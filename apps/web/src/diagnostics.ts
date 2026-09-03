@@ -16,6 +16,8 @@ export const LOCAL_SYNC_DIAGNOSTICS: SyncDiagnostics = {
 };
 
 const knownMethods = new Set([
+  'pending-link',
+  'android-capture-browser',
   'trusted-fixture',
   'development-fixture',
   'chromium-extension',
@@ -23,6 +25,9 @@ const knownMethods = new Set([
   'browser-extension',
 ]);
 const knownWarnings = new Set([
+  'pending-link',
+  'native-cross-origin-image',
+  'native-image-unavailable',
   'missing-asset',
   'extraction-failed',
   'unsupported-frame',

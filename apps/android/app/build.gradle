@@ -1,0 +1,20 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'cc.fishese.postkeeper'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'cc.fishese.postkeeper'
+        minSdk 28
+        targetSdk 36
+        versionCode 6
+        versionName '0.6.0'
+        testInstrumentationRunner 'cc.fishese.postkeeper.KeyVaultInstrumentation'
+    }
+    buildTypes {
+        debug { applicationIdSuffix '.debug'; manifestPlaceholders = [appLabel: 'PostKeeper Dev'] }
+        release { manifestPlaceholders = [appLabel: 'PostKeeper']; minifyEnabled false }
+    }
+    buildFeatures { buildConfig true }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+dependencies { implementation 'androidx.webkit:webkit:1.14.0'; testImplementation 'junit:junit:4.13.2' }

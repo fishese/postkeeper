@@ -1,4 +1,5 @@
 /** Stable domain primitives for the local library. */
+export { parseSharedLink } from './sharedLink';
 
 export type ArticleId = string & { readonly __brand: 'ArticleId' };
 export type SnapshotId = string & { readonly __brand: 'SnapshotId' };

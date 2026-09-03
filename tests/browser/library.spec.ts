@@ -16,7 +16,7 @@ test('library add, organize, restart, search, and read workflows', async ({ cont
   const membership = page.getByRole('checkbox', { name: 'Field notes' });
   await membership.click();
   await expect(membership).toBeChecked();
-  await page.getByRole('button', { name: 'Inbox' }).click();
+  await page.getByRole('button', { name: 'Inbox', exact: true }).click();
   await expect(page.getByText('No articles in this view.')).toBeVisible();
   await page.getByRole('button', { name: 'Field notes' }).click();
   await page.getByRole('button', { name: /A public fixture article/ }).click();

@@ -9,6 +9,7 @@ import {
 import { GoogleDriveObjectStore, GoogleIdentityAuthorizer } from '@postkeeper/sync-google-drive';
 import { loadGoogleIdentityServices } from './googleIdentity';
 import { restoreLibraryFromRemote, synchronizeLibrary } from './librarySync';
+import { isNativeAndroid, nativeRequest } from './nativeBridge';
 
 type SyncPhase = 'local' | 'pending' | 'synced' | 'error' | 'conflict' | 'reconnect-required';
 
@@ -21,7 +22,8 @@ export function SyncPanel({
   onLibraryChanged: () => Promise<void>;
   onDiagnosticsChange?: (value: SyncDiagnostics) => void;
 }) {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() ?? '';
+  const native = isNativeAndroid();
+  const clientId = native ? '' : (import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() ?? '');
   const authorizer = useRef<GoogleIdentityAuthorizer | null>(null);
   const provider = useRef<GoogleDriveObjectStore | null>(null);
   const [phase, setPhase] = useState<SyncPhase>('local');
@@ -172,8 +174,14 @@ export function SyncPanel({
       </p>
       {!clientId ? (
         <p>
-          This build has no Google OAuth client ID. Set <code>VITE_GOOGLE_CLIENT_ID</code> at build
-          time to enable Drive sync.
+          {native ? (
+            'Google Drive sync is available in the browser/PWA. This Android preview keeps its own local library; use a portable backup to transfer it.'
+          ) : (
+            <>
+              This build has no Google OAuth client ID. Set <code>VITE_GOOGLE_CLIENT_ID</code> at
+              build time to enable Drive sync.
+            </>
+          )}
         </p>
       ) : (
         <div className="sync-actions">
@@ -245,9 +253,47 @@ export function SyncPanel({
           Verify and restore
         </button>
       </div>
+      {native && (
+        <div className="sync-actions">
+          <p>
+            Optional device copy: Android encrypts your recovery key with Keystore. Keep a separate
+            recovery copy. This does not enable Drive sync in the wrapper.
+          </p>
+          <button
+            disabled={!recoveryInput.trim() && !keys}
+            onClick={() =>
+              void nativeRequest('saveKey', {
+                key: recoveryInput.trim() || keys?.recoveryKey,
+              }).then(() => setMessage('Recovery key encrypted on this device.'), showError)
+            }
+          >
+            Save key on this device
+          </button>
+          <button
+            onClick={() =>
+              void nativeRequest<string>('loadKey').then((value) => {
+                setRecoveryInput(value);
+                setMessage('Device key loaded into the recovery field.');
+              }, showError)
+            }
+          >
+            Load device key
+          </button>
+          <button
+            onClick={() =>
+              void nativeRequest('forgetKey').then(
+                () => setMessage('Device key copy removed.'),
+                showError,
+              )
+            }
+          >
+            Forget device key
+          </button>
+        </div>
+      )}
       <p className="sync-note">
         Drive receives encrypted objects in its hidden app-data folder. Keys and access tokens stay
-        in memory for this session.
+        in memory for this session unless you explicitly save an encrypted Android device copy.
       </p>
     </section>
   );

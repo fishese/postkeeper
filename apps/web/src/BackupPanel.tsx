@@ -7,8 +7,21 @@ import {
   type StagedBackup,
 } from '@postkeeper/local-store';
 import { createDiagnostics, type SyncDiagnostics } from './diagnostics';
+import { isNativeAndroid, nativeRequest } from './nativeBridge';
 
-function download(text: string, name: string) {
+async function download(text: string, name: string) {
+  if (isNativeAndroid()) {
+    await nativeRequest('exportStart');
+    for (let offset = 0; offset < text.length;) {
+      let end = Math.min(offset + 48 * 1024, text.length);
+      // Do not split UTF-16 pairs before native UTF-8 encoding.
+      if (end < text.length && /[\uD800-\uDBFF]/u.test(text[end - 1]!)) end--;
+      await nativeRequest('exportChunk', { text: text.slice(offset, end) });
+      offset = end;
+    }
+    await nativeRequest('exportSave', { name });
+    return;
+  }
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const anchor = document.createElement('a');
   anchor.href = url;
@@ -88,7 +101,7 @@ export function BackupPanel({
               protection: 'plaintext',
               applicationVersion: __APP_VERSION__,
             });
-            download(text, `postkeeper-backup-${new Date().toISOString().slice(0, 10)}.json`);
+            await download(text, `postkeeper-backup-${new Date().toISOString().slice(0, 10)}.json`);
             setMessage('Backup ready. Keep the downloaded file private.');
           })
         }
@@ -158,7 +171,9 @@ export function BackupPanel({
       {diagnostics && (
         <div>
           <pre className="diagnostics-preview">{diagnostics}</pre>
-          <button onClick={() => download(diagnostics, 'postkeeper-diagnostics.json')}>
+          <button
+            onClick={() => void run(() => download(diagnostics, 'postkeeper-diagnostics.json'))}
+          >
             Export redacted diagnostics
           </button>
         </div>

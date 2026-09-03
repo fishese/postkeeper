@@ -38,8 +38,19 @@ export default defineConfig({
         display: 'standalone',
         background_color: '#f7f5ef',
         theme_color: '#17212b',
+        icons: [
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
+        ],
+        share_target: {
+          action: 'share-target',
+          method: 'POST',
+          enctype: 'multipart/form-data',
+          params: { title: 'title', text: 'text', url: 'url' },
+        },
       },
       workbox: {
+        importScripts: ['share-target.js'],
         navigateFallback: `${base}index.html`,
         navigateFallbackDenylist: [
           /\/(?:privacy\.html|terms\.html|LICENSE\.txt|THIRD_PARTY_NOTICES\.txt)$/u,
