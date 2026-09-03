@@ -2,11 +2,13 @@
 
 Checkpoint: 2026-09-04. Canonical progress is in `STATUS.md`.
 
+Latest completed request: the updated **0.6.2 APK** is rebuilt on GitHub and published at **https://github.com/fishese/postkeeper/releases/tag/v0.6.2**. Source **c970d59**, Android versionCode **8**, signing run **33790304910**, Pages run **33790303712**, artifact **postkeeper-signed-apk-5** (ID **9907147786**). APK **2,982,531 bytes**, SHA-256 `19a76ac6757467258508901e4ca0e55ce9d9d7477ff24f29e9cf035c04d55d9a`. Signature and unchanged certificate from 0.6.1 verified; live About download anonymously matched. Hosted full validation (112 tests), Android JVM/lint/release gates, and six local mobile/link checks passed. The extension guide is now bundled in the published APK. No device install or signing-secret change. No unfinished rebuild/publication task remains.
+
 ## Current scope
 
 Milestones 0–6 are complete. **Do not start Milestone 7 or resolve O-006 without an explicit request.** The user separately requested a compact mobile redesign, reusable CSS, English localization resources, and an unobtrusive link from the web app to a GitHub-hosted signed APK.
 
-That follow-up is implemented as **0.6.1**, Android versionCode **7** (not Milestone 7), under D-026. The follow-up is committed, deployed and published. No user-input blocker remains. The About link uses the matching `v0.6.1/postkeeper-release.apk` asset, not an expiring Actions artifact URL.
+That follow-up was introduced as **0.6.1**, Android versionCode **7** (not Milestone 7), under D-026. The current **0.6.2** APK also bundles the extension guide. No user-input blocker remains. About now links `v0.6.2/postkeeper-release.apk`, not an expiring Actions artifact URL.
 
 The subsequent user request for an extension installation page/download link and a production PWA default is also complete. Source **de27ff3**, Pages run **33789716332**, guide **https://keep.fishese.cc/extensions.html**, and GitHub prerelease **extension-v0.1.1** are published and anonymously verified. The extension does not transfer directly into the APK's separate library.
 
@@ -27,7 +29,7 @@ Workspace `D:\Projects\PostKeeper`, branch `main`, repository `fishese/postkeepe
 ## Extension guide/default follow-up
 
 - Fresh extension installs default to `https://keep.fishese.cc/`. Existing saved destinations stay unchanged; the guide explains how to switch an older localhost setup. Both manifests are **0.1.1**, independent of web/native version 0.6.1.
-- `apps/web/extensions.html` is a standalone script-free page using `legal.css`, linked from About, policy navigation and extension settings. It is precached and works offline after the PWA loads. Future Android builds allow this exact document in the existing script-disabled viewer; the published APK was not replaced.
+- `apps/web/extensions.html` is a standalone script-free page using `legal.css`, linked from About, policy navigation and extension settings. It is precached and works offline after the PWA loads. Published APK 0.6.2 includes this exact document in the existing script-disabled viewer.
 - Public release **https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.1** has `postkeeper-chromium-0.1.1.zip` (113,791 bytes, SHA-256 `f67c1a866eb827f81950806455fe26455c613d0e37b5c7a3c166a02a9616d72e`) and `postkeeper-firefox-0.1.1.zip` (113,891 bytes, SHA-256 `f6d46738435c75fbde66faac7c3fbc47a1554b4f41d1e788fe7485d4bd024269`), plus `SHA256SUMS.txt`.
 - Chromium desktop uses Developer mode → Load unpacked. Firefox ZIP is unsigned and temporary through `about:debugging`; Mozilla signing/store publication and a supported public Android extension installer are not complete and were not requested in this follow-up. Historical Android runtime passes are distinct from public distribution.
 - Extensions import into the configured browser/PWA origin. APK storage is separate; use native sharing/capture or portable backup transfer. No cross-app bridge was added.
@@ -53,7 +55,7 @@ Package `cc.fishese.postkeeper` is separate from PostKeeper Dev (`cc.fishese.pos
 ```text
 Continue PostKeeper in D:\Projects\PostKeeper. Read docs/NEXT_CHAT_PROMPT.md and all listed source-of-truth documents completely, including docs/STATUS.md and docs/UI_AND_LOCALIZATION.md. Follow all AGENTS.md restrictions and preserve user data and unrelated changes.
 
-Milestones 0–6 are complete. The 0.6.1 compact UI/i18n and extension installation/default follow-ups are implemented and published. The guide is https://keep.fishese.cc/extensions.html; extension 0.1.1 defaults to that hosted PWA origin, preserves saved destinations, and has anonymously verified GitHub ZIP downloads. Firefox is still a temporary unsigned developer build; no public phone extension installer or direct extension-to-APK bridge is claimed. The separate signed APK remains at https://github.com/fishese/postkeeper/releases/tag/v0.6.1. Use the recorded evidence and work only on my next explicit request. Preserve the release signing identity; never request secret/key values in chat. Do not start Milestone 7 unless I explicitly request it.
+Milestones 0–6 are complete. The compact UI/i18n and extension installation/default follow-ups are published. The guide is https://keep.fishese.cc/extensions.html; extension 0.1.1 defaults to that hosted PWA origin, preserves saved destinations, and has anonymously verified GitHub ZIP downloads. Firefox is still a temporary unsigned developer build; no public phone extension installer or direct extension-to-APK bridge is claimed. The latest signed APK is 0.6.2 at https://github.com/fishese/postkeeper/releases/tag/v0.6.2, rebuilt on GitHub with the guide bundled and anonymously verified from the live About link. No rebuild/signing/publication task remains. Use the recorded evidence and work only on my next explicit request. Preserve the release signing identity; never request secret/key values in chat. Do not start Milestone 7 unless I explicitly request it.
 
 Use the emulator, and notify me before any necessary wireless-phone test. Preserve existing libraries, categories, Drive associations and recovery keys. No Drive reconnection is needed. Keep status and the continuation prompt current after any new requested work. Do not repeat completed acceptance or reconnect Drive without a concrete reason.
 ```

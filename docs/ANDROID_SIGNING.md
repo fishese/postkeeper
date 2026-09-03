@@ -4,7 +4,15 @@ The manual `Build signed Android APK` workflow builds the release package `cc.fi
 
 The workflow and M6 sources are published on `main` (`c32aae9`, with SDK path fix `f5d139c`). All four repository secret names were confirmed on 2026-09-03 after the user saved them. Saving secrets alone does not start a build. The agent did not request or display their values; signing uses the key only inside the GitHub signing job.
 
-## Current public download: 0.6.1
+## Current public download: 0.6.2
+
+[PostKeeper 0.6.2 preview](https://github.com/fishese/postkeeper/releases/tag/v0.6.2) hosts the signed [APK](https://github.com/fishese/postkeeper/releases/download/v0.6.2/postkeeper-release.apk) and checksum. It bundles the extension guide and About link. Web/native version 0.6.2 uses Android versionCode **8**; extension version remains 0.1.1. The existing 0.6.1 release is preserved.
+
+[Run 33790304910](https://github.com/fishese/postkeeper/actions/runs/33790304910) built/signed source `c970d594bb3077904ef942415ee68548323bfcb6`: build **2m30s**, sign **19s**, artifact **postkeeper-signed-apk-5**, ID **9907147786**. Full hosted validation (112 tests), Android JVM/lint/release gates and signing passed. Independently verified package `cc.fishese.postkeeper`, non-debuggable, API 28 minimum / 36 target, v3 signature and unchanged certificate from 0.6.1. The bundled guide contains the correct extension and APK links. APK size **2,982,531 bytes**; SHA-256 `19a76ac6757467258508901e4ca0e55ce9d9d7477ff24f29e9cf035c04d55d9a`.
+
+Pages run **33790303712** succeeded. A fresh Chrome 152.0.7977.65 profile followed the live Settings → About APK link and anonymously downloaded matching bytes/hash. Local copy: `apps/android/app/build/outputs/apk/github-33790304910/postkeeper-signed-apk-5/postkeeper-release.apk`. No signing values were read/displayed or changed. No device installation or Play Store submission occurred; PDF/Drive limitations remain.
+
+## Previous public download: 0.6.1
 
 [PostKeeper 0.6.1 preview](https://github.com/fishese/postkeeper/releases/tag/v0.6.1) hosts the signed [APK](https://github.com/fishese/postkeeper/releases/download/v0.6.1/postkeeper-release.apk) and [checksum](https://github.com/fishese/postkeeper/releases/download/v0.6.1/SHA256SUMS.txt). The web app links it under **Settings → About → Download for Android**. This versioned release asset works without a GitHub login and does not expire with Actions artifacts. The release was uploaded manually after verification; the signing workflow itself still only creates artifacts.
 
