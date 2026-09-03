@@ -1,6 +1,6 @@
 export type ExtensionSettings = { pwaUrl: string };
 
-export const DEFAULT_PWA_URL = 'http://127.0.0.1:4173/';
+export const DEFAULT_PWA_URL = 'https://keep.fishese.cc/';
 
 export function getExtensionApi(): PostKeeperExtensionApi {
   const api =

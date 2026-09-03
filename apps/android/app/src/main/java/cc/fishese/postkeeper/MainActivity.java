@@ -175,6 +175,7 @@ public class MainActivity extends Activity {
         && uri.getPort() == -1
         && uri.getUserInfo() == null
         && Arrays.asList(
+                "/assets/web/extensions.html",
                 "/assets/web/privacy.html",
                 "/assets/web/terms.html",
                 "/assets/web/THIRD_PARTY_NOTICES.txt")

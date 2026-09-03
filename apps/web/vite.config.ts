@@ -21,6 +21,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         app: resolve(__dirname, 'index.html'),
+        extensions: resolve(__dirname, 'extensions.html'),
         privacy: resolve(__dirname, 'privacy.html'),
         terms: resolve(__dirname, 'terms.html'),
       },
@@ -53,7 +54,7 @@ export default defineConfig({
         importScripts: ['share-target.js'],
         navigateFallback: `${base}index.html`,
         navigateFallbackDenylist: [
-          /\/(?:privacy\.html|terms\.html|LICENSE\.txt|THIRD_PARTY_NOTICES\.txt)$/u,
+          /\/(?:extensions\.html|privacy\.html|terms\.html|LICENSE\.txt|THIRD_PARTY_NOTICES\.txt)$/u,
         ],
         cleanupOutdatedCaches: true,
       },

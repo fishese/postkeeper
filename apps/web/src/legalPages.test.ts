@@ -37,3 +37,30 @@ describe('public policy documents', () => {
     });
   }
 });
+
+describe('extension installation document', () => {
+  it('is a script-free public page with versioned downloads and wrapper guidance', () => {
+    const html = readFileSync(resolve('apps/web', 'extensions.html'), 'utf8');
+    const document = new DOMParser().parseFromString(html, 'text/html');
+    expect(document.documentElement.lang).toBe('en');
+    expect(document.querySelector('title')?.textContent).toBe('Browser extension · PostKeeper');
+    expect(document.querySelector('h1')?.textContent).toBe('Install the browser extension');
+    expect(document.querySelector('main#content')).not.toBeNull();
+    expect(document.querySelector('script, iframe, form, img')).toBeNull();
+    expect(
+      document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute('content'),
+    ).toContain("connect-src 'none'");
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      'https://keep.fishese.cc/extensions.html',
+    );
+    expect(document.body.textContent).toContain('keep.fishese.cc');
+    expect(document.body.textContent).toContain('cannot send directly into the APK');
+    expect(
+      document.querySelector('a[href$="/extension-v0.1.1/postkeeper-chromium-0.1.1.zip"]'),
+    ).not.toBeNull();
+    expect(
+      document.querySelector('a[href$="/extension-v0.1.1/postkeeper-firefox-0.1.1.zip"]'),
+    ).not.toBeNull();
+    expect(document.body.textContent).not.toMatch(/TODO|\[your|placeholder/iu);
+  });
+});

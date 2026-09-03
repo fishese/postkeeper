@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "package:firefox": "web-ext build --source-dir dist-firefox --artifacts-dir build --overwrite-dest --no-config-discovery --no-input",
+    "package:chromium": "web-ext build --source-dir dist-chromium --artifacts-dir build/chromium --overwrite-dest --no-config-discovery --no-input",
+    "package:firefox": "web-ext build --source-dir dist-firefox --artifacts-dir build/firefox --overwrite-dest --no-config-discovery --no-input",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

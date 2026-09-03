@@ -1,6 +1,8 @@
 /** Stable message IDs. Keep complete sentences and named placeholders together. */
 export const en = {
   'app.name': 'PostKeeper',
+  'about.browserExtension': 'Browser extension setup',
+  'about.browserExtensionHint': 'Installation guide and downloads.',
   'about.android': 'Download for Android',
   'about.androidHint': 'Get the signed APK from GitHub Releases.',
   'print.help':

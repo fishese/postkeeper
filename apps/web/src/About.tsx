@@ -4,6 +4,17 @@ export function About() {
     <footer>
       <p>
         <a
+          href={`${import.meta.env.BASE_URL}extensions.html`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t('about.browserExtension')}
+        </a>
+        <br />
+        {t('about.browserExtensionHint')}
+      </p>
+      <p>
+        <a
           className="android-download"
           href={`https://github.com/fishese/postkeeper/releases/download/v${__APP_VERSION__}/postkeeper-release.apk`}
           target="_blank"

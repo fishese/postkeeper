@@ -1,5 +1,23 @@
-import { describe, expect, it } from 'vitest';
-import { originPattern } from './api';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { getSettings, originPattern } from './api';
+
+describe('default PWA destination', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('uses the published PostKeeper PWA when no destination has been saved', async () => {
+    vi.stubGlobal('browser', { storage: { local: { get: vi.fn().mockResolvedValue({}) } } });
+    await expect(getSettings()).resolves.toEqual({ pwaUrl: 'https://keep.fishese.cc/' });
+  });
+
+  it('preserves an existing custom destination instead of migrating it silently', async () => {
+    vi.stubGlobal('browser', {
+      storage: {
+        local: { get: vi.fn().mockResolvedValue({ pwaUrl: 'https://example.com/library/' }) },
+      },
+    });
+    await expect(getSettings()).resolves.toEqual({ pwaUrl: 'https://example.com/library/' });
+  });
+});
 
 describe('originPattern', () => {
   it.each([

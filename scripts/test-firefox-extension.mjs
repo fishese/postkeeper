@@ -98,6 +98,32 @@ async function grantLocalPwaPermission(driver) {
   assert.deepEqual(result.stored, [pwaPermission]);
 }
 
+async function configureLocalPwa(driver) {
+  await driver.setContext(firefox.Context.CHROME);
+  const optionsUrl = await driver.executeScript(() => {
+    const { ExtensionParent } = ChromeUtils.importESModule(
+      'resource://gre/modules/ExtensionParent.sys.mjs',
+    );
+    const extension = ExtensionParent.GlobalManager.extensionMap.get('postkeeper@local.invalid');
+    if (!extension) throw new Error('Installed PostKeeper extension was not found.');
+    return extension.baseURI.resolve('options.html');
+  });
+  await driver.setContext(firefox.Context.CONTENT);
+  await driver.get(optionsUrl);
+  const input = await driver.wait(until.elementLocated(By.id('pwa-url')), 10_000);
+  await driver.wait(
+    async () => (await input.getAttribute('value')) === 'https://keep.fishese.cc/',
+    10_000,
+  );
+  await input.clear();
+  await input.sendKeys(`${pwaOrigin}/`);
+  await driver.findElement(By.css('#settings-form button[type="submit"]')).click();
+  await driver.wait(
+    until.elementTextIs(driver.findElement(By.id('status')), 'Settings saved.'),
+    10_000,
+  );
+}
+
 async function openToolbarPopup(driver) {
   await driver.setContext(firefox.Context.CHROME);
   await driver.findElement(By.id('unified-extensions-button')).click();
@@ -303,6 +329,7 @@ async function main() {
     const addonId = await driver.installAddon(path.resolve('apps/extension/dist-firefox'), true);
     assert.equal(addonId, 'postkeeper@local.invalid');
     await grantLocalPwaPermission(driver);
+    await configureLocalPwa(driver);
 
     await driver.setContext(firefox.Context.CONTENT);
     await driver.get(`${fixtureOrigin}/public-article.html`);

@@ -128,7 +128,10 @@ async function launchExtension(testInfo: TestInfo): Promise<{
     headless: true,
     args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
   });
-  return { context, id: await extensionId(context) };
+  const id = await extensionId(context);
+  const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
+  await worker.evaluate(() => chrome.storage.local.set({ pwaUrl: 'http://127.0.0.1:4173/' }));
+  return { context, id };
 }
 
 async function saveActivePage(

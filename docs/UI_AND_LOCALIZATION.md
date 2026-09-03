@@ -8,6 +8,7 @@ The user-requested 0.6.1 redesign is a follow-up to M6. It does not start M7 or 
 - Add link opens a focused sheet. Incoming native/PWA/extension shares continue to be received while the sheet is closed.
 - Settings contains encrypted sync, backup/diagnostics, storage/search maintenance, About, and deliberately separated developer fixtures. Panels stay mounted when closed, preserving in-memory sync state and staged imports.
 - About includes **Download for Android**, pointing to the matching `v<web package version>` GitHub Release asset `postkeeper-release.apk`. Publish that asset whenever the web version changes. The direct versioned URL also supports GitHub prereleases; it does not require a logged-in Actions artifact download.
+- About also links **Browser extension setup** to the static `extensions.html` guide. It opens in a separate tab, is available offline after the PWA caches it, and uses the shared `legal.css` document styles. Future Android builds can show it in the existing script-disabled bundled-document viewer.
 - Article actions use labeled icons with 44 px default web targets. Categories and the full original URL are under Article details. Explicit backup/key acknowledgements and native clearing confirmations remain required.
 - The capture browser has a 48 dp native toolbar. Browser options contains Back page, Clear this site, and Clear all browsing data. Tap the address to inspect its full URL. Websites still have no native bridge.
 
@@ -29,7 +30,7 @@ English is the only shipping language; there is no nonfunctional language select
 4. Add native translations in Android `values-<locale>/strings.xml`; retain `%1$s` placeholders. Android handles native resource fallback. For a translated Android build, select the corresponding supported web locale too; automatic native-to-web locale negotiation is future work.
 5. Check the new locale on small screens with long labels and larger text, keyboard/screen-reader navigation, RTL where applicable, and native dialogs. Do not shrink tap targets to fit translations.
 
-The catalog covers the primary shared React interface, accessible labels, notifications, and print guidance; native app dialogs and capture labels use Android string resources. User article content/category names are not translated. Stored capture-warning codes, technical errors originating in shared domain/provider libraries, developer feasibility probes, extension UI, and static legal documents retain their existing text. These boundaries need review when shipping an actual second language; this work prepares localization, rather than claiming full multilingual support.
+The catalog covers the primary shared React interface, accessible labels, notifications, and print guidance; native app dialogs and capture labels use Android string resources. User article content/category names are not translated. Stored capture-warning codes, technical errors originating in shared domain/provider libraries, developer feasibility probes, extension UI, and static legal/help documents retain their English text. These boundaries need review when shipping an actual second language; this work prepares localization, rather than claiming full multilingual support.
 
 ## Verification and limits
 

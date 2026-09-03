@@ -60,6 +60,11 @@ h2 {
   line-height: 1.35;
   margin: 0 0 0.75rem;
 }
+h3 {
+  font-size: 1.05rem;
+  line-height: 1.4;
+  margin: 0 0 0.5rem;
+}
 p {
   margin: 0.75rem 0;
 }
@@ -76,6 +81,68 @@ p {
   border-left: 4px solid #606c38;
   padding: 0.8rem 1.2rem;
   margin: 1.5rem 0 2rem;
+}
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.section-heading h2,
+.section-heading p {
+  margin-bottom: 0;
+}
+.step-label {
+  color: #606c38;
+  font-size: 0.82rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.download-button,
+.secondary-button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #283618;
+  border-radius: 0.65rem;
+  padding: 0.55rem 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.download-button {
+  color: #fff;
+  background: #283618;
+}
+.secondary-button {
+  background: #eef2df;
+}
+.steps {
+  padding-inline-start: 1.5rem;
+}
+.steps li {
+  padding-inline-start: 0.25rem;
+}
+.note {
+  border-radius: 0.6rem;
+  background: #f0eee7;
+  padding: 0.8rem 1rem;
+  font-size: 0.95rem;
+}
+.platform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+}
+.platform-grid article {
+  border: 1px solid #c8c6be;
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+.platform-grid p:last-child {
+  margin-bottom: 0;
 }
 section {
   border-top: 1px solid #c8c6be;

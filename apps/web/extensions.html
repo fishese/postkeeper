@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Download and install the PostKeeper browser extension for Chromium or Firefox."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'self'; manifest-src 'self'; script-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="canonical" href="https://keep.fishese.cc/extensions.html" />
+    <link rel="stylesheet" href="./src/legal.css" />
+    <title>Browser extension · PostKeeper</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header>
+      <a class="brand" href="./">PostKeeper</a>
+      <nav aria-label="Site navigation">
+        <a href="./">Open app</a>
+        <a href="./extensions.html" aria-current="page">Extensions</a>
+        <a href="./privacy.html">Privacy</a>
+        <a href="./terms.html">Terms</a>
+      </nav>
+    </header>
+    <main id="content">
+      <p class="eyebrow">Capture the page you are reading</p>
+      <h1>Install the browser extension</h1>
+      <p class="updated">Development preview · extension version 0.1.1</p>
+      <div class="summary">
+        <p>
+          The extension saves a rendered webpage and available images into your local PostKeeper
+          library. A fresh install opens <strong>keep.fishese.cc</strong> by default. You can change
+          the destination later in the extension's connection settings.
+        </p>
+        <p>
+          Updating preserves a destination you previously saved. If an older setup still points to
+          localhost, change <strong>Connection settings → PostKeeper PWA URL</strong> to
+          <code>https://keep.fishese.cc/</code> and save.
+        </p>
+        <p>
+          These downloads are developer packages. Chromium requires Developer mode, and the unsigned
+          Firefox build is temporary. Store-signed installation is not available yet.
+        </p>
+      </div>
+
+      <section aria-labelledby="chromium">
+        <div class="section-heading">
+          <div>
+            <p class="step-label">Recommended on desktop</p>
+            <h2 id="chromium">Chrome and Chromium-based browsers</h2>
+          </div>
+          <a
+            class="download-button"
+            href="https://github.com/fishese/postkeeper/releases/download/extension-v0.1.1/postkeeper-chromium-0.1.1.zip"
+            >Download Chromium ZIP</a
+          >
+        </div>
+        <ol class="steps">
+          <li>Download the ZIP and extract it to a folder you will keep.</li>
+          <li>
+            Open <code>chrome://extensions</code> in Chrome, or the equivalent extensions page in
+            your Chromium browser.
+          </li>
+          <li>
+            Turn on <strong>Developer mode</strong>, then choose <strong>Load unpacked</strong>.
+          </li>
+          <li>Select the extracted folder that contains <code>manifest.json</code>.</li>
+          <li>
+            Pin PostKeeper to the toolbar, open a webpage, and choose
+            <strong>Save current page</strong>.
+          </li>
+          <li>
+            Approve the connection permission for <code>https://keep.fishese.cc</code>. PostKeeper
+            opens and confirms the import after it is stored locally.
+          </li>
+        </ol>
+        <p class="note">
+          See Google's
+          <a
+            href="https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked"
+            >official Load unpacked instructions</a
+          >. Official Chrome for Android does not install desktop Chrome extensions.
+        </p>
+      </section>
+
+      <section aria-labelledby="firefox">
+        <div class="section-heading">
+          <div>
+            <p class="step-label">Temporary developer install</p>
+            <h2 id="firefox">Firefox desktop</h2>
+          </div>
+          <a
+            class="secondary-button"
+            href="https://github.com/fishese/postkeeper/releases/download/extension-v0.1.1/postkeeper-firefox-0.1.1.zip"
+            >Download Firefox ZIP</a
+          >
+        </div>
+        <ol class="steps">
+          <li>Download the ZIP.</li>
+          <li>Open <code>about:debugging</code>, then choose <strong>This Firefox</strong>.</li>
+          <li>Choose <strong>Load Temporary Add-on</strong> and select the downloaded ZIP.</li>
+          <li>
+            Use the PostKeeper toolbar button and approve the PWA connection permission when asked.
+          </li>
+        </ol>
+        <p class="note">
+          Firefox removes this temporary add-on when the browser restarts. Standard Firefox requires
+          Mozilla to sign persistent add-ons. See Mozilla's
+          <a
+            href="https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/"
+            >temporary installation guide</a
+          >
+          and
+          <a href="https://support.mozilla.org/kb/add-on-signing-in-firefox">signing explanation</a
+          >.
+        </p>
+      </section>
+
+      <section aria-labelledby="android">
+        <h2 id="android">Android and the PostKeeper APK</h2>
+        <div class="platform-grid">
+          <article>
+            <h3>Browser extension on Android</h3>
+            <p>
+              PostKeeper has passed compatibility tests in extension-capable Android browsers, but
+              there is no supported public phone installer in this preview. The desktop ZIP steps
+              above do not apply to official Chrome for Android.
+            </p>
+          </article>
+          <article>
+            <h3>PostKeeper APK</h3>
+            <p>
+              A browser extension cannot send directly into the APK's private WebView library. In
+              the APK, share a link to PostKeeper or use its isolated capture browser. To move saved
+              items between the web/PWA library and APK library, export a portable backup and import
+              it on the other side.
+            </p>
+            <p>
+              <a href="https://keep.fishese.cc/">Open the PWA</a> ·
+              <a href="https://github.com/fishese/postkeeper/releases/tag/v0.6.1"
+                >Get the Android APK</a
+              >
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="verify">
+        <h2 id="verify">Downloads and source</h2>
+        <p>
+          Review the release notes and SHA-256 checksums before installing. PostKeeper is free
+          software, and the exact source and build instructions are public.
+        </p>
+        <p>
+          <a href="https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.1"
+            >Extension release and checksums</a
+          >
+          · <a href="https://github.com/fishese/postkeeper">Source code</a>
+        </p>
+      </section>
+    </main>
+    <footer>
+      <a href="./privacy.html">Privacy Policy</a> · <a href="./terms.html">Terms of Service</a> ·
+      <a href="./">Back to PostKeeper</a>
+    </footer>
+  </body>
+</html>

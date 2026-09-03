@@ -1,8 +1,28 @@
 # Extension compatibility matrix
 
-Last updated: 2026-09-03
+Last updated: 2026-09-04
 
 Every required Milestone 3 runtime row has a recorded end-to-end pass. Package validation alone is not treated as runtime evidence.
+
+## Installation and distribution
+
+The public [extension installation guide](https://keep.fishese.cc/extensions.html), linked from Settings → About and extension connection settings, describes the preview downloads. Extension **0.1.1** defaults to `https://keep.fishese.cc/`; saved custom destinations remain unchanged. Both generated targets use the same default and continue to request only the configured PWA host permission from the user's Save gesture.
+
+Build and package with:
+
+```text
+npm run build --workspace=@postkeeper/extension
+npm run package:chromium --workspace=@postkeeper/extension
+npm run package:firefox --workspace=@postkeeper/extension
+```
+
+Outputs are `apps/extension/build/chromium/postkeeper-0.1.1.zip` and `apps/extension/build/firefox/postkeeper-0.1.1.zip`. The versioned GitHub preview release is `extension-v0.1.1`; published assets use the names `postkeeper-chromium-0.1.1.zip` and `postkeeper-firefox-0.1.1.zip` plus `SHA256SUMS.txt`. Chromium desktop uses an extracted folder and Developer mode → Load unpacked. The Firefox ZIP is unsigned and supports only temporary desktop installation through `about:debugging`; it disappears on restart. Mozilla signing/store publication and a supported public Android extension installer are not part of this follow-up. Historical Android runtime compatibility does not imply that a public phone installer has been published.
+
+Extensions transfer to the configured browser/PWA origin, not to the APK's separate WebView library. The APK uses native sharing and its isolated capture browser; portable backup export/import can move records between libraries. No extension-to-native bridge was added.
+
+2026-09-04 follow-up: packaged Chromium public/authenticated handoff passes. Firefox **155.0** passes using the unmodified generated bundle: its options page first shows the production default, the test explicitly saves localhost, and both capture/import/decoded-image/credential-filtering/fragment-cleanup/queue-acknowledgement paths pass. The initial restricted execution could not expose a usable Firefox content window; the same disposable-profile runner passed with the browser's required host access. Firefox lint remains 0 errors and 2 accepted Readability warnings. No physical Android browser retest was performed.
+
+## Historical Milestone 3 acceptance
 
 Follow-up image audit (2026-09-02, deployed/rechecked 2026-09-03): the earlier visibility/blob-URL checks did not prove that images decoded. Live Chrome Android acceptance exposed blocked blob-image URLs in the opaque-origin reader. D-023 replaces them with allowlisted inline image data while preserving the empty sandbox. Stronger `complete`/`naturalWidth` assertions now pass in the local PWA matrix, packaged Chromium capture tests, and the installed Firefox 155.0 extension runtime. Deployed commit `66a2466` also passes actual image decoding before and after offline reload on desktop Chrome 152.0.7977.65 and emulator Chrome 149.0.7827.5. This emulator check tests the PWA reader, not Android extension installation/capture. The physical Android capture rows below remain historical results; release hardening must repeat the stronger image assertions on those browsers. The user's phone was not used during this session.
 
