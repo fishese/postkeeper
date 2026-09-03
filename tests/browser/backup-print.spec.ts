@@ -148,6 +148,15 @@ test('long offline print preview preserves headings, links, decoded images, and 
   await expect(preview.locator('script,form,input,object,iframe')).toHaveCount(0);
   expect(await preview.evaluate(() => window.opener === null)).toBe(true);
   expect(
+    await preview.evaluate(() => {
+      const table = document.createElement('table');
+      document.body.append(table);
+      const display = getComputedStyle(table).display;
+      table.remove();
+      return display;
+    }),
+  ).toBe('table');
+  expect(
     await preview
       .locator('h2')
       .first()
