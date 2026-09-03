@@ -18,7 +18,7 @@ $env:JAVA_HOME='C:\Program Files\Android\Android Studio\jbr'
 
 `prepare:android` builds at `/assets/web/`, leaves the normal browser output intact, and bundles the shared credential-scrubbing capture extractor. It appends Android dependency notices to the bundled notices. Generated assets/builds are ignored and must be prepared again after web changes. AGP 8.13.0, Gradle 8.14.3 with distribution checksum, and AndroidX WebKit 1.14.0 are pinned. Runtime capabilities are checked independently of Android version.
 
-The APK is `apps/android/app/build/outputs/apk/debug/app-debug.apk`, package `cc.fishese.postkeeper.debug`, launcher **PostKeeper Dev**. It is debug-signed and enables WebView inspection and loopback HTTP fixture capture. Keep it separate from real libraries. `:app:assembleRelease` creates an unsigned release APK (`cc.fishese.postkeeper`) with debugging disabled and HTTPS-only capture. A manual GitHub signing workflow is prepared locally; follow [Android signing setup](ANDROID_SIGNING.md) to save its four repository secrets. A real signed release and store distribution are not yet claimed.
+The APK is `apps/android/app/build/outputs/apk/debug/app-debug.apk`, package `cc.fishese.postkeeper.debug`, launcher **PostKeeper Dev**. It is debug-signed and enables WebView inspection and loopback HTTP fixture capture. Keep it separate from real libraries. `:app:assembleRelease` creates an unsigned release APK (`cc.fishese.postkeeper`) with debugging disabled and HTTPS-only capture. A manual GitHub signing workflow is published; follow [Android signing setup](ANDROID_SIGNING.md) for its four repository secrets, recorded build, and APK download. Store distribution is not configured.
 
 ## Using the app
 

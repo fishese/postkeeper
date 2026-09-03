@@ -4,60 +4,57 @@ Checkpoint: 2026-09-03. Canonical progress is in `STATUS.md`.
 
 ## Current stop
 
-**Milestones 0–6 are complete locally.** Milestone 5 was committed/pushed to `main` as `dec19b63a96992c5a6644e9988bef742b0328b7d` (`dec19b6`) and deployed successfully by Pages run `33756881944`: https://github.com/fishese/postkeeper/actions/runs/33756881944. The public site `https://keep.fishese.cc/` contains M5. M6 web/native version 0.6.0 is local, uncommitted, and unpublished. **Milestone 7 has not started.** There is no remaining user-input blocker for M6.
+**Milestones 0–6 are complete and published. Milestone 7 has not started.** M6 source/signing workflow commit `c32aae9` and SDK-runner path fix `f5d139c` are on `main`. Pages runs `33763974272` and `33764183745` succeeded; `https://keep.fishese.cc/` now serves M6, including its POST share-target manifest.
 
-## Required reading and preserved state
+The user saved all four signing secrets and requested a GitHub APK build. **Run 33764185135 passed**, building and signing source `f5d139c142af738542d18216d9f09aad00047952`. All four secrets worked; no user-input blocker remains. The signing key/password values were never requested in chat or displayed.
 
-- Workspace `D:\Projects\PostKeeper`, branch `main`, repository `fishese/postkeeper`.
-- Read completely: `README.md`, `docs/PRODUCT_PLAN.md`, `docs/TECHNICAL_ARCHITECTURE.md`, `docs/IMPLEMENTATION_ROADMAP.md`, `docs/DECISIONS.md`, `docs/STATUS.md`, this prompt, `docs/GOOGLE_DRIVE_SETUP.md`, `docs/BACKUP_FORMAT.md`, `docs/ANDROID_SETUP.md`, and `docs/DEPENDENCIES.md`. Follow all AGENTS.md restrictions.
-- Preserve all local M6 source/tests/docs, including new `apps/android`, share/native bridge UI, pending-link domain/store code, service-worker handler/icons, build/fixture/emulator scripts, and Android notices. Generated builds/assets and `test-results` are ignored. M5 and earlier preserved work were included in `dec19b6`.
-- Use the emulator unless stuck and a phone test is needed. Tell the user before wireless-ADB phone use. No phone was used during M6.
-- Preserve the existing browser/PWA library, acceptance categories, disconnected Drive association, and saved recovery key. Do not initialize a replacement library, reconnect Drive, or request keys in chat. M6 used a separate newly installed debug app, with only harmless fixtures and a synthetic test key that was deleted after testing.
+## Required reading
 
-## Milestone 6 implementation and evidence
+Workspace `D:\Projects\PostKeeper`, branch `main`, repository `fishese/postkeeper`. Read completely: `README.md`, `docs/PRODUCT_PLAN.md`, `docs/TECHNICAL_ARCHITECTURE.md`, `docs/IMPLEMENTATION_ROADMAP.md`, `docs/DECISIONS.md`, `docs/STATUS.md`, this prompt, `docs/GOOGLE_DRIVE_SETUP.md`, `docs/BACKUP_FORMAT.md`, `docs/ANDROID_SETUP.md`, `docs/ANDROID_SIGNING.md`, and `docs/DEPENDENCIES.md`. Follow all AGENTS.md restrictions and preserve any user changes.
 
-D-025 selects a thin Java/AndroidX WebKit shell, not a general plugin bridge. Bundled shared UI uses a named library profile. Each starting capture origin has an independent profile; only the trusted main app document accepts origin-allowlisted native messages. Website pages, embedded frames, and saved readers have no native bridge. Capture requires an explicit native Save action and reuses the extension's credential scrubber/Readability extractor plus standard package validation/sanitization. Same-origin authenticated images pass; missing/cross-origin images are visibly partial.
+## Signed APK
 
-Pending links are ordinary version-1 records with a `pending-link` warning and placeholder snapshot. Native shares are queued until durable acknowledgement. PWA sharing handles bounded POST bodies in its controlling service worker and redirects via a local fragment. No shared-content server endpoint or schema migration was added. Native convenience key storage uses explicit confirmations and Android Keystore AES-GCM outside system backups.
+- Successful run: https://github.com/fishese/postkeeper/actions/runs/33764185135
+- Artifact: **postkeeper-signed-apk-2**, ID `9896865867`, retention through 2026-10-03. Contains `postkeeper-release.apk` and `SHA256SUMS.txt`.
+- APK: **2,945,427 bytes**, version **0.6.0**, versionCode **6**, package `cc.fishese.postkeeper`, minimum API **28**, target API **36**, non-debuggable. Independent local v3 signature and checksum verification pass.
+- SHA-256: `7caec7b6b86ddbd3f20eab5168b587fa493097a43d670a329fb053da82aacb48`.
+- Local generated copy: `apps/android/app/build/outputs/apk/github-33764185135/postkeeper-signed-apk-2/postkeeper-release.apk`. Ignored build output may be removed by future build cleanup; preserve separately if needed.
+- Rebuild via Actions → **Build signed Android APK** → Run workflow → `main`. Signing secrets are repository Secrets (not Variables): `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Check names only when needed; never retrieve/display values or replace the signing identity casually.
+- Build and signing run on separate runners. The first run `33763991596` failed before signing because `sdkmanager` was not on PATH; `f5d139c` fixes the installed path in both jobs. No further workflow fix or secret change was needed. No Play Store or GitHub Release publication is configured.
+- Android Studio's user-generated `.idea` metadata and `apps/android/app/release` output were preserved locally and excluded by new ignore rules. Signing keystores, APKs, and IDE caches were not committed.
 
-- Full web validation: **106 tests / 30 files**, format, lint, typecheck, web and both extension builds.
-- Full Chromium/Firefox browser matrix: **27 passed, 1 intentional Firefox POST-share skip**. Both packaged Chromium extension tests pass. Chrome 152.0.7977.65 / Playwright Firefox 153.0.
-- Emulator: `Pixel_10_Pro_emu`, `emulator-5580`, Android 17 / API 37.1, Android System WebView **149.0.7827.163**.
-- Native ACTION_SEND and real Android resolver selection create pending Inbox items. Public/authenticated captures and authenticated images pass. Fixture password/CSRF/cookie markers are absent from saved records/raw DOM/blobs. Native API absence is checked in page/frame/reader.
-- Per-site clearing removes HttpOnly authentication and local storage. Clear-all removes both signed-in fixture profiles. Library records/images survive clearing, reload, and debug APK update.
-- Two JVM URL/profile tests and real Android Keystore encryption/round-trip/tamper/forget instrumentation pass. Debug and unsigned release builds pass. Android Lint: **0 errors, 37 reviewed warnings** (feature guards across callbacks, intentional JS, localization, dependency suggestions).
-- Native file picker export saved an **8,588-byte** fixture JSON; native selection, complete staging, and confirmed idempotent import pass. Current bundled privacy opens locally in a script-disabled viewer.
+## M6 acceptance and implementation
 
-Build from repository root: `npm run prepare:android`, then use Java/SDK paths and Gradle commands in `docs/ANDROID_SETUP.md`. Debug APK: `apps/android/app/build/outputs/apk/debug/app-debug.apk`, package `cc.fishese.postkeeper.debug`, launcher **PostKeeper Dev**. This app remains installed on the emulator with harmless test records for review. It does not contain the user's browser library or recovery key. Do not rerun the destructive synthetic-key instrumentation on any app containing a real saved key.
+D-025 selects a thin Java/AndroidX WebKit shell around shared web UI 0.6.0. The trusted library uses a separate named profile; only the exact main document accepts origin-allowlisted native messages. Each starting capture origin uses an independent profile. Website pages, embedded frames, and saved readers have no native bridge. An explicit native Save action reuses extension credential scrubbing/Readability and standard validation/sanitization. Same-origin authenticated images pass; cross-origin/redirected images remain partial.
 
-## Limitations and scope boundary
+Pending links use existing version-1 article/snapshot records with a visible placeholder/warning, preserving backup/sync compatibility and organization on capture. PWA sharing handles bounded POST bodies locally in its controlling worker, then removes the receipt fragment. Native URL shares remain queued until durable acknowledgement. Device key convenience storage uses native consent and Android Keystore AES-GCM outside backups.
 
-- Embedded Google sign-in/Drive is unavailable in the wrapper. Use browser/PWA Drive and portable backups to move saved records between its independent libraries. A native device-key copy does not enable sync.
-- Native PDF preview opened one Letter page; emulator Save as PDF produced an empty file. Wrapper PDF saving is unverified. M5's six-page Samsung phone acceptance applies to Chrome/PWA only. Do not repeat known emulator PDF troubleshooting or claim a wrapper phone pass.
-- Firefox manual/fragment receipt works; its POST-body path returned safe HTTP 400. Installed Firefox Web Share Target is not claimed. Actual installed PWA/WebAPK Android Sharesheet registration was not exercised; native Android resolver sharing was.
-- Capture results are transient until standard import; process death can require retry from the preserved pending link. Large storage/process-death stress, complex SSO/MFA, minimum-API/physical wrapper devices, video/uploads, and cross-origin/redirected image fetching are unverified or unsupported. Unsupported WebView features fail closed. No background sync, release signing, or store distribution is claimed.
-- M7/self-hosted provider and O-006 remain untouched. Do not start M7 without a new explicit user request. M6 publication is a separate next action.
+- Full local and GitHub web validation: **106 tests / 30 files**, formatting, ESLint, typechecking, web/extension builds.
+- Desktop browser matrix: **27 passed, 1 intentional Firefox POST-share skip**; packaged Chromium extension tests **2 passed**. Chrome 152.0.7977.65 / Playwright Firefox 153.0.
+- Native matrix: `Pixel_10_Pro_emu`, `emulator-5580`, Android 17 / API 37.1, WebView **149.0.7827.163**. Native ACTION_SEND and actual Android resolver create pending Inbox items; public/authenticated captures/images pass; password/CSRF/cookie markers absent from saved data; page/frame/reader lack native privileges; site/all clearing removes sessions from both tested profiles while preserving library/images and reloads.
+- Two JVM URL/profile tests and device Keystore encryption/round-trip/tamper/forget checks pass. Debug and unsigned release builds pass; Android lint **0 errors, 37 reviewed warnings**. GitHub builds and signs the release separately.
+- Native JSON picker export saved **8,588 bytes**; native selection, staging, and idempotent import passed. Bundled privacy opens in a script-disabled local viewer. Earlier M4 Drive and M5 Chrome/PWA phone PDF acceptance remain recorded in `STATUS.md`.
 
-## Earlier evidence and cleanup
+## Preserved state and limitations
 
-M4 real Drive acceptance remains valid: wrong-key rejection, interrupted transfers, clean recovery, 37-operation offline convergence, encrypted-object read-back, and consent revocation/local usability. The desktop client used an in-memory token relay; no second independent OAuth consent is claimed.
+Use the emulator unless stuck and a phone test is needed. **Tell the user before wireless-ADB phone use.** No phone was used for M6; the GitHub signing session accessed no device at all. No installation of the signed release was performed. Do not install/reset/reconnect things merely to repeat completed checks.
 
-M5 phone PDF: `test-results/m5-phone-native.pdf`, 57,048 bytes, six Letter pages, SHA-256 `f81900bd18de796e5c8951e4ef76eca28b05d4f652250a61d7cdff78976c1b17`; all six rendered pages passed visual/text/link checks. Existing phone fixture connections/files were cleaned in that earlier session.
+Preserve existing browser/PWA library, categories, disconnected Drive association, and saved recovery key. Do not initialize a replacement library or request its key in chat. The previously installed **PostKeeper Dev** emulator package (`cc.fishese.postkeeper.debug`) contains only harmless M6 fixtures; the release APK uses a separate package/library. Synthetic key instrumentation was uninstalled after its disposable key was deleted. Do not run it on any app containing a real saved key.
 
-M6 local backup evidence: `test-results/m6-native-backup.json` (synthetic data only). The empty native PDF is failure evidence, not a usable export. Temporary M6 fixture server, per-emulator forwards/reverse mappings, UI dump, and exported emulator JSON/PDF are removed at the final checkpoint. Allocate fresh endpoints if testing again. Preserve the emulator itself and all existing libraries.
+Temporary M6 fixture servers, mappings, device UI dump, exported device JSON/PDF were cleaned. All existing libraries remain. Allocate fresh loopback mappings if a later authorized test needs them.
 
-## Signed APK follow-up
+Wrapper Google sign-in/Drive remains unavailable; use browser/PWA Drive and portable backups between independent libraries. Native PDF preview opened but the emulator saved zero bytes; wrapper PDF saving is unverified. M5's successful six-page Samsung phone PDF applies to Chrome/PWA, not the wrapper. Signing does not resolve these limitations.
 
-The user subsequently requested a GitHub signed-APK build and instructions for saving required values. `.github/workflows/android-apk.yml` and `docs/ANDROID_SIGNING.md` are now prepared locally. Add the signing guide to required reading. Four **repository secrets** are required: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. No additional repository Variables are needed. The user enters values directly on GitHub; never request their contents in chat. No real keystore was accessed or secret uploaded by the agent.
+Firefox manual/fragment receipt works; its POST-body path returned safe 400. Installed Firefox Web Share Target and a real PWA/WebAPK Android Sharesheet entry are not claimed. Capture is transient until import; process death may require retry from the pending link. Large-storage/process-death stress, minimum-API/physical wrapper devices, complex SSO/MFA, video/uploads, and cross-origin image retrieval are unverified or unsupported. Background sync and store distribution are deferred.
 
-The manual-main-only workflow builds without signing secrets, signs on a separate runner, verifies the APK, and uploads an artifact/checksum. Local YAML/shell syntax and actual alignment/signing/verification passed with a disposable test key that was deleted afterward. No real hosted signing run is claimed. Workflow/M6 publication and the user's secret setup are still needed; the public site remains M5. Do not start M7.
+Do not start M7/self-hosted provider or resolve O-006 without a new explicit user request.
 
 ## Copy-ready continuation prompt
 
 ```text
-Continue PostKeeper in D:\Projects\PostKeeper. Read docs/NEXT_CHAT_PROMPT.md, every source-of-truth document it lists, and docs/STATUS.md completely. Follow all AGENTS.md restrictions and preserve the local M6 work.
+Continue PostKeeper in D:\Projects\PostKeeper. Completely read docs/NEXT_CHAT_PROMPT.md, its listed source-of-truth documents, and docs/STATUS.md. Follow all AGENTS.md restrictions and preserve user changes.
 
-Milestones 0–6 are complete locally. M5 is committed/pushed/deployed as dec19b6; M6 version 0.6.0 is uncommitted and unpublished. Review the completed M6 diff and its recorded tests/limitations, then commit and push M6 to the existing repository and verify deployment. Do not start Milestone 7.
+Milestones 0–6 are complete and published. M6 is c32aae9 with GitHub SDK-path fix f5d139c. Signed APK run 33764185135 passed; artifact postkeeper-signed-apk-2 contains verified PostKeeper 0.6.0 (versionCode 6, package cc.fishese.postkeeper). No secret setup or signing blocker remains. Do not repeat builds or acceptance without a concrete reason, and do not start Milestone 7 until I explicitly request it.
 
-Use the emulator unless stuck and a phone test is needed; tell me before using wireless ADB on the phone. Preserve all existing browser libraries, categories, sync associations, and saved recovery keys. No Drive reconnection is needed. The new PostKeeper Dev emulator app contains only M6 synthetic fixtures. Native wrapper PDF saving remains unverified after an empty emulator save; the prior successful phone PDF test applies to Chrome/PWA. Do not repeat already completed acceptance without a concrete regression risk. Update status, evidence, and this continuation prompt at the next checkpoint.
+Use the emulator unless stuck and a phone test is needed; notify me before wireless-ADB phone use. Preserve existing libraries, categories, Drive associations, recovery keys, and release signing identity. No Drive reconnection is needed. The release app and PostKeeper Dev use separate local libraries. Wrapper PDF saving and native Google Drive remain limited as documented. Update status and the continuation prompt after any new requested work.
 ```

@@ -2,7 +2,17 @@
 
 The manual `Build signed Android APK` workflow builds the release package `cc.fishese.postkeeper`, then signs/verifies it on a separate GitHub-hosted runner. No signing secrets reach npm/Gradle build processes. It uploads the APK and SHA-256 checksum as a workflow artifact; it does not publish a GitHub Release or submit to Google Play. Run only from `main`.
 
-The workflow and M6 sources are currently local and must be committed/pushed before GitHub can run them. Saving secrets alone does not start a build. No real release signing key has been generated, read, or uploaded by the agent.
+The workflow and M6 sources are published on `main` (`c32aae9`, with SDK path fix `f5d139c`). All four repository secret names were confirmed on 2026-09-03 after the user saved them. Saving secrets alone does not start a build. The agent did not request or display their values; signing uses the key only inside the GitHub signing job.
+
+## Successful build
+
+[Run 33764185135](https://github.com/fishese/postkeeper/actions/runs/33764185135) passed build and signing on 2026-09-03, from `f5d139c142af738542d18216d9f09aad00047952`. Download artifact **postkeeper-signed-apk-2** (artifact ID `9896865867`, retention through 2026-10-03). It contains `postkeeper-release.apk` and `SHA256SUMS.txt`.
+
+The downloaded APK is **2,945,427 bytes**, package `cc.fishese.postkeeper`, version **0.6.0**, versionCode **6**, minimum Android API 28, target API 36. Independent local verification passed its checksum, v3 signature, and non-debuggable release flag. SHA-256: `7caec7b6b86ddbd3f20eab5168b587fa493097a43d670a329fb053da82aacb48`.
+
+Local copy: `apps/android/app/build/outputs/apk/github-33764185135/postkeeper-signed-apk-2/postkeeper-release.apk`. This is generated/ignored output; keep a separate copy if needed beyond build cleanup or artifact expiration. No device install was performed as part of this GitHub build verification.
+
+The first run (`33763991596`) stopped before signing because `sdkmanager` was absent from PATH. `f5d139c` uses the installed `$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager` in both jobs; the retry passed. The four user-saved secrets worked without changes.
 
 ## 1. Create or reuse a release keystore
 
@@ -36,7 +46,7 @@ Paste directly into the `ANDROID_KEYSTORE_BASE64` secret value and click **Add s
 
 ## 3. Run and download
 
-After the workflow and Android sources are pushed to `main`, open **Actions → Build signed Android APK → Run workflow**, select `main`, and run. When both jobs pass, open the run's **Artifacts** and download `postkeeper-signed-apk-<run number>`. Extract `postkeeper-release.apk`; `SHA256SUMS.txt` accompanies it. The earlier unsigned artifact is only an intermediate build.
+Open **Actions → Build signed Android APK → Run workflow**, select `main`, and run. When both jobs pass, open the run's **Artifacts** and download `postkeeper-signed-apk-<run number>`. Extract `postkeeper-release.apk`; `SHA256SUMS.txt` accompanies it. The earlier unsigned artifact is only an intermediate build.
 
 The signing job reconstructs the keystore only in runner temporary storage, passes passwords to `apksigner` through environment variables, removes the temporary key, and verifies the signature before upload. It never uploads the keystore. See [apksigner](https://developer.android.com/tools/apksigner).
 
