@@ -23,6 +23,17 @@ import {
   processCapturePackage,
 } from '@postkeeper/capture-processing';
 import {
+  backupCanonical,
+  createBackup,
+  discardBackup,
+  encodeBase64,
+  portableMetadata,
+  stagedBackupData,
+  type BackupMetadata,
+  type BackupBlob,
+  type StagedBackup,
+} from './backup';
+import {
   appendOperation,
   canonicalJson,
   createDeviceOperationLog,
@@ -426,6 +437,134 @@ export class Library {
 
   async close(): Promise<void> {
     this.database.close();
+  }
+
+  async getBackupMetadata(): Promise<BackupMetadata> {
+    const stores = ['articles', 'categories', 'memberships', 'snapshots'] as const;
+    const transaction = this.database.transaction([...stores]);
+    const done = transactionDone(transaction);
+    const records = await Promise.all(
+      stores.map((store) => requestPromise(transaction.objectStore(store).getAll())),
+    );
+    await done;
+    return portableMetadata(
+      Object.fromEntries(stores.map((store, i) => [store, records[i]])) as BackupMetadata,
+    );
+  }
+
+  async exportBackup(options: {
+    protection: 'plaintext';
+    applicationVersion: string;
+  }): Promise<string> {
+    if (options.protection !== 'plaintext') throw new Error('Choose plaintext backup explicitly.');
+    // Metadata is read under one transaction. Referenced blobs are immutable and never removed.
+    const metadata = await this.getBackupMetadata();
+    const ids = new Set(
+      metadata.snapshots.flatMap((snapshot) => [
+        snapshot.readerHtmlBlobId,
+        ...(snapshot.rawDomBlobId ? [snapshot.rawDomBlobId] : []),
+        ...snapshot.assetManifest.map((a) => a.blobId),
+      ]),
+    );
+    const blobs: BackupBlob[] = [];
+    for (const id of [...ids].sort()) {
+      const meta = await this.get<StoredBlob>('blobMeta', id);
+      if (!meta) throw new Error('A required local blob is missing. Backup was not exported.');
+      const bytes = await this.getBlobBytes(id);
+      blobs.push({
+        id,
+        mediaType: meta.mediaType,
+        byteLength: bytes.byteLength,
+        base64: encodeBase64(bytes),
+      });
+    }
+    return createBackup({ ...metadata, blobs }, options.applicationVersion);
+  }
+
+  async commitBackup(stage: StagedBackup): Promise<void> {
+    const { payload, bytes } = stagedBackupData(stage);
+    const stores = [
+      'articles',
+      'categories',
+      'memberships',
+      'snapshots',
+      'blobMeta',
+      'blobBytes',
+      'searchDocs',
+    ];
+    const transaction = this.database.transaction(stores, 'readwrite');
+    const done = transactionDone(transaction);
+    try {
+      // Collision checks and writes share a lock, protecting edits from other tabs and sync.
+      for (const store of ['articles', 'categories', 'memberships', 'snapshots'] as const) {
+        const objectStore = transaction.objectStore(store);
+        for (const record of payload[store]) {
+          const key = 'id' in record ? record.id : [record.articleId, record.categoryId];
+          const existing: unknown = await requestPromise(objectStore.get(key));
+          if (existing && backupCanonical(existing) !== backupCanonical(record)) {
+            throw new Error(
+              'Backup conflicts with existing records. Nothing was imported. Use an empty library to restore this backup.',
+            );
+          }
+        }
+      }
+      for (const blob of payload.blobs) {
+        const existing = (await requestPromise(
+          transaction.objectStore('blobMeta').get(blob.id),
+        )) as StoredBlob | undefined;
+        if (
+          existing &&
+          (existing.mediaType !== blob.mediaType || existing.byteLength !== blob.byteLength)
+        ) {
+          throw new Error('Backup conflicts with existing content. Nothing was imported.');
+        }
+        // Imported bytes use the transactional fallback even on OPFS-capable clients. A failed
+        // transaction cannot leave orphan files or overwrite any active OPFS content.
+        transaction.objectStore('blobMeta').put({
+          id: blobId(blob.id),
+          mediaType: blob.mediaType,
+          byteLength: blob.byteLength,
+          location: 'indexeddb-fallback',
+        } satisfies StoredBlob);
+        transaction.objectStore('blobBytes').put({ id: blob.id, bytes: bytes.get(blob.id)! });
+      }
+      for (const store of ['articles', 'categories', 'memberships', 'snapshots'] as const) {
+        for (const record of payload[store]) transaction.objectStore(store).put(record);
+      }
+      const allCategories = (await requestPromise(
+        transaction.objectStore('categories').getAll(),
+      )) as Category[];
+      const allMemberships = (await requestPromise(
+        transaction.objectStore('memberships').getAll(),
+      )) as CategoryMembership[];
+      const names = new Map(allCategories.filter((v) => !v.isDeleted).map((v) => [v.id, v.name]));
+      const snapshots = new Map(payload.snapshots.map((v) => [v.id, v]));
+      for (const article of payload.articles) {
+        const snapshot = snapshots.get(article.currentSnapshotId)!;
+        const bodyText = extractSearchText(
+          new TextDecoder().decode(bytes.get(snapshot.readerHtmlBlobId)!),
+        );
+        const categoryNames = allMemberships
+          .filter((v) => v.articleId === article.id)
+          .map((v) => names.get(v.categoryId))
+          .filter((v): v is string => Boolean(v));
+        transaction.objectStore('searchDocs').put({
+          articleId: article.id,
+          bodyText,
+          text: composeSearchText(article, bodyText, categoryNames),
+        } satisfies SearchDoc);
+      }
+      await done;
+      discardBackup(stage);
+    } catch (error) {
+      try {
+        transaction.abort();
+      } catch {
+        /* Already aborted by IndexedDB (for example quota). */
+      }
+      await done.catch(() => undefined);
+      throw error;
+    }
   }
 
   async importTrustedFixture(fixture: TrustedFixture): Promise<Article> {

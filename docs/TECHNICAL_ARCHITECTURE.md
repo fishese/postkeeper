@@ -356,6 +356,8 @@ Provide a versioned PostKeeper export containing:
 
 Import must validate the complete archive before mutating the active library. Prefer importing into a staging namespace and committing only after verification.
 
+Milestone 5 implements D-024: explicit plaintext snapshot export, complete in-memory staging, then one additive IndexedDB transaction for metadata, blobs, and search. Conflicting IDs reject the entire import; sync identity and keys remain untouched. Format, limits, exclusions, and recovery behavior are specified in [Backup Format](BACKUP_FORMAT.md).
+
 ## 13. Observability without telemetry
 
 The initial build should not transmit analytics.

@@ -1,4 +1,5 @@
 import { SUPPORTED_CAPTURE_MEDIA_TYPES } from '@postkeeper/capture-format';
+import { sanitizeStoredReaderHtml } from '@postkeeper/capture-processing';
 import { rewriteReaderHtml, type ReaderContent } from '@postkeeper/local-store';
 
 const supportedMediaTypes = new Set<string>(SUPPORTED_CAPTURE_MEDIA_TYPES);
@@ -19,6 +20,6 @@ export function createReaderDocument(content: Pick<ReaderContent, 'html' | 'asse
     if (!supportedMediaTypes.has(asset.mediaType)) continue;
     urls.set(asset.id, imageDataUrl(asset.bytes, asset.mediaType));
   }
-  const body = rewriteReaderHtml(content.html, urls);
+  const body = rewriteReaderHtml(sanitizeStoredReaderHtml(content.html), urls);
   return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none';"><style>html,body{margin:0;font:16px/1.5 system-ui,sans-serif;color:#17212b;background:#fff}img{max-width:100%;height:auto}a{pointer-events:none;color:#283618}</style></head><body>${body}</body></html>`;
 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   createDevelopmentCaptureFixture,
   PUBLIC_FIXTURE,
+  LONG_PRINTABLE_FIXTURE,
   type DevelopmentCaptureFixture,
 } from '@postkeeper/test-fixtures';
 import {
@@ -16,6 +17,9 @@ import {
 import { Reader } from './Reader';
 import { SyncPanel } from './SyncPanel';
 import { listenForExtensionTransfer } from './extensionTransfer';
+import { ArticleSharing } from './ArticleSharing';
+import { BackupPanel } from './BackupPanel';
+import { LOCAL_SYNC_DIAGNOSTICS } from './diagnostics';
 
 const NAV_VIEWS: Array<{ id: Exclude<LibraryView, { categoryId: string }>; label: string }> = [
   { id: 'inbox', label: 'Inbox' },
@@ -39,6 +43,7 @@ function formatBytes(value: number): string {
 }
 
 export function LibraryApp() {
+  const [syncDiagnostics, setSyncDiagnostics] = useState(LOCAL_SYNC_DIAGNOSTICS);
   const [library, setLibrary] = useState<Library | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<LibraryView>('inbox');
@@ -246,7 +251,7 @@ export function LibraryApp() {
     <div className="library-shell">
       <header className="library-header">
         <div>
-          <p className="eyebrow">Milestone 4 · Encrypted multi-device library</p>
+          <p className="eyebrow">Milestone 5 · Sharing and portable backups</p>
           <h1>PostKeeper</h1>
         </div>
         <p data-testid="storage-status" className="storage-status">
@@ -262,7 +267,16 @@ export function LibraryApp() {
           {transferStatus}
         </p>
       )}
-      <SyncPanel library={library} onLibraryChanged={() => refresh(library, view, query)} />
+      <SyncPanel
+        library={library}
+        onLibraryChanged={() => refresh(library, view, query)}
+        onDiagnosticsChange={setSyncDiagnostics}
+      />
+      <BackupPanel
+        library={library}
+        sync={syncDiagnostics}
+        onLibraryChanged={() => refresh(library, view, query)}
+      />
       <div className="library-layout">
         <nav className="library-nav" aria-label="Library views">
           <ul>
@@ -355,6 +369,19 @@ export function LibraryApp() {
           <div className="list-toolbar">
             <h2 id="list-heading">{searching ? 'Search results' : viewLabel(view, categories)}</h2>
             <div className="fixture-actions">
+              <button
+                type="button"
+                onClick={() =>
+                  void (async () => {
+                    const article = await library.importTrustedFixture(LONG_PRINTABLE_FIXTURE);
+                    setSelectedId(article.id);
+                    selectedIdRef.current = article.id;
+                    await refresh(library, view, query);
+                  })()
+                }
+              >
+                Import long print fixture
+              </button>
               <button type="button" onClick={() => void importFixture()}>
                 Import development fixture
               </button>
@@ -419,6 +446,7 @@ export function LibraryApp() {
                 {selected.author} · {selected.siteName}
               </p>
               <p className="original-url">{selected.originalUrl}</p>
+              <ArticleSharing key={selected.id} content={{ ...reader, article: selected }} />
               {(selected.captureStatus !== 'complete' || selected.warnings.length > 0) && (
                 <div className="capture-warning" role="status" data-testid="capture-status">
                   <strong>Capture status: {selected.captureStatus}</strong>

@@ -17,3 +17,10 @@ export {
 export type { Article, Category, CategoryId, LibraryView, Snapshot } from './library';
 
 export type BlobStoreKind = 'opfs' | 'indexeddb-fallback';
+export {
+  BACKUP_FORMAT_VERSION,
+  BACKUP_MAX_FILE_BYTES,
+  stageBackup,
+  discardBackup,
+  type StagedBackup,
+} from './backup';

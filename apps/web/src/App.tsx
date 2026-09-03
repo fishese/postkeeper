@@ -36,9 +36,7 @@ export default function App() {
           Save webpages for offline reading and organization, with optional encrypted Google Drive
           sync.
         </p>
-        <p>
-          Development preview — live Drive sync and recovery acceptance are pending. Use test data.
-        </p>
+        <p>Development preview — release hardening is pending. Use test data.</p>
         <a
           href={`${import.meta.env.BASE_URL}privacy.html`}
           target="_blank"

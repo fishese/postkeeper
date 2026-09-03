@@ -55,7 +55,7 @@
         </p>
         <p>
           PostKeeper is a development preview. This policy describes implemented features, not
-          planned Android wrappers, backup tools, or self-hosted sync services.
+          planned Android wrappers or self-hosted sync services.
         </p>
       </section>
 
@@ -71,6 +71,18 @@
         <p>
           <strong>Local library data is not encrypted by PostKeeper at rest.</strong> Protection
           depends on your device, browser profile, operating system, and who can access them.
+        </p>
+        <p>
+          Portable backups are downloaded only after you explicitly choose plaintext export. They
+          contain saved content, URLs, categories, snapshots, and images, and are readable without
+          your recovery key. They exclude Google credentials, browser session storage, and transient
+          logs. Printing and PDF saving also create copies of your saved content. Protect these
+          files separately; PostKeeper does not upload them to its static host.
+        </p>
+        <p>
+          Local diagnostics can be reviewed before download. They include aggregate counts, device
+          storage usage, browser and processing versions, and sync status, while omitting article
+          content, URLs, credentials, and logs. Sharing a downloaded diagnostic file is your choice.
         </p>
         <p>
           When you explicitly capture a page, the extension reads its rendered content and fetches

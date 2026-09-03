@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
 import { resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vite';
@@ -8,6 +9,11 @@ const configuredBase = process.env.POSTKEEPER_BASE_PATH ?? '/';
 const base = configuredBase === '/' ? '/' : `/${configuredBase.replace(/^\/+|\/+$/g, '')}/`;
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(
+      JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf8')).version,
+    ),
+  },
   base,
   // Workspace commands run from apps/web; local OAuth configuration lives at the repo root.
   envDir: resolve(__dirname, '../..'),

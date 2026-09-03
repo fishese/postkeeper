@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify('0.5.0-test') },
   test: { exclude: ['tests/browser/**', 'tests/extension/**', 'node_modules/**', 'dist/**'] },
   resolve: {
     alias: {

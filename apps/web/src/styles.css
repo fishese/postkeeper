@@ -213,3 +213,30 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+.backup-panel {
+  background: #fff;
+  border: 1px solid #c8c6be;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+.backup-panel input[type='file'] {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.backup-review {
+  background: #eef2df;
+  padding: 1rem;
+  margin-block: 1rem;
+}
+.diagnostics-preview {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media print {
+  #root {
+    display: none;
+  }
+  body::before {
+    content: 'Open an article and choose Print / Save as PDF to open its printable document.';
+  }
+}

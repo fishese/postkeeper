@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { SyncDiagnostics } from './diagnostics';
 import type { Library } from '@postkeeper/local-store';
 import {
   createLibraryKeyMaterial,
@@ -14,9 +15,11 @@ type SyncPhase = 'local' | 'pending' | 'synced' | 'error' | 'conflict' | 'reconn
 export function SyncPanel({
   library,
   onLibraryChanged,
+  onDiagnosticsChange,
 }: {
   library: Library;
   onLibraryChanged: () => Promise<void>;
+  onDiagnosticsChange?: (value: SyncDiagnostics) => void;
 }) {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() ?? '';
   const authorizer = useRef<GoogleIdentityAuthorizer | null>(null);
@@ -29,6 +32,10 @@ export function SyncPanel({
   const [keys, setKeys] = useState<LibraryKeyMaterial | null>(null);
   const [recoveryInput, setRecoveryInput] = useState('');
   const [confirmedRecovery, setConfirmedRecovery] = useState(false);
+  const [lastSuccess, setLastSuccess] = useState<string | null>(null);
+  useEffect(() => {
+    onDiagnosticsChange?.({ phase, connected, lastSuccess });
+  }, [phase, connected, lastSuccess, onDiagnosticsChange]);
 
   function showError(cause: unknown) {
     const text = cause instanceof Error ? cause.message : String(cause);
@@ -95,6 +102,7 @@ export function SyncPanel({
         return;
       }
       setPhase('synced');
+      setLastSuccess(new Date().toISOString());
       setMessage(
         `Synced ${result.operations.length} operation(s); uploaded ${result.uploaded}, downloaded ${result.downloaded}, restored ${result.restoredBlobs} blob(s).`,
       );
@@ -121,6 +129,7 @@ export function SyncPanel({
         return;
       }
       setPhase('synced');
+      setLastSuccess(new Date().toISOString());
       setMessage(
         `Restore complete: ${restored.result.operations.length} operation(s), ${restored.result.restoredBlobs} blob(s).`,
       );

@@ -10,6 +10,64 @@ import {
 export const CAPTURE_EXTRACTOR_VERSION = '@mozilla/readability@0.6.0';
 export const CAPTURE_SANITIZER_VERSION = 'dompurify@3.4.14-postkeeper-html-v1';
 
+/** Revalidate stored/synced/backup HTML at the presentation boundary. No producer markup
+ * gets script, CSS, form, navigation, clobbering, or remote-resource capabilities. */
+export function sanitizeStoredReaderHtml(html: string): string {
+  return String(
+    DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: [
+        'article',
+        'section',
+        'div',
+        'span',
+        'p',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'a',
+        'img',
+        'figure',
+        'figcaption',
+        'blockquote',
+        'pre',
+        'code',
+        'ul',
+        'ol',
+        'li',
+        'dl',
+        'dt',
+        'dd',
+        'table',
+        'thead',
+        'tbody',
+        'tfoot',
+        'tr',
+        'td',
+        'th',
+        'caption',
+        'strong',
+        'em',
+        'b',
+        'i',
+        's',
+        'u',
+        'small',
+        'sup',
+        'sub',
+        'br',
+        'hr',
+      ],
+      ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'colspan', 'rowspan'],
+      ALLOW_DATA_ATTR: false,
+      ALLOW_ARIA_ATTR: false,
+      ALLOWED_URI_REGEXP: /^(?:https?:\/\/|mailto:|#|pk-blob:[a-f0-9]{64}$)/i,
+    }),
+  ).replace(/\ssrc="(?!pk-blob:[a-f0-9]{64}")[^"]*"/gi, '');
+}
+
 export type ExtractedReader = {
   html: string;
   metadata: Partial<CaptureMetadata>;

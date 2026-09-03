@@ -4,6 +4,15 @@ This file distinguishes accepted decisions from questions that must be resolved 
 
 ## Accepted decisions
 
+### D-024 — Portable snapshot backups, atomic additive restore, and isolated printing
+
+Date: 2026-09-03
+Status: accepted
+Context: Milestone 5 requires portable round trips, corrupt-file rejection without active-library mutation, and paginated offline printing while preserving existing sync identity and key material.
+Decision: Use the version-1 plaintext JSON envelope documented in `BACKUP_FORMAT.md`, gated by explicit plaintext acknowledgment. Export only an allowlisted consistent metadata snapshot and referenced immutable blobs, with envelope and per-blob SHA-256 checksums. Validate in an opaque in-memory stage, then perform collision checks and additive metadata/blob/search writes under one IndexedDB transaction. Imported bytes use the transactional IndexedDB fallback even when OPFS is available. Do not import device/provider/key state or operation history. Render restored content through an additional strict presentation sanitizer. Open print documents through a pre-mounted, script-disabled sandbox launcher; auxiliary windows inherit its restrictions, sever their opener, and receive a no-script/no-network CSP. Keep the normal reader's empty sandbox. Build diagnostics from allowlisted aggregate fields and require a review before download.
+Consequences: No new runtime dependency or database schema migration is needed. Unencrypted files contain private library content; encrypted portable backups are not offered in version 1. Conflicting IDs require an empty-library restore, not silent replacement. In-memory limits bound resource use; checksums detect corruption but are not signatures. Sync history and unresolved conflict variants held only in its log are outside the snapshot backup. Standalone print documents avoid the clipped lines and orphaned headings observed when Chromium paginated an oversized app iframe. A pre-mounted launcher preserves the Android click activation needed for popups. The source/print tabs must remain open until native PDF saving finishes. Publication still requires separate user approval.
+Supersedes: none
+
 ### D-023 — Inline local image data in the isolated reader
 
 Date: 2026-09-02

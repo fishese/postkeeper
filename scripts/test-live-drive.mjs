@@ -122,7 +122,11 @@ async function addCategory(page, name) {
   await page.getByLabel('New category', { exact: true }).fill(name);
   await page.getByRole('button', { name: 'Create category', exact: true }).click();
   await expect(page.getByRole('button', { name, exact: true })).toBeVisible();
-  await page.getByRole('checkbox', { name, exact: true }).check();
+  // The controlled checkbox updates after the IndexedDB write and library refresh.
+  // check() asserts immediately after clicking, which races that work on Android.
+  const membership = page.getByRole('checkbox', { name, exact: true });
+  await membership.click();
+  await expect(membership).toBeChecked();
 }
 
 async function setSourceOffline(offline) {
@@ -169,7 +173,7 @@ try {
   await sourceNetwork.send('Network.enable');
   await runAction(source, 'Sync now');
   check(Boolean(accessToken), 'No live app-scoped token was observed.');
-  console.log('PASS: initial encrypted upload from Android.');
+  console.log('PASS: initial Android sync with the existing encrypted library.');
 
   desktop = await chromium.launch({ channel: 'chrome', headless: true });
   cleanContext = await desktop.newContext();

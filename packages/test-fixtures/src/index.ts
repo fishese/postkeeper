@@ -60,8 +60,9 @@ export const LONG_PRINTABLE_FIXTURE: TrustedFixture = {
   <img alt="print fixture" src="pk-blob:fixture-image" />
   <h2>Section one</h2>
   <p>One paragraph about river stones.</p>
-  <h2>Section two</h2>
-  <p>Two paragraph.</p>
+  ${Array.from({ length: 12 }, (_, i) => `<h2>Field section ${i + 1}</h2>${Array.from({ length: 4 }, () => '<p>River stones record the changing seasons. We walked beside the water and recorded the plants, birds, and weather. These printable field notes provide a long paragraph to verify natural page breaks, readable line lengths, and the preservation of saved content across multiple sheets.</p>').join('')}`).join('')}
+  <h2>Final section</h2>
+  <p>End of the long printable fixture.</p>
   <p><a href="https://example.com">An external reference</a></p>
 </article>`,
   assets: [fixtureImage],
