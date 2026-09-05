@@ -47,6 +47,7 @@ interface PostKeeperExtensionApi {
 
 interface Window {
   __postkeeperCaptureContentInstalled?: boolean;
+  __postkeeperBridgeInstalled?: boolean;
 }
 
 declare const chrome: PostKeeperExtensionApi | undefined;

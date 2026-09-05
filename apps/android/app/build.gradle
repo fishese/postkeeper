@@ -6,8 +6,8 @@ android {
         applicationId 'cc.fishese.postkeeper'
         minSdk 28
         targetSdk 36
-        versionCode 8
-        versionName '0.6.2'
+        versionCode 9
+        versionName '0.6.3'
         testInstrumentationRunner 'cc.fishese.postkeeper.KeyVaultInstrumentation'
     }
     buildTypes {

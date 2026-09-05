@@ -1,8 +1,22 @@
 # Project Status
 
-Last updated: 2026-09-04
+Last updated: 2026-09-05
 
 ## Current state
+
+- Bug-review follow-up: fixes validated locally for **web/native 0.6.3 (versionCode 9)** and **extension 0.1.2**; GitHub publication is pending. See the dated evidence below. Milestones 7 and 8 remain Not started.
+
+### 2026-09-05 bug review
+
+Reproduced and fixed unsupported/missing-tab popup initialization failures and missing background replies; the popup now reports errors and allows retry while preserving Firefox's synchronous permission gesture. Configured PWA paths now match directory boundaries, rejecting `/application/` when configured for `/app`. Repeated bridge injection installs listeners once. Recapturing the selected article refreshes its displayed snapshot; obsolete refresh responses cannot replace newer results, and the reader/print controls require matching article and snapshot identities. Optional persistence failures are handled. Empty category renames are disabled and guarded.
+
+Two-connection regression tests reproduced duplicate canonical articles during concurrent capture and lost independent favorite/read edits. Capture identity resolution and mutable article updates now read and write under IndexedDB transaction locks. Concurrent capture retains both immutable snapshots in one article; independent flags survive. No schema, backup format, sync provider, or runtime dependency changed.
+
+Evidence: pre-fix regressions failed for popup errors, path-prefix acceptance, stale recapture display, duplicate articles, and lost flags. Final `npm run validate` passes formatting, lint, type checks, **117 tests / 31 files**, PWA and both extension builds. Full Chromium/Firefox browser suite: **35 passed, 1 intentional Firefox POST-share skip**, including blank-rename prevention. Packaged Chromium extension suite: **2 passed**, including repeated capture into the same PWA, refreshed reader text, no duplicate transfer errors, and queue acknowledgement. Installed Firefox **155.0** runtime passed public/authenticated capture, images, secret filtering, fragment cleanup and queue acknowledgement. Firefox lint: **0 errors, 0 notices, 2 existing Readability warnings**.
+
+Limits: this is a targeted regression review, not a claim that every possible timing or native-device path is bug-free. Native PDF output remains unverified after the earlier zero-byte emulator saves; wrapper Drive, full translation, physical wrapper/minimum-API acceptance, and signed public Firefox distribution remain outside this patch. No phone, emulator, existing library, recovery key, or real Drive operation was used. GitHub signed build and public download verification will be recorded after completion.
+
+### Previous published checkpoints
 
 - Latest APK rebuild: **0.6.2 published and verified**, source `c970d59`, versionCode **8**, [GitHub download](https://github.com/fishese/postkeeper/releases/download/v0.6.2/postkeeper-release.apk). Build/sign run **33790304910** and Pages run **33790303712** passed. It bundles the extension guide; anonymous live About download, checksum, signature and matching prior certificate verified. No device installation or M7 work.
 

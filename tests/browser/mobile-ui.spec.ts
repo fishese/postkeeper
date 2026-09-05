@@ -53,7 +53,7 @@ for (const width of [320, 390]) {
     await openSettings(page, 'About PostKeeper');
     await expect(page.getByRole('link', { name: 'Download for Android' })).toHaveAttribute(
       'href',
-      'https://github.com/fishese/postkeeper/releases/download/v0.6.2/postkeeper-release.apk',
+      'https://github.com/fishese/postkeeper/releases/download/v0.6.3/postkeeper-release.apk',
     );
     await closeSettings(page);
 

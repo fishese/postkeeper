@@ -71,6 +71,7 @@ export function LibraryApp() {
   const [storage, setStorage] = useState<StorageStatus | null>(null);
   const [rebuildCount, setRebuildCount] = useState<number | null>(null);
   const [transferStatus, setTransferStatus] = useState<string | null>(null);
+  const refreshSequence = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,9 +86,12 @@ export function LibraryApp() {
         }
         setLibrary(opened);
         setStorage(await opened.getStorageStatus());
-        void opened.requestPersistence().then(async () => {
-          if (!cancelled) setStorage(await opened.getStorageStatus());
-        });
+        void opened
+          .requestPersistence()
+          .then(async () => {
+            if (!cancelled) setStorage(await opened.getStorageStatus());
+          })
+          .catch(() => undefined); // Persistence is optional; the library remains usable.
       } catch (cause) {
         if (!cancelled) setError(cause instanceof Error ? cause.message : String(cause));
       }
@@ -99,7 +103,7 @@ export function LibraryApp() {
   }, []);
 
   const refresh = useCallback(async (open: Library, nextView: LibraryView, nextQuery: string) => {
-    const currentId = selectedIdRef.current;
+    const request = ++refreshSequence.current;
     const [nextCategories, nextArticles, nextStorage, libraryItems, archivedItems] =
       await Promise.all([
         open.listCategories(),
@@ -108,13 +112,14 @@ export function LibraryApp() {
         open.listArticles('all'),
         open.listArticles('archive'),
       ]);
+    if (request !== refreshSequence.current) return;
     setCategories(nextCategories);
     setArticles(nextArticles);
     setStorage(nextStorage);
     setSearching(Boolean(nextQuery.trim()));
     setSelected(
       [...libraryItems, ...archivedItems, ...nextArticles].find(
-        (article) => article.id === currentId,
+        (article) => article.id === selectedIdRef.current,
       ) ?? null,
     );
   }, []);
@@ -127,7 +132,6 @@ export function LibraryApp() {
       setSelectedId(article.id);
       selectedIdRef.current = article.id;
       await refresh(library, 'inbox', '');
-      setReader(await library.getReader(article.id));
       setReading(true);
       setAddOpen(false);
     },
@@ -158,8 +162,8 @@ export function LibraryApp() {
   }, [library, query, refresh, view]);
 
   useEffect(() => {
+    setReader(null);
     if (!library || !selectedId) {
-      setReader(null);
       return;
     }
     let cancelled = false;
@@ -174,7 +178,7 @@ export function LibraryApp() {
     return () => {
       cancelled = true;
     };
-  }, [library, selectedId]);
+  }, [library, selectedId, selected?.currentSnapshotId]);
 
   useEffect(() => {
     if (typeof view === 'object') {
@@ -214,7 +218,7 @@ export function LibraryApp() {
   }
 
   async function renameSelectedCategory() {
-    if (!library || typeof view !== 'object') return;
+    if (!library || typeof view !== 'object' || !renameValue.trim()) return;
     await library.renameCategory(view.categoryId, renameValue);
     await refresh(library, view, query);
   }
@@ -299,8 +303,16 @@ export function LibraryApp() {
       </main>
     );
 
+  const readerMatchesSelection =
+    selected &&
+    reader &&
+    reader.article.id === selected.id &&
+    reader.snapshot.id === selected.currentSnapshotId;
+
   return (
-    <div className={reading && selected && reader ? 'library-shell is-reading' : 'library-shell'}>
+    <div
+      className={reading && readerMatchesSelection ? 'library-shell is-reading' : 'library-shell'}
+    >
       <header className="library-header">
         <div className="brand">
           <span className="brand-mark">
@@ -410,6 +422,7 @@ export function LibraryApp() {
                   type="button"
                   className={article.id === selectedId ? 'article-link active' : 'article-link'}
                   onClick={() => {
+                    selectedIdRef.current = article.id;
                     setSelectedId(article.id);
                     setSelected(article);
                     setReading(true);
@@ -461,7 +474,7 @@ export function LibraryApp() {
           )}
         </section>
         <section className="library-reader" aria-labelledby="reader-heading">
-          {selected && reader ? (
+          {selected && reader && readerMatchesSelection ? (
             <>
               <div className="reader-toolbar">
                 <button
@@ -616,7 +629,11 @@ export function LibraryApp() {
               />
             </label>
             <div className="button-row">
-              <button type="button" onClick={() => void renameSelectedCategory()}>
+              <button
+                type="button"
+                disabled={!renameValue.trim()}
+                onClick={() => void renameSelectedCategory()}
+              >
                 {t('category.rename')}
               </button>
               <button type="button" onClick={() => void moveCategory(-1)}>

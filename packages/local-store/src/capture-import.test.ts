@@ -115,4 +115,43 @@ describe('capture package import', () => {
     });
     await library.close();
   });
+
+  it('deduplicates concurrent captures across connections without discarding snapshots', async () => {
+    const name = dbName('concurrent');
+    const firstLibrary = await openLibrary({ name });
+    const secondLibrary = await openLibrary({ name });
+    try {
+      const input = await capture();
+      const [first, second] = await Promise.all([
+        firstLibrary.importCapturePackage(input),
+        secondLibrary.importCapturePackage({ ...input, captureId: 'concurrent-second' }),
+      ]);
+      expect(first.id).toBe(second.id);
+      expect(await firstLibrary.listArticles('all')).toHaveLength(1);
+      expect(await firstLibrary.listSnapshots(first.id)).toHaveLength(2);
+    } finally {
+      await firstLibrary.close();
+      await secondLibrary.close();
+    }
+  });
+
+  it('preserves independent flags changed concurrently from two connections', async () => {
+    const name = dbName('concurrent-flags');
+    const first = await openLibrary({ name });
+    const second = await openLibrary({ name });
+    try {
+      const article = await first.importCapturePackage(await capture());
+      await Promise.all([
+        first.updateArticle(article.id, { isFavorite: true }),
+        second.updateArticle(article.id, { isRead: true }),
+      ]);
+      expect((await first.getReader(article.id)).article).toMatchObject({
+        isFavorite: true,
+        isRead: true,
+      });
+    } finally {
+      await first.close();
+      await second.close();
+    }
+  });
 });

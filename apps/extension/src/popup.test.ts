@@ -49,3 +49,37 @@ test('requests the PWA permission synchronously from the popup click', async () 
   expect(sendMessage).toHaveBeenCalledWith({ type: 'postkeeper:save-page', tabId: 7 });
   await vi.waitFor(() => expect(status.textContent).toBe('Capture queued.'));
 });
+
+test.each([{ tabs: [] }, { tabs: [{ id: 7, url: 'chrome://newtab/' }] }])(
+  'reports an unavailable capture tab instead of getting stuck loading: $tabs',
+  async ({ tabs }) => {
+    vi.stubGlobal('browser', {
+      storage: { local: { get: vi.fn().mockResolvedValue({}) } },
+      tabs: { query: vi.fn().mockResolvedValue(tabs) },
+    });
+    await import('./popup');
+    await vi.waitFor(() =>
+      expect(document.querySelector('#status')?.textContent).toBe(
+        'Open an HTTP(S) page before saving.',
+      ),
+    );
+    expect(document.querySelector<HTMLButtonElement>('#save')!.disabled).toBe(true);
+  },
+);
+
+test('shows a missing background response as a retryable capture failure', async () => {
+  vi.stubGlobal('browser', {
+    storage: { local: { get: vi.fn().mockResolvedValue({}) } },
+    tabs: { query: vi.fn().mockResolvedValue([{ id: 7, url: 'https://example.com/' }]) },
+    permissions: { request: vi.fn().mockResolvedValue(true) },
+    runtime: { sendMessage: vi.fn().mockResolvedValue(undefined) },
+  });
+  await import('./popup');
+  const button = document.querySelector<HTMLButtonElement>('#save')!;
+  await vi.waitFor(() => expect(button.disabled).toBe(false));
+  button.click();
+  await vi.waitFor(() =>
+    expect(document.querySelector('#status')?.textContent).toBe('Capture failed.'),
+  );
+  expect(button.disabled).toBe(false);
+});

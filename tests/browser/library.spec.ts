@@ -26,6 +26,16 @@ test('library add, organize, restart, search, and read workflows', async ({ cont
   await page.getByRole('button', { name: 'Inbox', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Make room for a good read' })).toBeVisible();
   await page.getByRole('button', { name: 'Field notes' }).click();
+  await page.getByRole('button', { name: 'Manage categories', exact: true }).click();
+  const rename = page.locator('input[name="rename-category"]');
+  await rename.fill('   ');
+  await expect(page.getByRole('button', { name: 'Rename', exact: true })).toBeDisabled();
+  await rename.fill('Field notes');
+  await expect(page.getByRole('button', { name: 'Rename', exact: true })).toBeEnabled();
+  await page
+    .getByRole('dialog', { name: 'Categories', exact: true })
+    .getByRole('button', { name: 'Close', exact: true })
+    .click();
   await page.getByRole('button', { name: /A public fixture article/ }).click();
   await page.getByRole('button', { name: 'Favorite', exact: true }).click();
   await page.getByRole('button', { name: 'Mark read' }).click();

@@ -15,7 +15,7 @@ import {
   type TransferChunkMessage,
 } from './messages';
 import { PendingTransferQueue, type PendingTransfer } from './queue';
-import { assertAllowedSender } from './security';
+import { assertAllowedSender, matchesConfiguredPage } from './security';
 
 const api = getExtensionApi();
 const queue = new PendingTransferQueue();
@@ -141,7 +141,7 @@ async function openPostKeeper(transfer: PendingTransfer): Promise<void> {
     if (!tab.url) return false;
     try {
       const url = new URL(tab.url);
-      return url.origin === configured.origin && url.pathname.startsWith(configured.pathname);
+      return matchesConfiguredPage(url, configured);
     } catch {
       return false;
     }

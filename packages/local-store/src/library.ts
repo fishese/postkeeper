@@ -674,7 +674,30 @@ export class Library {
       new TextEncoder().encode(html),
       'text/html;charset=utf-8',
     );
-    const allArticles = await this.getAll<Article>('articles');
+    // Resolve identity and read mutable organization under the same write lock as
+    // the new snapshot. Another tab may be capturing or editing this article too.
+    const transaction = this.database.transaction(
+      ['articles', 'snapshots', 'searchDocs', 'memberships', 'categories'],
+      'readwrite',
+    );
+    const [allArticles, allMemberships, allCategories] = await Promise.all([
+      requestPromise(transaction.objectStore('articles').getAll()) as Promise<Article[]>,
+      requestPromise(transaction.objectStore('memberships').getAll()) as Promise<
+        CategoryMembership[]
+      >,
+      requestPromise(transaction.objectStore('categories').getAll()) as Promise<Category[]>,
+    ]);
+    if (capture.captureMethod === 'pending-link') {
+      const duplicate = allArticles.find(
+        (a) =>
+          !a.isDeleted &&
+          (a.canonicalUrl === capture.canonicalUrl || a.originalUrl === capture.originalUrl),
+      );
+      if (duplicate) {
+        await transactionDone(transaction);
+        return duplicate;
+      }
+    }
     const pending = pendingId
       ? allArticles.find(
           (a) => a.id === pendingId && !a.isDeleted && a.warnings.includes('pending-link'),
@@ -736,31 +759,13 @@ export class Library {
       extractorVersion: CAPTURE_EXTRACTOR_VERSION,
       sanitizerVersion: CAPTURE_SANITIZER_VERSION,
     };
-    const memberships = (await this.getAll<CategoryMembership>('memberships')).filter(
-      (membership) => membership.articleId === article.id,
-    );
+    const memberships = allMemberships.filter((membership) => membership.articleId === article.id);
     const categoryNames = new Map(
-      (await this.listCategories()).map((category) => [category.id, category.name]),
+      allCategories
+        .filter((category) => !category.isDeleted)
+        .map((category) => [category.id, category.name]),
     );
     const bodyText = extractSearchText(html);
-    const transaction = this.database.transaction(
-      ['articles', 'snapshots', 'searchDocs'],
-      'readwrite',
-    );
-    if (capture.captureMethod === 'pending-link') {
-      const current = (await requestPromise(
-        transaction.objectStore('articles').getAll(),
-      )) as Article[];
-      const duplicate = current.find(
-        (a) =>
-          !a.isDeleted &&
-          (a.canonicalUrl === capture.canonicalUrl || a.originalUrl === capture.originalUrl),
-      );
-      if (duplicate) {
-        await transactionDone(transaction);
-        return duplicate;
-      }
-    }
     transaction.objectStore('articles').put(article);
     transaction.objectStore('snapshots').put(snapshot);
     transaction.objectStore('searchDocs').put({
@@ -878,9 +883,16 @@ export class Library {
     id: ArticleId,
     patch: Partial<Pick<Article, 'isRead' | 'isFavorite' | 'isArchived'>>,
   ): Promise<Article> {
-    const article = await this.requireArticle(id);
+    const transaction = this.database.transaction('articles', 'readwrite');
+    const store = transaction.objectStore('articles');
+    const article = (await requestPromise(store.get(id))) as Article | undefined;
+    if (!article) {
+      await transactionDone(transaction);
+      throw new Error(`Article not found: ${id}`);
+    }
     const updated: Article = { ...article, ...patch, updatedAt: new Date().toISOString() };
-    await this.put('articles', updated);
+    store.put(updated);
+    await transactionDone(transaction);
     await this.refreshSearchDoc(id);
     return updated;
   }

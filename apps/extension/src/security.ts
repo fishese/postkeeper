@@ -17,7 +17,17 @@ export function assertAllowedSender(senderUrl: string | undefined, configuredPwa
   if (!senderUrl) throw new Error('Transfer sender has no URL.');
   const sender = new URL(senderUrl);
   const configured = new URL(configuredPwaUrl);
-  if (sender.origin !== configured.origin || !sender.pathname.startsWith(configured.pathname)) {
+  if (!matchesConfiguredPage(sender, configured)) {
     throw new Error('Transfer sender is not the configured PostKeeper application.');
   }
+}
+
+export function matchesConfiguredPage(current: URL, configured: URL): boolean {
+  const directory = configured.pathname.endsWith('/')
+    ? configured.pathname
+    : `${configured.pathname}/`;
+  return (
+    current.origin === configured.origin &&
+    (current.pathname === configured.pathname || current.pathname.startsWith(directory))
+  );
 }

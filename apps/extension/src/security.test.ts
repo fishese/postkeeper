@@ -16,6 +16,9 @@ describe('extension origin and capability security', () => {
     expect(() =>
       assertAllowedSender('https://reader.example/other/', 'https://reader.example/app/'),
     ).toThrow(/configured/);
+    expect(() =>
+      assertAllowedSender('https://reader.example/application/', 'https://reader.example/app'),
+    ).toThrow(/configured/);
   });
 
   it('requires HTTPS except for local development and strips URL credentials', () => {

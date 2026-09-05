@@ -138,14 +138,15 @@ async function saveActivePage(
   context: BrowserContext,
   id: string,
   activePage: Page,
+  existingPostKeeper?: Page,
 ): Promise<Page> {
   const popup = await context.newPage();
   await activePage.bringToFront();
   await popup.goto(`chrome-extension://${id}/popup.html`);
   await expect(popup.getByText('Ready.')).toBeVisible();
-  const postKeeperPagePromise = context.waitForEvent('page', (page) =>
-    page.url().startsWith('http://127.0.0.1:4173/'),
-  );
+  const postKeeperPagePromise =
+    existingPostKeeper ??
+    context.waitForEvent('page', (page) => page.url().startsWith('http://127.0.0.1:4173/'));
   await popup.getByRole('button', { name: 'Save current page' }).click();
   const postKeeper = await postKeeperPagePromise;
   await postKeeper.waitForLoadState('domcontentloaded');
@@ -184,6 +185,32 @@ test('captures a rendered page, imports it durably, and acknowledges the queue',
           .evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
       )
       .toBe(true);
+
+    // Recapture the selected article in the same PWA document. The ID remains the same,
+    // but both the snapshot and visible reader must advance, without replay errors.
+    const transferErrors: string[] = [];
+    await postKeeper.exposeFunction('recordTransferError', (error: string) =>
+      transferErrors.push(error),
+    );
+    await postKeeper.evaluate(() => {
+      window.addEventListener('message', (event) => {
+        if (event.data?.type === 'postkeeper:transfer-error') {
+          void (
+            window as unknown as { recordTransferError: (error: string) => Promise<void> }
+          ).recordTransferError(event.data.error);
+        }
+      });
+    });
+    await articlePage.evaluate(() => {
+      document.querySelector('article p')!.textContent =
+        'Updated fixture content from a second capture of this same article.';
+    });
+    await saveActivePage(context, id, articlePage, postKeeper);
+    await expect.poll(() => pendingTransferCount(context)).toBe(0);
+    await expect(
+      reader.getByText('Updated fixture content from a second capture of this same article.'),
+    ).toBeVisible();
+    expect(transferErrors).toEqual([]);
   } finally {
     await context.close();
   }

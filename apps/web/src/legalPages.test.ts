@@ -56,10 +56,10 @@ describe('extension installation document', () => {
     expect(document.body.textContent).toContain('keep.fishese.cc');
     expect(document.body.textContent).toContain('cannot send directly into the APK');
     expect(
-      document.querySelector('a[href$="/extension-v0.1.1/postkeeper-chromium-0.1.1.zip"]'),
+      document.querySelector('a[href$="/extension-v0.1.2/postkeeper-chromium-0.1.2.zip"]'),
     ).not.toBeNull();
     expect(
-      document.querySelector('a[href$="/extension-v0.1.1/postkeeper-firefox-0.1.1.zip"]'),
+      document.querySelector('a[href$="/extension-v0.1.2/postkeeper-firefox-0.1.2.zip"]'),
     ).not.toBeNull();
     expect(document.body.textContent).not.toMatch(/TODO|\[your|placeholder/iu);
   });

@@ -1,11 +1,8 @@
 import { getExtensionApi } from './api';
 import { decodeBase64, type RuntimeRequest, type TransferChunkMessage } from './messages';
+import { matchesConfiguredPage } from './security';
 
 const api = getExtensionApi();
-
-function matchesConfiguredPage(current: URL, configured: URL): boolean {
-  return current.origin === configured.origin && current.pathname.startsWith(configured.pathname);
-}
 
 void api.runtime
   .sendMessage({ type: 'postkeeper:bridge-config' } satisfies RuntimeRequest)
@@ -15,6 +12,14 @@ void api.runtime
     const configured = new URL(response.pwaUrl);
     if (!matchesConfiguredPage(new URL(window.location.href), configured)) return;
     const targetOrigin = configured.origin;
+    if (window.__postkeeperBridgeInstalled) {
+      window.postMessage(
+        { channel: 'postkeeper-extension', type: 'postkeeper:bridge-ready' },
+        targetOrigin,
+      );
+      return;
+    }
+    window.__postkeeperBridgeInstalled = true;
 
     window.addEventListener('message', (event) => {
       if (event.source !== window || event.origin !== targetOrigin) return;
