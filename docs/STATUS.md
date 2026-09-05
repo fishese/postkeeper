@@ -4,7 +4,7 @@ Last updated: 2026-09-05
 
 ## Current state
 
-- Bug-review follow-up: fixes validated locally for **web/native 0.6.3 (versionCode 9)** and **extension 0.1.2**; GitHub publication is pending. See the dated evidence below. Milestones 7 and 8 remain Not started.
+- Bug-review follow-up: **complete and published**, source `a837a4c13dd0d66499bfa73f4c1edc1a59c6abaa`, **web/native 0.6.3 (versionCode 9)** and **extension 0.1.2**. [Signed APK](https://github.com/fishese/postkeeper/releases/download/v0.6.3/postkeeper-release.apk) and [extension downloads](https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.2) are linked from the live app and anonymously verified. Milestones 7 and 8 remain Not started.
 
 ### 2026-09-05 bug review
 
@@ -14,7 +14,9 @@ Two-connection regression tests reproduced duplicate canonical articles during c
 
 Evidence: pre-fix regressions failed for popup errors, path-prefix acceptance, stale recapture display, duplicate articles, and lost flags. Final `npm run validate` passes formatting, lint, type checks, **117 tests / 31 files**, PWA and both extension builds. Full Chromium/Firefox browser suite: **35 passed, 1 intentional Firefox POST-share skip**, including blank-rename prevention. Packaged Chromium extension suite: **2 passed**, including repeated capture into the same PWA, refreshed reader text, no duplicate transfer errors, and queue acknowledgement. Installed Firefox **155.0** runtime passed public/authenticated capture, images, secret filtering, fragment cleanup and queue acknowledgement. Firefox lint: **0 errors, 0 notices, 2 existing Readability warnings**.
 
-Limits: this is a targeted regression review, not a claim that every possible timing or native-device path is bug-free. Native PDF output remains unverified after the earlier zero-byte emulator saves; wrapper Drive, full translation, physical wrapper/minimum-API acceptance, and signed public Firefox distribution remain outside this patch. No phone, emulator, existing library, recovery key, or real Drive operation was used. GitHub signed build and public download verification will be recorded after completion.
+Publication: GitHub signed run **33933029364** passed full validation, Android JVM/lint/release gates and separate-runner signing. Artifact **postkeeper-signed-apk-6**, ID **9959255082**. APK **2,982,531 bytes**, SHA-256 `f0df1a4605c6da7a6eebcd54db311b65812e4343e3e9e83393e5a42cd929fdd7`; independently verified package `cc.fishese.postkeeper`, version 0.6.3/code 9, minimum API 28/target 36, non-debuggable, v3 signature and unchanged release certificate. Bundled guide versions verified. Pages run **33933028974** passed. Fresh Chrome **152.0.7977.76** followed live About links and anonymously verified the APK and both extension ZIPs against local hashes. Extension checksums are in EXTENSION_COMPATIBILITY.md. No requested build/publication step remains.
+
+Limits: this is a targeted regression review, not a claim that every possible timing or native-device path is bug-free. Native PDF output remains unverified after the earlier zero-byte emulator saves; wrapper Drive, full translation, physical wrapper/minimum-API acceptance, and signed public Firefox distribution remain outside this patch. No phone, emulator, existing library, recovery key, or real Drive operation was used.
 
 ### Previous published checkpoints
 

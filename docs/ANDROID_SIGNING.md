@@ -4,7 +4,15 @@ The manual `Build signed Android APK` workflow builds the release package `cc.fi
 
 The workflow and M6 sources are published on `main` (`c32aae9`, with SDK path fix `f5d139c`). All four repository secret names were confirmed on 2026-09-03 after the user saved them. Saving secrets alone does not start a build. The agent did not request or display their values; signing uses the key only inside the GitHub signing job.
 
-## Current public download: 0.6.2
+## Current public download: 0.6.3
+
+[PostKeeper 0.6.3 preview](https://github.com/fishese/postkeeper/releases/tag/v0.6.3) hosts the signed [APK](https://github.com/fishese/postkeeper/releases/download/v0.6.3/postkeeper-release.apk) and checksum. It fixes recapture display/concurrent library edits and bundles the 0.1.2 extension guide. Source `a837a4c13dd0d66499bfa73f4c1edc1a59c6abaa`, Android versionCode **9**.
+
+[Run 33933029364](https://github.com/fishese/postkeeper/actions/runs/33933029364) passed full validation (**117 tests**), Android JVM/lint/release gates and separate-runner signing. Artifact **postkeeper-signed-apk-6**, ID **9959255082**. APK **2,982,531 bytes**, SHA-256 `f0df1a4605c6da7a6eebcd54db311b65812e4343e3e9e83393e5a42cd929fdd7`. Independent verification confirmed `cc.fishese.postkeeper`, version 0.6.3/code 9, non-debuggable, minimum API 28/target 36, v3 signature, unchanged certificate and bundled guide versions. Pages run **33933028974** passed; fresh Chrome **152.0.7977.76** followed the live About download and anonymously received matching bytes/hash.
+
+Local copy: `apps/android/app/build/outputs/apk/github-33933029364/postkeeper-signed-apk-6/postkeeper-release.apk`. No signing values were read/displayed or changed; no device installation occurred. Native PDF/Drive and other acceptance limitations remain documented in STATUS.md.
+
+## Previous public download: 0.6.2
 
 [PostKeeper 0.6.2 preview](https://github.com/fishese/postkeeper/releases/tag/v0.6.2) hosts the signed [APK](https://github.com/fishese/postkeeper/releases/download/v0.6.2/postkeeper-release.apk) and checksum. It bundles the extension guide and About link. Web/native version 0.6.2 uses Android versionCode **8**; extension version remains 0.1.1. The existing 0.6.1 release is preserved.
 

@@ -1,10 +1,19 @@
 # Extension compatibility matrix
 
-Last updated: 2026-09-04
+Last updated: 2026-09-05
 
 Every required Milestone 3 runtime row has a recorded end-to-end pass. Package validation alone is not treated as runtime evidence.
 
 ## Installation and distribution
+
+Current preview: **0.1.2**, source `a837a4c13dd0d66499bfa73f4c1edc1a59c6abaa`, [GitHub release](https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.2). Fixes popup failure reporting, PWA path-boundary validation, and repeated bridge injection. Packaged Chromium public/recapture/authenticated handoff tests pass; Firefox **155.0** public/authenticated runtime passes. Firefox lint: 0 errors, 0 notices, 2 existing Readability warnings. No Android runtime rerun occurred in this patch; historical device evidence below remains separate.
+
+| Download                        | Bytes   | SHA-256                                                            |
+| ------------------------------- | ------- | ------------------------------------------------------------------ |
+| `postkeeper-chromium-0.1.2.zip` | 114,474 | `4bfa5913107450320b51f3d2d2f395cc3885e8fe3df1c4397421732657e97a82` |
+| `postkeeper-firefox-0.1.2.zip`  | 114,574 | `9e6eb72e9790ea64188f9bef67e23ed345f944ca996580522e526deb420589d0` |
+
+The production default, saved-destination preservation, temporary unsigned Firefox installation, and separate APK storage boundaries introduced in 0.1.1 continue to apply. Previous 0.1.1 artifacts and evidence below are retained for reproducibility.
 
 The public [extension installation guide](https://keep.fishese.cc/extensions.html), linked from Settings → About and extension connection settings, describes the preview downloads. Extension **0.1.1** defaults to `https://keep.fishese.cc/`; saved custom destinations remain unchanged. Both generated targets use the same default and continue to request only the configured PWA host permission from the user's Save gesture.
 
