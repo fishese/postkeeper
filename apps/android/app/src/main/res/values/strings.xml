@@ -1,4 +1,5 @@
 <resources>
+    <string name="save_full_page">Save full page (if article text is missing)</string>
     <string name="library">Library</string>
     <string name="capture_browser">Capture browser</string>
     <string name="save_page">Save page</string>

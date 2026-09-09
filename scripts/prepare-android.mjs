@@ -55,3 +55,10 @@ await writeFile(
   resolve(assets, 'capture.js'),
   source.replace(marker, 'return JSON.stringify(captureRenderedPage(document));'),
 );
+await writeFile(
+  resolve(assets, 'capture-full.js'),
+  source.replace(
+    marker,
+    "return JSON.stringify(captureRenderedPage(document, document.location.href, 'page'));",
+  ),
+);

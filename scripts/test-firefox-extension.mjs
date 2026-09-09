@@ -7,8 +7,8 @@ import path from 'node:path';
 import { Builder, By, until } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 
-const pwaOrigin = 'http://127.0.0.1:4173';
-const fixtureOrigin = 'http://127.0.0.1:4174';
+const pwaOrigin = 'http://127.0.0.1:4280';
+const fixtureOrigin = 'http://127.0.0.1:4281';
 const pwaPermission = 'http://127.0.0.1/*';
 
 const mediaTypes = {
@@ -87,7 +87,7 @@ async function grantLocalPwaPermission(driver) {
       async () => {
         const policy = WebExtensionPolicy.getByID(extension.id);
         done({
-          ok: policy.allowedOrigins.matches(Services.io.newURI('http://127.0.0.1:4173/')),
+          ok: policy.allowedOrigins.matches(Services.io.newURI('http://127.0.0.1:4280/')),
           stored: (await ExtensionPermissions.get(extension.id)).origins,
         });
       },
@@ -309,8 +309,8 @@ async function saveFixture(driver, fixtureHandle, targetUrl, expectedTitle) {
 
 async function main() {
   const servers = await Promise.all([
-    startStaticServer('apps/web/dist', 4173, true),
-    startStaticServer('packages/test-fixtures', 4174, false),
+    startStaticServer('apps/web/dist', 4280, true),
+    startStaticServer('packages/test-fixtures', 4281, false),
   ]);
   const options = new firefox.Options()
     .setBinary('C:\\Program Files\\Mozilla Firefox\\firefox.exe')
@@ -326,6 +326,7 @@ async function main() {
 
   try {
     const capabilities = await driver.getCapabilities();
+    console.log('Firefox version:', capabilities.get('browserVersion'));
     const addonId = await driver.installAddon(path.resolve('apps/extension/dist-firefox'), true);
     assert.equal(addonId, 'postkeeper@local.invalid');
     await grantLocalPwaPermission(driver);
@@ -392,10 +393,10 @@ async function main() {
 
 if (process.argv.includes('--serve-only')) {
   await Promise.all([
-    startStaticServer('apps/web/dist', 4173, true),
-    startStaticServer('packages/test-fixtures', 4174, false),
+    startStaticServer('apps/web/dist', 4280, true),
+    startStaticServer('packages/test-fixtures', 4281, false),
   ]);
-  console.log('Extension test servers listening on 127.0.0.1:4173 and 127.0.0.1:4174.');
+  console.log('Extension test servers listening on 127.0.0.1:4280 and 127.0.0.1:4281.');
   await new Promise(() => undefined);
 } else {
   await main();

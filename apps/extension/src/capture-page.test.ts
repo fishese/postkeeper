@@ -8,6 +8,42 @@ function fixture(html: string): Document {
 }
 
 describe('extension page capture', () => {
+  it('does not save just an app promotion when substantial article text is already loaded', () => {
+    const body =
+      'This is the loaded book review, with ordinary paragraphs about its author and story. '.repeat(
+        12,
+      );
+    const doc = fixture(
+      `<title>A book review</title><main class="comment"><article class="comment"><p>${body}</p></article></main><section><p>Continue reading in the app - it is better.</p></section>`,
+    );
+    const result = captureRenderedPage(doc, 'https://example.test/review');
+    expect(result.extractedReaderHtml).toContain('loaded book review');
+    expect(result.extractedReaderHtml).not.toBe(
+      '<p>Continue reading in the app - it is better.</p>',
+    );
+  });
+  it('keeps the selected responsive image in the reader instead of a placeholder', () => {
+    const doc = fixture(
+      '<article><h1>Photo post</h1><p>A visible photo.</p><picture><source srcset="https://cdn.test/photo.webp 2x"><img src="https://cdn.test/placeholder.png"></picture></article>',
+    );
+    Object.defineProperty(doc.images[0], 'currentSrc', { value: 'https://cdn.test/photo.webp' });
+    const draft = captureRenderedPage(doc, 'https://example.test/post');
+    expect(draft.extractedReaderHtml).toContain('src="https://cdn.test/photo.webp"');
+    expect(draft.assetUrls).toContain('https://cdn.test/photo.webp');
+  });
+
+  it('full-page fallback retains loaded content while stripping dialogs and credentials', () => {
+    const doc = fixture(
+      '<main><p>The actual loaded article.</p></main><aside><p>Additional loaded paragraph.</p></aside><dialog open>Continue reading in the app</dialog><div hidden>Hidden teaser</div><input value="private-entry"><script>secret()</script>',
+    );
+    const draft = captureRenderedPage(doc, 'https://example.test/post', 'page');
+    expect(draft.extractedReaderHtml).toContain('actual loaded article');
+    expect(draft.extractedReaderHtml).toContain('Additional loaded paragraph');
+    expect(draft.extractedReaderHtml).not.toMatch(
+      /Continue reading|Hidden teaser|private-entry|secret\(/,
+    );
+    expect(draft.warnings).toContain('producer-full-page-copy');
+  });
   it('captures rendered metadata and lazy image candidates', () => {
     const document = fixture(`<!doctype html><html lang="en"><head>
       <title>Fallback title</title>
@@ -21,12 +57,7 @@ describe('extension page capture', () => {
     expect(capture.originalUrl).toBe('https://example.test/article');
     expect(capture.canonicalUrl).toBe('https://example.test/canonical');
     expect(capture.metadata).toMatchObject({ title: 'Captured title', author: 'Fixture Author' });
-    expect(capture.assetUrls).toEqual([
-      'https://example.test/one.png',
-      'https://example.test/two.png',
-      'https://example.test/small.png',
-      'https://example.test/large.png',
-    ]);
+    expect(capture.assetUrls).toEqual(['https://example.test/two.png']);
   });
 
   it('removes credentials, cookies, tokens, scripts, and form controls from raw DOM', () => {

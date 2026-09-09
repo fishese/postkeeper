@@ -4,6 +4,19 @@ This file distinguishes accepted decisions from questions that must be resolved 
 
 ## Accepted decisions
 
+### D-027 — Capture fallbacks and article removal follow-up
+
+Date: 2026-09-09
+Status: accepted
+Context: The user requested easier extension downloads, mobile popup capture repair, missing native images/text fixes, article deletion and an image-removal option.
+Decision: Keep the existing popup on desktop. If no HTTP(S) active tab/current window is available, present an explicit open-page picker and request only the chosen page host plus the configured PWA host in the Save gesture. Normalize live responsive/lazy image sources before cloning/extraction and prioritize the extracted reading copy's images. Native capture may fetch public cross-origin images and follow at most five validated redirects, without reading other origins' cookies or forwarding the original page's cookies to them. Retain the HTTPS/app-origin restrictions, byte budgets, media checks and isolated reader. Recover substantial semantic article content when Readability selects only a short teaser; offer native Browser options → Save full page as an explicit fallback for already-loaded content. Never bypass site access controls.
+
+Article deletion uses the existing retained sync tombstones. Emit initial metadata before a never-synced article's tombstone so restoration remains valid. Removing images creates an immutable text-only current snapshot, with no raw DOM reference or image assets, preserving article metadata/organization and other snapshots/shared blobs. It deliberately does not garbage-collect historical content. Both actions require an app confirmation explaining retained snapshots/backups. Downloads and instructions appear in Add link and About.
+
+Consequences: No schema/backup-format, provider, cryptographic or runtime-dependency changes; M7/M8 remain untouched. These actions do not promise secure erasure or reclaiming all image storage: old snapshots, encrypted sync history and existing backup files retain their bytes. Full-page fallback can contain extra page text. First-load-only NY Times behavior requires a loaded-article reproduction; login/subscribe responses cannot establish that acceptance. Android browser-specific popup acceptance remains separate from desktop emulation of the same failure mode.
+
+References: [Chrome tabs API](https://developer.chrome.com/docs/extensions/reference/api/tabs), [Android HttpURLConnection](https://developer.android.com/reference/java/net/HttpURLConnection).
+
 ### D-026 — Compact shared UI and English localization resources
 
 Date: 2026-09-04

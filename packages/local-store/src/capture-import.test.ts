@@ -61,6 +61,32 @@ async function capture(
 }
 
 describe('capture package import', () => {
+  it('creates a text-only snapshot, preserves other articles/shared images and syncs deletion', async () => {
+    const library = await openLibrary({ name: dbName('article-removal') });
+    try {
+      const first = await library.importCapturePackage(await capture());
+      const second = await library.importCapturePackage(
+        await capture({ canonicalUrl: 'https://fixtures.postkeeper.local/other' }),
+      );
+      await library.updateArticle(first.id, { isFavorite: true });
+      await library.removeArticleImages(first.id);
+      const reader = await library.getReader(first.id);
+      expect(reader.html).toContain('Secure searchable phrase');
+      expect(reader.html).not.toContain('<img');
+      expect(reader.assets).toHaveLength(0);
+      expect(reader.snapshot.rawDomBlobId).toBeNull();
+      expect(reader.article.isFavorite).toBe(true);
+      expect(await library.listSnapshots(first.id)).toHaveLength(2);
+      expect((await library.getReader(second.id)).assets).toHaveLength(1);
+      await library.updateArticle(first.id, { isDeleted: true });
+      expect((await library.listArticles('all')).map((a) => a.id)).toEqual([second.id]);
+      expect((await library.search('Secure')).map((a) => a.id)).toEqual([second.id]);
+      const prepared = await library.prepareSyncOperations();
+      expect(JSON.stringify(prepared)).toContain('entity.delete');
+    } finally {
+      library.close();
+    }
+  });
   it('stores raw DOM, rewrites local assets, and reports missing assets', async () => {
     const library = await openLibrary({ name: dbName('partial') });
     const article = await library.importCapturePackage(await capture({ missingAsset: true }));

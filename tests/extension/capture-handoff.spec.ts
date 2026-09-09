@@ -10,7 +10,7 @@ import { cp, readFile, stat, writeFile } from 'node:fs/promises';
 import { createServer, type Server } from 'node:http';
 import path from 'node:path';
 
-const fixtureOrigin = 'http://127.0.0.1:4174';
+const fixtureOrigin = 'http://127.0.0.1:4281';
 
 const mediaTypes: Record<string, string> = {
   '.css': 'text/css; charset=utf-8',
@@ -74,8 +74,8 @@ let servers: Server[] = [];
 
 test.beforeAll(async () => {
   servers = await Promise.all([
-    startStaticServer('apps/web/dist', 4173, true),
-    startStaticServer('packages/test-fixtures', 4174, false),
+    startStaticServer('apps/web/dist', 4280, true),
+    startStaticServer('packages/test-fixtures', 4281, false),
   ]);
 });
 
@@ -130,7 +130,7 @@ async function launchExtension(testInfo: TestInfo): Promise<{
   });
   const id = await extensionId(context);
   const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
-  await worker.evaluate(() => chrome.storage.local.set({ pwaUrl: 'http://127.0.0.1:4173/' }));
+  await worker.evaluate(() => chrome.storage.local.set({ pwaUrl: 'http://127.0.0.1:4280/' }));
   return { context, id };
 }
 
@@ -146,7 +146,7 @@ async function saveActivePage(
   await expect(popup.getByText('Ready.')).toBeVisible();
   const postKeeperPagePromise =
     existingPostKeeper ??
-    context.waitForEvent('page', (page) => page.url().startsWith('http://127.0.0.1:4173/'));
+    context.waitForEvent('page', (page) => page.url().startsWith('http://127.0.0.1:4280/'));
   await popup.getByRole('button', { name: 'Save current page' }).click();
   const postKeeper = await postKeeperPagePromise;
   await postKeeper.waitForLoadState('domcontentloaded');
@@ -253,6 +253,32 @@ test('captures a cookie-authenticated page without exporting session data', asyn
       )
       .toBe(true);
     await expect(postKeeper.locator('body')).not.toContainText('must-not-export');
+    await expect.poll(() => pendingTransferCount(context)).toBe(0);
+  } finally {
+    await context.close();
+  }
+});
+
+test('popup opened as its own tab saves the explicitly selected original page', async () => {
+  const { context, id } = await launchExtension(test.info());
+  try {
+    const article = await context.newPage();
+    await article.goto(`${fixtureOrigin}/public-article.html`);
+    const popup = await context.newPage();
+    await popup.bringToFront();
+    await popup.goto(`chrome-extension://${id}/popup.html`);
+    const picker = popup.getByRole('combobox', { name: 'Choose the page to save' });
+    await expect(picker).toBeVisible();
+    await expect(popup.getByRole('button', { name: 'Save current page' })).toBeDisabled();
+    await picker.selectOption({ label: `${fixtureOrigin}/public-article.html` });
+    const opened = context.waitForEvent('page', (page) =>
+      page.url().startsWith('http://127.0.0.1:4280/'),
+    );
+    await popup.getByRole('button', { name: 'Save current page' }).click();
+    const pwa = await opened;
+    await expect(pwa.getByTestId('extension-transfer-status')).toContainText(
+      'Imported “Public fixture article”',
+    );
     await expect.poll(() => pendingTransferCount(context)).toBe(0);
   } finally {
     await context.close();

@@ -1,12 +1,22 @@
 # Next Chat Prompt
 
-Checkpoint: 2026-09-05. Canonical progress is in `STATUS.md`.
+Checkpoint: 2026-09-09. Canonical progress is in `STATUS.md`.
 
 ## Required reading
 
 Workspace `D:\Projects\PostKeeper`, branch `main`, repository `fishese/postkeeper`. Read completely: `README.md`, `docs/PRODUCT_PLAN.md`, `docs/TECHNICAL_ARCHITECTURE.md`, `docs/IMPLEMENTATION_ROADMAP.md`, `docs/DECISIONS.md`, `docs/STATUS.md`, this prompt, `docs/GOOGLE_DRIVE_SETUP.md`, `docs/BACKUP_FORMAT.md`, `docs/ANDROID_SETUP.md`, `docs/ANDROID_SIGNING.md`, `docs/DEPENDENCIES.md`, `docs/UI_AND_LOCALIZATION.md`, and `docs/EXTENSION_COMPATIBILITY.md`. Follow all AGENTS.md restrictions and preserve unrelated changes.
 
 ## Current follow-up
+
+The user's capture/article follow-up is prepared as **web/native 0.6.4** (Android versionCode 10) and **extension 0.1.3** (D-027): extension ZIP/guide links in Add link and About; explicit original-page selection for mobile standalone popups; native public CDN/validated-redirect images with source-origin-only cookies; responsive/lazy image preservation; semantic extraction and native **Save full page** fallbacks; confirmed article deletion and a text-only reading copy. Historical snapshots, backups and sync history retain images; no storage reclamation is promised. A never-synced article deletion/restore edge case is fixed. Publication was explicitly requested and is in progress. No M7/M8, schema/provider/dependency or signing change.
+
+Evidence: `npm run validate` **124 tests / 31 files** and all gates pass; PWA Chromium/Firefox **39 passed / 1 intentional skip**; packaged Chromium **3 passed**, including standalone-popup source selection; Firefox **155.0** runtime passes and lint has **0 errors / 0 notices / 2 existing warnings**. Android debug/unsigned release/JVM/lint gates pass. Extension harnesses now use **4280/4281** to avoid the busy PWA test server. Read STATUS.md for initial harness failures/corrections.
+
+Emulator: existing `Pixel_10_Pro_emu`, **emulator-5554**, debug app updated in place. Final additive synthetic tests pass direct/redirected CDN images, decoded images after reload, absent website native bridge, empty reader sandbox and native full-page fallback. Supplied Reddit main photo saved/decoded before the final image-prioritization adjustment. Actual NY Times first-load full-text capture remains unverified: the user saw full text initially, but only the app promotion saved; subsequent login/subscribe pages were not captured. Our text-only site check encountered a login/app prompt. No NY Times screenshots/image-saving test. Threads login testing was deferred by the user. No phone or real Drive/key operation.
+
+Cleanup: runner removes fixture reverse ports/UI dump. Forward **54008** was removed; final **51971** was absent after ADB/emulator stopped before cleanup (device absent, forwarding list empty). Debug fixtures, Reddit capture and pending NY Times link remain. Never clear libraries/profiles/keys to resume. A busy 4173 process was left alone after ownership could not be verified. Release links now target the requested **0.6.4/0.1.3** artifacts; publication evidence is recorded only after public verification.
+
+## Preserved published release
 
 The bug review is **complete and published**, source **a837a4c13dd0d66499bfa73f4c1edc1a59c6abaa**, web/native **0.6.3**, Android versionCode **9**, and extension **0.1.2**. Signed build **33933029364** and Pages **33933028974** passed. Public releases: `https://github.com/fishese/postkeeper/releases/tag/v0.6.3` and `https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.2`. No requested build/publication step remains; preserve previous releases.
 
@@ -31,5 +41,7 @@ Native PDF saving remains unverified after zero-byte emulator output; prior M5 s
 ```text
 Continue PostKeeper in D:\Projects\PostKeeper. Read docs/NEXT_CHAT_PROMPT.md and all listed source-of-truth documents completely, including docs/STATUS.md. Follow all AGENTS.md restrictions and preserve user data and unrelated changes.
 
-The bug-fix release is complete: web/native 0.6.3 (Android versionCode 9) and extension 0.1.2, source a837a4c. GitHub signed run 33933029364 and Pages 33933028974 passed; public APK and extension downloads were independently verified through the live About/installation links. No requested build or publication step remains. Work only on my next explicit request, using the recorded evidence and limitations. Do not start Milestone 7. Use the emulator, and notify me before any necessary wireless-phone test. Preserve libraries and signing identity; never request signing secrets or recovery keys in chat. No Drive reconnection is needed. Keep status and the continuation prompt current after new work.
+The 2026-09-09 capture/article follow-up is prepared as web/native 0.6.4 (Android versionCode 10) and extension 0.1.3. It adds extension links, a mobile popup page picker, native public CDN/redirect image capture, responsive images, extraction/full-page fallbacks, article deletion and a text-only reading copy. Historical snapshots/backups/sync images remain; no storage reclamation is claimed. Validation passes: 124 tests/31 files, all validate gates, 39 browser tests plus one intentional skip, 3 packaged Chromium tests, Firefox 155.0 runtime/lint and Android build/JVM/lint/emulator fixture checks. Supplied Reddit main photo saved/decoded; actual NY Times first-load full-text recapture and Threads login remain unverified. Read STATUS.md for evidence and cleanup limits.
+
+Publication of 0.6.4/0.1.3 was explicitly requested and is in progress; check STATUS.md for final source, signing-run and download evidence before taking further release action. Work only on my next explicit request after publication completes. Do not start Milestone 7. Use the emulator, and notify me before any necessary wireless-phone test. Preserve libraries, disconnected Drive association, recovery keys and signing identity. Never request signing secrets or recovery keys in chat. No Drive reconnection is needed. Keep status and this prompt current after new work.
 ```

@@ -4,6 +4,8 @@ Milestone 5 introduced application version 0.5.0 and backup format version 1. Mi
 
 ## Export and restore
 
+The local 2026-09-09 follow-up adds article deletion and a text-only reading copy. Deletion is a retained tombstone; image removal creates a new immutable snapshot without images. Version-1 backups still include retained historical snapshots and their images, including deleted articles. Neither control erases content from existing backups or sync history, and no garbage collection is introduced.
+
 Select **I choose a plaintext backup containing my saved content**, then **Export portable backup**. This deliberately downloads readable JSON. The file includes private saved content and should be stored privately. Version 1 does not offer encrypted portable backups; Google Drive synchronization remains independently encrypted.
 
 The export reads article, category, membership, and snapshot records in one IndexedDB transaction, then reads only their referenced immutable blobs. It includes every stored snapshot, including inactive raw DOM, and preserves IDs, timestamps, categories, membership, flags, warnings, manifests, and bytes. It is a consistent metadata snapshot, not an operation-log or browser-profile backup. Device IDs, sync association, operation history, conflicts held only in the sync log, keys, OAuth tokens, browser cookies/session storage, search caches, unreferenced blobs, and transient logs are not exported. Saved article text, URLs, images, and raw DOM are private content and are intentionally included; this is not content anonymization.

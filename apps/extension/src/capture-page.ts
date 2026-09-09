@@ -71,14 +71,67 @@ function collectAssetUrls(document: Document, baseUrl: string): string[] {
 export function captureRenderedPage(
   document: Document,
   pageUrl = document.location.href,
+  mode: 'reader' | 'page' = 'reader',
 ): PageCaptureDraft {
   const clone = createCredentialScrubbedClone(document);
+  // currentSrc is runtime state and is lost by cloneNode (notably picture/srcset images).
+  const liveImages = Array.from(document.images);
+  Array.from(clone.images).forEach((image, index) => {
+    const live = liveImages[index];
+    const source =
+      absoluteHttpUrl(live?.currentSrc, pageUrl) ??
+      absoluteHttpUrl(
+        image.getAttribute('data-src') ??
+          image.getAttribute('data-lazy-src') ??
+          image.getAttribute('data-original'),
+        pageUrl,
+      ) ??
+      absoluteHttpUrl(image.getAttribute('src'), pageUrl);
+    if (source) image.setAttribute('src', source);
+    // The chosen rendered resource is sufficient; do not spend the image budget
+    // downloading every responsive size, avatar, or unrelated recommendation.
+    if (source) {
+      for (const attribute of ['srcset', 'data-src', 'data-lazy-src', 'data-original'])
+        image.removeAttribute(attribute);
+    }
+  });
   const renderedDom = `<!doctype html>\n${clone.documentElement.outerHTML}`;
-  const readable = new Readability(clone, {
+  const visible = clone.cloneNode(true) as Document;
+  for (const hidden of Array.from(
+    visible.querySelectorAll(
+      '[hidden], [aria-hidden="true"], dialog, [role="dialog"], nav, script, style',
+    ),
+  ))
+    hidden.remove();
+  const readable = new Readability(visible.cloneNode(true) as Document, {
     charThreshold: 0,
     keepClasses: false,
     maxElemsToParse: 50_000,
   }).parse();
+  let readerHtml = readable?.content ?? '';
+  const warnings: string[] = readable ? [] : ['producer-extraction-failed'];
+  // Preserve substantial semantic article content when a short app-promotion wins Readability.
+  const candidates = Array.from(
+    visible.querySelectorAll('article, main, [role="main"], [itemprop="articleBody"]'),
+  );
+  const candidate = candidates.sort(
+    (a, b) => (b.textContent?.trim().length ?? 0) - (a.textContent?.trim().length ?? 0),
+  )[0];
+  const length = readable?.textContent?.trim().length ?? 0;
+  if (
+    candidate &&
+    length < 300 &&
+    (candidate.textContent?.trim().length ?? 0) > Math.max(300, length * 2)
+  ) {
+    readerHtml = candidate.outerHTML;
+    warnings.splice(0, warnings.length, 'producer-semantic-fallback');
+  } else if (length < 100) {
+    warnings.push('producer-short-content-check-original');
+  }
+  if (mode === 'page') {
+    readerHtml = visible.body.innerHTML;
+    warnings.splice(0, warnings.length, 'producer-full-page-copy');
+  }
   const originalUrl = new URL(pageUrl);
   originalUrl.username = '';
   originalUrl.password = '';
@@ -118,9 +171,9 @@ export function captureRenderedPage(
       ...(language ? { language } : {}),
     },
     renderedDom,
-    extractedReaderHtml: readable?.content ?? '',
-    assetUrls: collectAssetUrls(document, pageUrl),
-    warnings: readable ? [] : ['producer-extraction-failed'],
+    extractedReaderHtml: readerHtml,
+    assetUrls: collectAssetUrls(new DOMParser().parseFromString(readerHtml, 'text/html'), pageUrl),
+    warnings,
     diagnostics: { elementCount: clone.querySelectorAll('*').length },
   };
 }

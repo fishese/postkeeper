@@ -3,6 +3,7 @@ import type { Article, Library } from '@postkeeper/local-store';
 import { nativeRequest, isNativeAndroid } from './nativeBridge';
 import { Sheet } from './ui/Sheet';
 import { t } from './i18n';
+import { ExtensionLinks } from './ExtensionLinks';
 
 export function SharedLinks({
   library,
@@ -88,6 +89,7 @@ export function SharedLinks({
             {t('common.save')}
           </button>
         </form>
+        <ExtensionLinks />
         {open && message && (
           <p className="transfer-status" role="status">
             {message}

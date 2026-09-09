@@ -42,11 +42,11 @@ test.describe('extension installation page without JavaScript', () => {
     ).toBeVisible();
     await expect(page.getByRole('link', { name: 'Download Chromium ZIP' })).toHaveAttribute(
       'href',
-      'https://github.com/fishese/postkeeper/releases/download/extension-v0.1.2/postkeeper-chromium-0.1.2.zip',
+      'https://github.com/fishese/postkeeper/releases/download/extension-v0.1.3/postkeeper-chromium-0.1.3.zip',
     );
     await expect(page.getByRole('link', { name: 'Download Firefox ZIP' })).toHaveAttribute(
       'href',
-      'https://github.com/fishese/postkeeper/releases/download/extension-v0.1.2/postkeeper-firefox-0.1.2.zip',
+      'https://github.com/fishese/postkeeper/releases/download/extension-v0.1.3/postkeeper-firefox-0.1.3.zip',
     );
     await expect(page.getByText('cannot send directly into the APK')).toBeVisible();
     await page.setViewportSize({ width: 320, height: 800 });

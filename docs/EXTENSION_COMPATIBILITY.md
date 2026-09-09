@@ -4,18 +4,24 @@ Last updated: 2026-09-05
 
 Every required Milestone 3 runtime row has a recorded end-to-end pass. Package validation alone is not treated as runtime evidence.
 
+## 2026-09-09 follow-up release candidate
+
+When a mobile browser opens the popup as a separate tab or `tabs.query({active:true,currentWindow:true})` fails, an explicit page picker now selects the original HTTP(S) tab. Save requests the chosen page host and configured PWA host synchronously; no broad persistent content script or website button is introduced. Desktop active-tab behavior and saved PWA destinations are preserved. Live responsive/lazy image sources survive extraction, and downloads prioritize reading-copy images. A semantic fallback recovers substantial article text when Readability chooses only a short teaser.
+
+Packaged Chromium runtime: **3 passed**, including public recapture, authenticated capture and a popup opened as its own active tab → explicit source selection → durable PWA import/queue acknowledgement. The suite now owns ports **4280/4281** to avoid collisions with the PWA test server. Unit coverage also injects the exact missing-window failure and checks synchronous scoped permissions. These checks reproduce the failure mode; they do not claim a new physical Android browser pass. No phone was used. The prepared extension version is **0.1.3**.
+
 ## Installation and distribution
 
-Current preview: **0.1.2**, source `a837a4c13dd0d66499bfa73f4c1edc1a59c6abaa`, [GitHub release](https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.2). Fixes popup failure reporting, PWA path-boundary validation, and repeated bridge injection. Packaged Chromium public/recapture/authenticated handoff tests pass; Firefox **155.0** public/authenticated runtime passes. Firefox lint: 0 errors, 0 notices, 2 existing Readability warnings. No Android runtime rerun occurred in this patch; historical device evidence below remains separate.
+Prepared preview: **0.1.3**, [GitHub release](https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.3). It adds standalone-popup source selection, responsive/lazy image preservation, semantic fallback extraction and the shared app installation links. Packaged Chromium public/recapture/authenticated/standalone-popup handoff tests pass; Firefox **155.0** public/authenticated runtime passes. Firefox lint: 0 errors, 0 notices, 2 existing Readability warnings. Historical Android runtime evidence below remains separate.
 
 | Download                        | Bytes   | SHA-256                                                            |
 | ------------------------------- | ------- | ------------------------------------------------------------------ |
-| `postkeeper-chromium-0.1.2.zip` | 114,474 | `4bfa5913107450320b51f3d2d2f395cc3885e8fe3df1c4397421732657e97a82` |
-| `postkeeper-firefox-0.1.2.zip`  | 114,574 | `9e6eb72e9790ea64188f9bef67e23ed345f944ca996580522e526deb420589d0` |
+| `postkeeper-chromium-0.1.3.zip` | 116,960 | `49da2f75630aaacd8da635d4900ee3ddbb075752e0b11d48b4c38c07303d8325` |
+| `postkeeper-firefox-0.1.3.zip`  | 117,060 | `6267497a986d8a3af76a0cf0bfdf501ca25365c68808bb3e8fb4521230a79273` |
 
 The production default, saved-destination preservation, temporary unsigned Firefox installation, and separate APK storage boundaries introduced in 0.1.1 continue to apply. Previous 0.1.1 artifacts and evidence below are retained for reproducibility.
 
-The public [extension installation guide](https://keep.fishese.cc/extensions.html), linked from Settings → About and extension connection settings, describes the preview downloads. Extension **0.1.1** defaults to `https://keep.fishese.cc/`; saved custom destinations remain unchanged. Both generated targets use the same default and continue to request only the configured PWA host permission from the user's Save gesture.
+The public [extension installation guide](https://keep.fishese.cc/extensions.html), linked from Add link, Settings → About and extension connection settings, describes the preview downloads. Extension **0.1.3** defaults to `https://keep.fishese.cc/`; saved custom destinations remain unchanged. Both generated targets use the same default and continue to request only the configured PWA host permission from the user's Save gesture.
 
 Build and package with:
 
@@ -25,7 +31,7 @@ npm run package:chromium --workspace=@postkeeper/extension
 npm run package:firefox --workspace=@postkeeper/extension
 ```
 
-Outputs are `apps/extension/build/chromium/postkeeper-0.1.1.zip` and `apps/extension/build/firefox/postkeeper-0.1.1.zip`. The versioned GitHub preview release is `extension-v0.1.1`; published assets use the names `postkeeper-chromium-0.1.1.zip` and `postkeeper-firefox-0.1.1.zip` plus `SHA256SUMS.txt`. Chromium desktop uses an extracted folder and Developer mode → Load unpacked. The Firefox ZIP is unsigned and supports only temporary desktop installation through `about:debugging`; it disappears on restart. Mozilla signing/store publication and a supported public Android extension installer are not part of this follow-up. Historical Android runtime compatibility does not imply that a public phone installer has been published.
+Outputs are `apps/extension/build/chromium/postkeeper-0.1.3.zip` and `apps/extension/build/firefox/postkeeper-0.1.3.zip`. The versioned GitHub preview release is `extension-v0.1.3`; published assets use the names `postkeeper-chromium-0.1.3.zip` and `postkeeper-firefox-0.1.3.zip` plus `SHA256SUMS.txt`. Chromium desktop uses an extracted folder and Developer mode → Load unpacked. The Firefox ZIP is unsigned and supports only temporary desktop installation through `about:debugging`; it disappears on restart. Mozilla signing/store publication and a supported public Android extension installer are not part of this follow-up. Historical Android runtime compatibility does not imply that a public phone installer has been published.
 
 Extensions transfer to the configured browser/PWA origin, not to the APK's separate WebView library. The APK uses native sharing and its isolated capture browser; portable backup export/import can move records between libraries. No extension-to-native bridge was added.
 

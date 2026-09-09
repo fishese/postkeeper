@@ -10,6 +10,28 @@ function dbName(label: string): string {
 }
 
 describe('library sync bridge', () => {
+  it.each([false, true])(
+    'restores an article tombstone deleted after prior sync=%s',
+    async (priorSync) => {
+      const source = await openLibrary({ name: dbName('delete-source') });
+      const target = await openLibrary({ name: dbName('delete-target') });
+      try {
+        const remote = new MemorySyncObjectStore();
+        const keys = await createLibraryKeyMaterial();
+        const article = await source.importTrustedFixture(PUBLIC_FIXTURE);
+        if (priorSync) await synchronizeLibrary(source, remote, keys);
+        await source.updateArticle(article.id, { isDeleted: true });
+        await synchronizeLibrary(source, remote, keys);
+        await restoreLibraryFromRemote(target, remote, keys.recoveryKey);
+        expect(await target.listArticles('all')).toEqual([]);
+        expect(await target.search('marmot')).toEqual([]);
+        expect((await target.getReader(article.id)).article.isDeleted).toBe(true);
+      } finally {
+        source.close();
+        target.close();
+      }
+    },
+  );
   it('preserves an edit made during network sync and converges on retry', async () => {
     const source = await openLibrary({ name: dbName('during-sync') });
     const article = await source.importTrustedFixture(PUBLIC_FIXTURE);

@@ -55,7 +55,7 @@ public class CaptureActivity extends Activity {
     status = findViewById(R.id.capture_status);
     save = findViewById(R.id.capture_save);
     save.setEnabled(false);
-    save.setOnClickListener(v -> capture());
+    save.setOnClickListener(v -> capture(false));
     findViewById(R.id.capture_library).setOnClickListener(v -> finish());
     findViewById(R.id.capture_menu)
         .setOnClickListener(
@@ -66,11 +66,13 @@ public class CaptureActivity extends Activity {
                   .setEnabled(web.canGoBack() && !capturing);
               menu.getMenu().add(0, 2, 1, R.string.clear_this_site).setEnabled(!capturing);
               menu.getMenu().add(0, 3, 2, R.string.clear_all_browsing_data).setEnabled(!capturing);
+              menu.getMenu().add(0, 4, 3, R.string.save_full_page).setEnabled(!capturing && save.isEnabled());
               menu.setOnMenuItemClickListener(
                   item -> {
                     if (item.getItemId() == 1) {
                       if (!capturing && web.canGoBack()) web.goBack();
-                    } else confirmClear(item.getItemId() == 3);
+                    } else if (item.getItemId() == 4) capture(true);
+                    else confirmClear(item.getItemId() == 3);
                     return true;
                   });
               menu.show();
@@ -187,7 +189,7 @@ public class CaptureActivity extends Activity {
         item.getWebStorage(), getMainExecutor(), () -> clearNext(names, index + 1));
   }
 
-  private void capture() {
+  private void capture(boolean fullPage) {
     if (capturing) return;
     final String pageUrl = web.getUrl();
     if (!SafeUrls.captureAllowed(pageUrl, BuildConfig.DEBUG)) return;
@@ -197,7 +199,7 @@ public class CaptureActivity extends Activity {
     try {
       String script =
           new String(
-              readBounded(getAssets().open("capture.js"), 1_000_000), StandardCharsets.UTF_8);
+              readBounded(getAssets().open(fullPage ? "capture-full.js" : "capture.js"), 1_000_000), StandardCharsets.UTF_8);
       web.evaluateJavascript(
           script,
           result -> {
@@ -243,19 +245,13 @@ public class CaptureActivity extends Activity {
           break;
         }
         String url = urls.getString(i);
-        // Cross-origin images stay visibly partial rather than accessing unrelated site sessions.
-        if (!cookies.containsKey(url)) {
+        // Public CDN images need no site-session access. Never read other origins' cookies.
+        if (!SafeUrls.captureAllowed(url, BuildConfig.DEBUG)) {
           warnings.put("native-cross-origin-image");
           continue;
         }
         try {
-          HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-          connection.setInstanceFollowRedirects(false);
-          connection.setConnectTimeout(10000);
-          connection.setReadTimeout(10000);
-          connection.setRequestProperty("User-Agent", agent);
-          String cookie = cookies.get(url);
-          if (cookie != null) connection.setRequestProperty("Cookie", cookie);
+          HttpURLConnection connection = openImage(url, agent, cookies);
           try {
             if (connection.getResponseCode() != 200) throw new IOException();
             String type = connection.getContentType().split(";")[0].trim().toLowerCase(Locale.ROOT);
@@ -344,6 +340,35 @@ public class CaptureActivity extends Activity {
     capturing = false;
     save.setEnabled(true);
     status.setText(getString(R.string.native_capture_failed_or_exceeded_its_limit_your));
+  }
+
+  static HttpURLConnection openImage(String source, String agent, Map<String, String> cookies)
+      throws IOException {
+    String current = source;
+    for (int hop = 0; hop <= 5; hop++) {
+      if (!SafeUrls.captureAllowed(current, BuildConfig.DEBUG)) throw new IOException();
+      HttpURLConnection connection = (HttpURLConnection) new URL(current).openConnection();
+      connection.setInstanceFollowRedirects(false);
+      connection.setConnectTimeout(10000);
+      connection.setReadTimeout(10000);
+      connection.setRequestProperty("User-Agent", agent);
+      // Cookies were read for exact same-origin candidates on the UI thread only.
+      String cookie = cookies.get(current);
+      if (cookie != null) connection.setRequestProperty("Cookie", cookie);
+      try {
+        int code = connection.getResponseCode();
+        if (code != 301 && code != 302 && code != 303 && code != 307 && code != 308)
+          return connection;
+        String next = connection.getHeaderField("Location");
+        if (next == null) throw new IOException();
+        current = new URL(new URL(current), next).toString();
+      } catch (IOException e) {
+        connection.disconnect();
+        throw e;
+      }
+      connection.disconnect();
+    }
+    throw new IOException("Too many image redirects");
   }
 
   static byte[] readBounded(InputStream stream, int limit) throws IOException {

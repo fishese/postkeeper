@@ -264,6 +264,24 @@ export function LibraryApp() {
     await refresh(library, view, query);
   }
 
+  async function removeSelected(imagesOnly: boolean) {
+    if (!library || !selected) return;
+    const id = selected.id;
+    if (!window.confirm(t(imagesOnly ? 'library.imagesConfirm' : 'library.deleteConfirm'))) return;
+    try {
+      if (imagesOnly) await library.removeArticleImages(id);
+      else await library.updateArticle(id, { isDeleted: true });
+      if (!imagesOnly && selectedIdRef.current === id) {
+        selectedIdRef.current = null;
+        setSelectedId(null);
+        setReading(false);
+      }
+      await refresh(library, view, query);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
+    }
+  }
+
   function navigate(next: LibraryView) {
     setView(next);
     setQuery('');
@@ -563,6 +581,17 @@ export function LibraryApp() {
                       </label>
                     ))}
                   </fieldset>
+                  <div className="button-row">
+                    <button
+                      onClick={() => void removeSelected(true)}
+                      disabled={!reader.snapshot.assetManifest.length}
+                    >
+                      {t('library.removeImages')}
+                    </button>
+                    <button onClick={() => void removeSelected(false)}>
+                      {t('library.deleteArticle')}
+                    </button>
+                  </div>
                 </details>
               </div>
               {(selected.captureStatus !== 'complete' || selected.warnings.length > 0) &&

@@ -1,5 +1,15 @@
 /** Stable message IDs. Keep complete sentences and named placeholders together. */
 export const en = {
+  'extension.chromium': 'Chromium extension ZIP',
+  'extension.firefox': 'Firefox extension ZIP (unsigned)',
+  'extension.hint':
+    'Read the installation steps first. Extensions save to the browser/PWA library; the Android app has a separate library.',
+  'library.deleteArticle': 'Delete article',
+  'library.deleteConfirm':
+    'Delete this article from your library? This deletion will sync when you next synchronize. Historical snapshots and existing backups are retained.',
+  'library.removeImages': 'Remove images from reading copy',
+  'library.imagesConfirm':
+    'Keep the article text without images? This creates a text-only reading copy. Older snapshots, sync history and backups retain their images; this does not free their storage.',
   'app.name': 'PostKeeper',
   'about.browserExtension': 'Browser extension setup',
   'about.browserExtensionHint': 'Installation guide and downloads.',

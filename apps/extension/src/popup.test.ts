@@ -83,3 +83,38 @@ test('shows a missing background response as a retryable capture failure', async
   );
   expect(button.disabled).toBe(false);
 });
+
+test('mobile window failure offers an explicit source picker and requests only chosen hosts', async () => {
+  const request = vi.fn().mockResolvedValue(true);
+  const sendMessage = vi.fn().mockResolvedValue({ ok: true });
+  vi.stubGlobal('browser', {
+    storage: { local: { get: vi.fn().mockResolvedValue({}) } },
+    tabs: {
+      query: vi
+        .fn()
+        .mockRejectedValueOnce(new Error('could not find an active window'))
+        .mockResolvedValue([
+          { id: 4, url: 'chrome-extension://test/popup.html' },
+          { id: 7, url: 'https://example.com/article' },
+          { id: 8, url: 'https://other.test/' },
+        ]),
+    },
+    permissions: { request },
+    runtime: { sendMessage },
+  });
+  await import('./popup');
+  await vi.waitFor(() => expect(document.querySelector('select')).not.toBeNull());
+  const select = document.querySelector('select')!;
+  const button = document.querySelector<HTMLButtonElement>('#save')!;
+  expect(button.disabled).toBe(true);
+  expect(select.options).toHaveLength(3);
+  select.value = '7';
+  select.dispatchEvent(new Event('change'));
+  button.click();
+  expect(request).toHaveBeenCalledWith({
+    origins: ['https://keep.fishese.cc/*', 'https://example.com/*'],
+  });
+  await vi.waitFor(() =>
+    expect(sendMessage).toHaveBeenCalledWith({ type: 'postkeeper:save-page', tabId: 7 }),
+  );
+});

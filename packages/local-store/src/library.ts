@@ -22,6 +22,7 @@ import {
   CAPTURE_EXTRACTOR_VERSION,
   CAPTURE_SANITIZER_VERSION,
   processCapturePackage,
+  sanitizeStoredReaderHtml,
 } from '@postkeeper/capture-processing';
 import {
   backupCanonical,
@@ -881,7 +882,7 @@ export class Library {
 
   async updateArticle(
     id: ArticleId,
-    patch: Partial<Pick<Article, 'isRead' | 'isFavorite' | 'isArchived'>>,
+    patch: Partial<Pick<Article, 'isRead' | 'isFavorite' | 'isArchived' | 'isDeleted'>>,
   ): Promise<Article> {
     const transaction = this.database.transaction('articles', 'readwrite');
     const store = transaction.objectStore('articles');
@@ -895,6 +896,42 @@ export class Library {
     await transactionDone(transaction);
     await this.refreshSearchDoc(id);
     return updated;
+  }
+
+  async removeArticleImages(id: ArticleId): Promise<void> {
+    const content = await this.getReader(id);
+    const document = new DOMParser().parseFromString(
+      sanitizeStoredReaderHtml(content.html),
+      'text/html',
+    );
+    for (const image of Array.from(document.querySelectorAll('img'))) image.remove();
+    const html = document.body.innerHTML;
+    const stored = await this.putBlob(new TextEncoder().encode(html), 'text/html;charset=utf-8');
+    const transaction = this.database.transaction(
+      ['articles', 'snapshots', 'searchDocs'],
+      'readwrite',
+    );
+    const articles = transaction.objectStore('articles');
+    const current = (await requestPromise(articles.get(id))) as Article | undefined;
+    if (!current || current.isDeleted || current.currentSnapshotId !== content.snapshot.id) {
+      await transactionDone(transaction);
+      throw new Error('This article changed. Reopen it before removing images.');
+    }
+    const now = new Date().toISOString();
+    const snapshot: Snapshot = {
+      ...content.snapshot,
+      rawDomBlobId: null,
+      id: snapshotId(createSortableId()),
+      capturedAt: now,
+      captureMethod: 'text-only-copy',
+      readerHtmlBlobId: stored.id,
+      contentHash: stored.id,
+      assetManifest: [],
+    };
+    transaction.objectStore('snapshots').put(snapshot);
+    articles.put({ ...current, currentSnapshotId: snapshot.id, updatedAt: now });
+    await transactionDone(transaction);
+    await this.refreshSearchDoc(id);
   }
 
   async search(query: string): Promise<ArticleListItem[]> {
@@ -1025,6 +1062,13 @@ export class Library {
     for (const [id, entity] of Object.entries(current.articles)) {
       const old = previous.articles[id];
       if (entity.deleted) {
+        // A locally created-and-deleted article still needs a valid record when
+        // its tombstone and retained snapshots reach a clean client.
+        if (!old) {
+          for (const [field, value] of Object.entries(entity.fields)) {
+            emit({ kind: 'entity.field.set', entityType: 'article', entityId: id, field, value });
+          }
+        }
         if (!old?.deleted) emit({ kind: 'entity.delete', entityType: 'article', entityId: id });
         continue;
       }

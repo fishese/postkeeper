@@ -1,18 +1,9 @@
 import { t } from './i18n';
+import { ExtensionLinks } from './ExtensionLinks';
 export function About() {
   return (
     <footer>
-      <p>
-        <a
-          href={`${import.meta.env.BASE_URL}extensions.html`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {t('about.browserExtension')}
-        </a>
-        <br />
-        {t('about.browserExtensionHint')}
-      </p>
+      <ExtensionLinks />
       <p>
         <a
           className="android-download"

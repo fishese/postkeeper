@@ -27,6 +27,7 @@ export default tseslint.config(
     files: [
       'scripts/test-milestone5-emulator.mjs',
       'scripts/test-milestone6-emulator.mjs',
+      'scripts/test-capture-followup-emulator.mjs',
       'apps/web/public/share-target.js',
     ],
     languageOptions: { globals: { ...globals.browser, ...globals.node } },

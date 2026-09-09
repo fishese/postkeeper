@@ -377,6 +377,8 @@ Provide local diagnostics that users can inspect and export deliberately:
 
 ## 14. External references
 
+The explicitly requested 2026-09-09 follow-up is specified by D-027. Native image fetching accepts public cross-origin candidates and bounded validated redirects without reading other-origin cookies; exact same-origin candidate cookies remain scoped to that capture profile. Extension source selection falls back to an explicit tab picker when there is no current page/window. Semantic/full-page extraction remains subject to receiver sanitization. Article deletion uses retained tombstones; image removal creates a new immutable text-only snapshot while preserving historical/shared blobs and backup/sync compatibility. No M7 provider or storage-format change is introduced.
+
 The user-requested 0.6.1 presentation follow-up is specified by D-026 and [UI and localization](UI_AND_LOCALIZATION.md): shared CSS tokens, separate reader/print sheets, typed English catalogs, native XML/string resources, and a versioned GitHub APK link in About. This changes presentation only; capture, storage, encryption and isolation boundaries above remain in force.
 
 - Readeck describes browser-assisted full-page submission and the risks of storing paywall credentials: <https://github.com/readeck/readeck/blob/main/README.md>

@@ -4,6 +4,8 @@ The user-requested 0.6.1 redesign is a follow-up to M6. It does not start M7 or 
 
 ## Screen organization
 
+Local 2026-09-09 follow-up: Add link and About both expose the installation guide and direct published Chromium/unsigned Firefox ZIP links. Article details includes confirmed article deletion and image removal from the current reading copy; confirmation text explains that historical content remains. The native browser overflow menu adds a full-page capture fallback for missing article text. New web labels remain in the typed English catalog and the native label in Android string resources.
+
 - Library views and search lead the screen. Phones use a bottom navigation bar; wider screens use a sidebar. Below 900 px, opening an article switches to the reader with an explicit Back to library action.
 - Add link opens a focused sheet. Incoming native/PWA/extension shares continue to be received while the sheet is closed.
 - Settings contains encrypted sync, backup/diagnostics, storage/search maintenance, About, and deliberately separated developer fixtures. Panels stay mounted when closed, preserving in-memory sync state and staged imports.
