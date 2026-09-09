@@ -1,10 +1,10 @@
 # Extension compatibility matrix
 
-Last updated: 2026-09-05
+Last updated: 2026-09-09
 
 Every required Milestone 3 runtime row has a recorded end-to-end pass. Package validation alone is not treated as runtime evidence.
 
-## 2026-09-09 follow-up release candidate
+## 2026-09-09 published follow-up
 
 When a mobile browser opens the popup as a separate tab or `tabs.query({active:true,currentWindow:true})` fails, an explicit page picker now selects the original HTTP(S) tab. Save requests the chosen page host and configured PWA host synchronously; no broad persistent content script or website button is introduced. Desktop active-tab behavior and saved PWA destinations are preserved. Live responsive/lazy image sources survive extraction, and downloads prioritize reading-copy images. A semantic fallback recovers substantial article text when Readability chooses only a short teaser.
 
@@ -12,7 +12,7 @@ Packaged Chromium runtime: **3 passed**, including public recapture, authenticat
 
 ## Installation and distribution
 
-Prepared preview: **0.1.3**, [GitHub release](https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.3). It adds standalone-popup source selection, responsive/lazy image preservation, semantic fallback extraction and the shared app installation links. Packaged Chromium public/recapture/authenticated/standalone-popup handoff tests pass; Firefox **155.0** public/authenticated runtime passes. Firefox lint: 0 errors, 0 notices, 2 existing Readability warnings. Historical Android runtime evidence below remains separate.
+Current preview: **0.1.3**, source `157c81968b36215472843bcaf42fedfd3233f15b`, [GitHub release](https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.3). It adds standalone-popup source selection, responsive/lazy image preservation, semantic fallback extraction and the shared app installation links. Packaged Chromium public/recapture/authenticated/standalone-popup handoff tests pass; Firefox **155.0** public/authenticated runtime passes. Firefox lint: 0 errors, 0 notices, 2 existing Readability warnings. Fresh anonymous downloads through the live guide matched the recorded sizes and hashes. Historical Android runtime evidence below remains separate.
 
 | Download                        | Bytes   | SHA-256                                                            |
 | ------------------------------- | ------- | ------------------------------------------------------------------ |

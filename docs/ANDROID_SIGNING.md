@@ -4,7 +4,15 @@ The manual `Build signed Android APK` workflow builds the release package `cc.fi
 
 The workflow and M6 sources are published on `main` (`c32aae9`, with SDK path fix `f5d139c`). All four repository secret names were confirmed on 2026-09-03 after the user saved them. Saving secrets alone does not start a build. The agent did not request or display their values; signing uses the key only inside the GitHub signing job.
 
-## Current public download: 0.6.3
+## Current public download: 0.6.4
+
+[PostKeeper 0.6.4 preview](https://github.com/fishese/postkeeper/releases/tag/v0.6.4) hosts the signed [APK](https://github.com/fishese/postkeeper/releases/download/v0.6.4/postkeeper-release.apk) and checksum. It adds the capture/article follow-up and bundles the 0.1.3 extension guide. Source `157c81968b36215472843bcaf42fedfd3233f15b`, Android versionCode **10**.
+
+[Run 34343497378](https://github.com/fishese/postkeeper/actions/runs/34343497378) passed full validation (**124 tests**), Android JVM/lint/release gates and separate-runner signing. Artifact **postkeeper-signed-apk-7**, ID **10100795895**. APK **3,007,175 bytes**, SHA-256 `1243552b57e7fa3eab8071a3723cda8a5a88ae3f3b6d926b6c799b37490dd06d`. Independent verification confirmed `cc.fishese.postkeeper`, version 0.6.4/code 10, non-debuggable, minimum API 28/target 36, v3 signature, unchanged certificate and bundled 0.1.3/0.6.4 guide links. Pages run **34343484113** passed; anonymous requests through the live app received matching APK bytes/hash.
+
+Local verification copy: `test-results/release-0.6.4/signed-apk/postkeeper-release.apk` (ignored release staging). No signing values were read/displayed or changed; no device installation occurred. Native PDF/Drive and other acceptance limitations remain documented in STATUS.md.
+
+## Previous public download: 0.6.3
 
 [PostKeeper 0.6.3 preview](https://github.com/fishese/postkeeper/releases/tag/v0.6.3) hosts the signed [APK](https://github.com/fishese/postkeeper/releases/download/v0.6.3/postkeeper-release.apk) and checksum. It fixes recapture display/concurrent library edits and bundles the 0.1.2 extension guide. Source `a837a4c13dd0d66499bfa73f4c1edc1a59c6abaa`, Android versionCode **9**.
 
