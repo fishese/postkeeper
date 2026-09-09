@@ -14,7 +14,7 @@ export function ExtensionLinks() {
       </p>
       <p>
         <a
-          href="https://github.com/fishese/postkeeper/releases/download/extension-v0.1.3/postkeeper-chromium-0.1.3.zip"
+          href="https://github.com/fishese/postkeeper/releases/download/extension-v0.1.4/postkeeper-chromium-0.1.4.zip"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -22,7 +22,7 @@ export function ExtensionLinks() {
         </a>
         {' · '}
         <a
-          href="https://github.com/fishese/postkeeper/releases/download/extension-v0.1.3/postkeeper-firefox-0.1.3.zip"
+          href="https://github.com/fishese/postkeeper/releases/download/extension-v0.1.4/postkeeper-firefox-0.1.4.zip"
           target="_blank"
           rel="noopener noreferrer"
         >

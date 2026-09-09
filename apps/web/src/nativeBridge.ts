@@ -28,17 +28,22 @@ export function nativeRequest<T = unknown>(action: string, data: unknown = {}): 
   };
   return new Promise<T>((resolve, reject) => {
     const id = ++sequence;
-    const timer = setTimeout(() => {
-      callbacks.delete(id);
-      reject(new Error('Android action timed out. Retry when ready.'));
-    }, 300_000);
+    // Capture opens a separate browser where the user may need time to sign in or navigate.
+    // Closing that activity returns a result, while killing the app also destroys this page/map.
+    const timer =
+      action === 'capture'
+        ? undefined
+        : setTimeout(() => {
+            callbacks.delete(id);
+            reject(new Error('Android action timed out. Retry when ready.'));
+          }, 300_000);
     callbacks.set(id, {
       resolve: (value) => {
-        clearTimeout(timer);
+        if (timer !== undefined) clearTimeout(timer);
         resolve(value as T);
       },
       reject: (error) => {
-        clearTimeout(timer);
+        if (timer !== undefined) clearTimeout(timer);
         reject(error);
       },
     });

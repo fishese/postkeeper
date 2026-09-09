@@ -15,6 +15,9 @@ import java.util.concurrent.*;
 import org.json.*;
 
 public class CaptureActivity extends Activity {
+  private static final int MAX_IMAGE_CANDIDATES = 24;
+  private static final int MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+  private static final long IMAGE_CAPTURE_DEADLINE_MS = 90_000;
   private WebView web;
   private TextView location, status;
   private Button save;
@@ -239,11 +242,21 @@ public class CaptureActivity extends Activity {
           warnings = draft.getJSONArray("warnings"),
           urls = draft.getJSONArray("assetUrls");
       int total = 0;
-      for (int i = 0; i < Math.min(urls.length(), 128); i++) {
-        if (total >= 10 * 1024 * 1024) {
+      int candidateCount = Math.min(urls.length(), MAX_IMAGE_CANDIDATES);
+      long deadline = android.os.SystemClock.elapsedRealtime() + IMAGE_CAPTURE_DEADLINE_MS;
+      for (int i = 0; i < candidateCount; i++) {
+        if (total >= MAX_IMAGE_BYTES
+            || android.os.SystemClock.elapsedRealtime() >= deadline) {
           warnings.put("native-image-unavailable");
           break;
         }
+        final int progress = i + 1;
+        runOnUiThread(
+            () -> {
+              if (capturing)
+                status.setText(
+                    getString(R.string.native_saving_image_progress, progress, candidateCount));
+            });
         String url = urls.getString(i);
         // Public CDN images need no site-session access. Never read other origins' cookies.
         if (!SafeUrls.captureAllowed(url, BuildConfig.DEBUG)) {
@@ -268,11 +281,10 @@ public class CaptureActivity extends Activity {
               bytes =
                   readBounded(
                       connection.getInputStream(),
-                      Math.min(5 * 1024 * 1024, 10 * 1024 * 1024 - total));
+                      MAX_IMAGE_BYTES - total);
             } catch (IOException limitOrReadFailure) {
-              // Do not keep downloading after a failed/oversized body consumed the image budget.
               warnings.put("native-image-unavailable");
-              break;
+              continue;
             }
             total += bytes.length;
             byte[] digest = MessageDigest.getInstance("SHA-256").digest(bytes);
@@ -349,8 +361,8 @@ public class CaptureActivity extends Activity {
       if (!SafeUrls.captureAllowed(current, BuildConfig.DEBUG)) throw new IOException();
       HttpURLConnection connection = (HttpURLConnection) new URL(current).openConnection();
       connection.setInstanceFollowRedirects(false);
-      connection.setConnectTimeout(10000);
-      connection.setReadTimeout(10000);
+      connection.setConnectTimeout(5000);
+      connection.setReadTimeout(5000);
       connection.setRequestProperty("User-Agent", agent);
       // Cookies were read for exact same-origin candidates on the UI thread only.
       String cookie = cookies.get(current);

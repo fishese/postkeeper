@@ -39,8 +39,8 @@ test('add sheet exposes extension downloads and instructions', async ({ page }) 
   );
   await expect(
     sheet.getByRole('link', { name: 'Chromium extension ZIP', exact: true }),
-  ).toHaveAttribute('href', /postkeeper-chromium-0\.1\.3\.zip$/);
+  ).toHaveAttribute('href', /postkeeper-chromium-0\.1\.4\.zip$/);
   await expect(
     sheet.getByRole('link', { name: 'Firefox extension ZIP (unsigned)', exact: true }),
-  ).toHaveAttribute('href', /postkeeper-firefox-0\.1\.3\.zip$/);
+  ).toHaveAttribute('href', /postkeeper-firefox-0\.1\.4\.zip$/);
 });

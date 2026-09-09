@@ -6,6 +6,8 @@ Every required Milestone 3 runtime row has a recorded end-to-end pass. Package v
 
 ## 2026-09-09 published follow-up
 
+Hotfix **0.1.4** removes the remaining mobile active-window dependency after the user chooses a source page: background capture now retrieves that exact tab ID directly. It also adds the specific-post/social-preview media fallback shared with native capture. The packaged Chromium standalone-tab flow passes. Publication evidence is pending.
+
 When a mobile browser opens the popup as a separate tab or `tabs.query({active:true,currentWindow:true})` fails, an explicit page picker now selects the original HTTP(S) tab. Save requests the chosen page host and configured PWA host synchronously; no broad persistent content script or website button is introduced. Desktop active-tab behavior and saved PWA destinations are preserved. Live responsive/lazy image sources survive extraction, and downloads prioritize reading-copy images. A semantic fallback recovers substantial article text when Readability chooses only a short teaser.
 
 Packaged Chromium runtime: **3 passed**, including public recapture, authenticated capture and a popup opened as its own active tab → explicit source selection → durable PWA import/queue acknowledgement. The suite now owns ports **4280/4281** to avoid collisions with the PWA test server. Unit coverage also injects the exact missing-window failure and checks synchronous scoped permissions. These checks reproduce the failure mode; they do not claim a new physical Android browser pass. No phone was used. The prepared extension version is **0.1.3**.

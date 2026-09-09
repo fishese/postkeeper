@@ -65,6 +65,7 @@ const servers = [];
 const receivedCookies = [];
 const suffix = Date.now();
 const localUrl = `http://127.0.0.1:4188/article-${suffix}`;
+const socialUrl = `http://127.0.0.1:4188/social-${suffix}`;
 try {
   if (!realUrl || realUrl.startsWith('--')) {
     for (const port of [4188, 4189]) {
@@ -79,6 +80,13 @@ try {
           res.writeHead(200, { 'Content-Type': 'image/svg+xml' });
           res.end(
             '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90"><rect width="160" height="90" fill="seagreen"/></svg>',
+          );
+          return;
+        }
+        if (req.url.startsWith('/social-')) {
+          res.writeHead(200, { 'Content-Type': 'text/html' });
+          res.end(
+            `<html><head><title>Social image ${suffix}</title><meta property="og:image" content="http://127.0.0.1:4189/image.svg"></head><body><article><h1>Social image ${suffix}</h1><p>${'The article text is readable, while its primary media exists only in social preview metadata. '.repeat(8)}</p></article></body></html>`,
           );
           return;
         }
@@ -227,6 +235,47 @@ try {
       main.frameLocator('[title="Safe reader"]').getByText('Final follow-up sentence.'),
     ).toBeVisible();
     console.log('PASS: native full-page fallback reaches the sanitized saved reader.');
+
+    adb(
+      'shell',
+      'am',
+      'start',
+      '-n',
+      `${pkg}/cc.fishese.postkeeper.MainActivity`,
+      '-a',
+      'android.intent.action.SEND',
+      '-t',
+      'text/plain',
+      '--es',
+      'android.intent.extra.TEXT',
+      socialUrl,
+    );
+    await attach();
+    await expect(
+      main.getByRole('button', { name: 'Open capture browser', exact: true }),
+    ).toBeVisible();
+    await main.getByRole('button', { name: 'Open capture browser', exact: true }).click();
+    await expect
+      .poll(async () =>
+        (await (await fetch(endpoint + '/json/list')).json()).some((t) => t.url === socialUrl),
+      )
+      .toBe(true);
+    await attach();
+    await tap('Save page');
+    await expect(
+      main.getByRole('heading', { name: `Social image ${suffix}`, exact: true }),
+    ).toBeVisible({ timeout: 30000 });
+    await expect
+      .poll(() =>
+        main
+          .frameLocator('[title="Safe reader"]')
+          .locator('img')
+          .evaluateAll(
+            (imgs) => imgs.length === 1 && imgs.every((i) => i.complete && i.naturalWidth > 0),
+          ),
+      )
+      .toBe(true);
+    console.log('PASS: social-preview primary image is saved when reader text omits media.');
   }
 } finally {
   await browser?.close();

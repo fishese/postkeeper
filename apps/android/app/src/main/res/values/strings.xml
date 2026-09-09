@@ -38,5 +38,6 @@
     <string name="native_clear">Clear</string>
     <string name="native_browsing_data_cleared_your_saved_library_is">Browsing data cleared. Your saved library is unchanged.</string>
     <string name="native_saving_this_page_and_available_images">Saving this page and available images…</string>
+    <string name="native_saving_image_progress">Saving image %1$d of %2$d…</string>
     <string name="native_capture_failed_or_exceeded_its_limit_your">Capture failed or exceeded its limit. Your pending link remains. Retry when the page finishes loading.</string>
 </resources>

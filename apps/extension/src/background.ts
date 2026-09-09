@@ -176,7 +176,7 @@ async function savePage(
   try {
     const tab =
       typeof tabId === 'number'
-        ? (await api.tabs.query({})).find((candidate) => candidate.id === tabId)
+        ? await api.tabs.get(tabId)
         : (await api.tabs.query({ active: true, currentWindow: true }))[0];
     if (!tab?.id || !tab.url || !/^https?:/.test(tab.url)) {
       throw new Error('Open an HTTP(S) page before saving.');

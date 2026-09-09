@@ -68,6 +68,21 @@ function collectAssetUrls(document: Document, baseUrl: string): string[] {
   return [...urls].slice(0, CAPTURE_LIMITS.maxAssets);
 }
 
+function semanticCandidateScore(element: Element): number {
+  const textLength = element.textContent?.trim().length ?? 0;
+  const imageCount = Math.min(element.querySelectorAll('img, picture').length, 5);
+  const isSpecific = element.matches(
+    'article, [itemprop="articleBody"], [data-testid="post-container"], shreddit-post',
+  );
+  const isBroad = element.matches('main, [role="main"]');
+  return (
+    Math.min(textLength, 20_000) +
+    imageCount * 800 +
+    (isSpecific ? 12_000 : 0) -
+    (isBroad ? 8_000 : 0)
+  );
+}
+
 export function captureRenderedPage(
   document: Document,
   pageUrl = document.location.href,
@@ -112,16 +127,21 @@ export function captureRenderedPage(
   const warnings: string[] = readable ? [] : ['producer-extraction-failed'];
   // Preserve substantial semantic article content when a short app-promotion wins Readability.
   const candidates = Array.from(
-    visible.querySelectorAll('article, main, [role="main"], [itemprop="articleBody"]'),
+    visible.querySelectorAll(
+      'article, [itemprop="articleBody"], [data-testid="post-container"], shreddit-post, main, [role="main"]',
+    ),
   );
   const candidate = candidates.sort(
-    (a, b) => (b.textContent?.trim().length ?? 0) - (a.textContent?.trim().length ?? 0),
+    (a, b) => semanticCandidateScore(b) - semanticCandidateScore(a),
   )[0];
   const length = readable?.textContent?.trim().length ?? 0;
+  const candidateLength = candidate?.textContent?.trim().length ?? 0;
+  const candidateHasMedia = !!candidate?.querySelector('img, picture');
   if (
     candidate &&
     length < 300 &&
-    (candidate.textContent?.trim().length ?? 0) > Math.max(300, length * 2)
+    (candidateLength > Math.max(300, length * 2) ||
+      (candidateHasMedia && candidateLength >= Math.max(40, Math.floor(length / 2))))
   ) {
     readerHtml = candidate.outerHTML;
     warnings.splice(0, warnings.length, 'producer-semantic-fallback');
@@ -131,6 +151,29 @@ export function captureRenderedPage(
   if (mode === 'page') {
     readerHtml = visible.body.innerHTML;
     warnings.splice(0, warnings.length, 'producer-full-page-copy');
+  }
+  const readerDocument = new DOMParser().parseFromString(readerHtml, 'text/html');
+  if (collectAssetUrls(readerDocument, pageUrl).length === 0) {
+    const socialImage = absoluteHttpUrl(
+      firstMeta(
+        document,
+        'meta[property="og:image"]',
+        'meta[property="og:image:url"]',
+        'meta[name="twitter:image"]',
+      ),
+      pageUrl,
+    );
+    if (socialImage) {
+      const figure = readerDocument.createElement('figure');
+      const image = readerDocument.createElement('img');
+      image.src = socialImage;
+      image.alt = '';
+      figure.append(image);
+      (readerDocument.querySelector('article, main, [role="main"]') ?? readerDocument.body).prepend(
+        figure,
+      );
+      readerHtml = readerDocument.body.innerHTML;
+    }
   }
   const originalUrl = new URL(pageUrl);
   originalUrl.username = '';

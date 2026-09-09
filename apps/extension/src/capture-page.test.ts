@@ -32,6 +32,25 @@ describe('extension page capture', () => {
     expect(draft.assetUrls).toContain('https://cdn.test/photo.webp');
   });
 
+  it('uses the page preview image when extracted article text omits the primary media', () => {
+    const doc = fixture(
+      '<head><meta property="og:image" content="https://preview.test/post.jpg"></head><body><article><h1>Photo story</h1><p>The readable caption remains available offline.</p></article></body>',
+    );
+    const draft = captureRenderedPage(doc, 'https://example.test/photo-story');
+    expect(draft.extractedReaderHtml).toContain('src="https://preview.test/post.jpg"');
+    expect(draft.assetUrls[0]).toBe('https://preview.test/post.jpg');
+  });
+
+  it('prefers a specific media post over a broad page container with an advertisement', () => {
+    const doc = fixture(
+      '<main><shreddit-post><h1>Cat post</h1><p>A short post caption with its photo.</p><img src="https://preview.test/cat.jpg"></shreddit-post><aside><p>Sponsored recommendation</p><img src="https://ads.test/ad.jpg"></aside></main><section><p>Continue reading in the app.</p></section>',
+    );
+    const draft = captureRenderedPage(doc, 'https://e.invalided.example/post');
+    expect(draft.extractedReaderHtml).toContain('Cat post');
+    expect(draft.assetUrls[0]).toBe('https://preview.test/cat.jpg');
+    expect(draft.assetUrls).not.toContain('https://ads.test/ad.jpg');
+  });
+
   it('full-page fallback retains loaded content while stripping dialogs and credentials', () => {
     const doc = fixture(
       '<main><p>The actual loaded article.</p></main><aside><p>Additional loaded paragraph.</p></aside><dialog open>Continue reading in the app</dialog><div hidden>Hidden teaser</div><input value="private-entry"><script>secret()</script>',
