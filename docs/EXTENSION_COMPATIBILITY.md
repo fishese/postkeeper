@@ -6,24 +6,24 @@ Every required Milestone 3 runtime row has a recorded end-to-end pass. Package v
 
 ## 2026-09-09 published follow-up
 
-Hotfix **0.1.4** removes the remaining mobile active-window dependency after the user chooses a source page: background capture now retrieves that exact tab ID directly. It also adds the specific-post/social-preview media fallback shared with native capture. The packaged Chromium standalone-tab flow passes. Publication evidence is pending.
+Hotfix **0.1.4** removes the remaining mobile active-window dependency after the user chooses a source page: background capture now retrieves that exact tab ID directly. It also adds the specific-post/social-preview media fallback shared with native capture. The packaged Chromium standalone-tab flow passes. Source `7bb7107864233307eb75e49c7045b5fa5360797a` is published at [extension-v0.1.4](https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.4); fresh anonymous downloads through the live guide matched the packaged files.
 
 When a mobile browser opens the popup as a separate tab or `tabs.query({active:true,currentWindow:true})` fails, an explicit page picker now selects the original HTTP(S) tab. Save requests the chosen page host and configured PWA host synchronously; no broad persistent content script or website button is introduced. Desktop active-tab behavior and saved PWA destinations are preserved. Live responsive/lazy image sources survive extraction, and downloads prioritize reading-copy images. A semantic fallback recovers substantial article text when Readability chooses only a short teaser.
 
-Packaged Chromium runtime: **3 passed**, including public recapture, authenticated capture and a popup opened as its own active tab → explicit source selection → durable PWA import/queue acknowledgement. The suite now owns ports **4280/4281** to avoid collisions with the PWA test server. Unit coverage also injects the exact missing-window failure and checks synchronous scoped permissions. These checks reproduce the failure mode; they do not claim a new physical Android browser pass. No phone was used. The prepared extension version is **0.1.3**.
+Packaged Chromium runtime: **3 passed**, including public recapture, authenticated capture and a popup opened as its own active tab → explicit source selection → durable PWA import/queue acknowledgement. The suite now owns ports **4280/4281** to avoid collisions with the PWA test server. Unit coverage also injects the exact missing-window failure and checks synchronous scoped permissions. Firefox **155.0** public/authenticated runtime, decoded images, secret filtering, fragment cleanup and acknowledgement pass. Firefox lint has 0 errors, 0 notices and 2 accepted Readability warnings. These checks reproduce the failure mode; they do not claim a new physical Android browser pass.
 
 ## Installation and distribution
 
-Current preview: **0.1.3**, source `157c81968b36215472843bcaf42fedfd3233f15b`, [GitHub release](https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.3). It adds standalone-popup source selection, responsive/lazy image preservation, semantic fallback extraction and the shared app installation links. Packaged Chromium public/recapture/authenticated/standalone-popup handoff tests pass; Firefox **155.0** public/authenticated runtime passes. Firefox lint: 0 errors, 0 notices, 2 existing Readability warnings. Fresh anonymous downloads through the live guide matched the recorded sizes and hashes. Historical Android runtime evidence below remains separate.
+Current preview: **0.1.4**, source `7bb7107864233307eb75e49c7045b5fa5360797a`, [GitHub release](https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.4). It adds direct chosen-tab lookup and the specific-post/social-preview media fallback to the 0.1.3 capture and installation work. Historical Android runtime evidence below remains separate.
 
 | Download                        | Bytes   | SHA-256                                                            |
 | ------------------------------- | ------- | ------------------------------------------------------------------ |
-| `postkeeper-chromium-0.1.3.zip` | 116,960 | `49da2f75630aaacd8da635d4900ee3ddbb075752e0b11d48b4c38c07303d8325` |
-| `postkeeper-firefox-0.1.3.zip`  | 117,060 | `6267497a986d8a3af76a0cf0bfdf501ca25365c68808bb3e8fb4521230a79273` |
+| `postkeeper-chromium-0.1.4.zip` | 117,902 | `120273e9959ad7755ea571aafd9b67582bae77dbade18184af547d25dc00658e` |
+| `postkeeper-firefox-0.1.4.zip`  | 118,001 | `145d95d5395f4f923f79964da9c837e22e925d0a9fa259ea0d277d703ab00ce9` |
 
 The production default, saved-destination preservation, temporary unsigned Firefox installation, and separate APK storage boundaries introduced in 0.1.1 continue to apply. Previous 0.1.1 artifacts and evidence below are retained for reproducibility.
 
-The public [extension installation guide](https://keep.fishese.cc/extensions.html), linked from Add link, Settings → About and extension connection settings, describes the preview downloads. Extension **0.1.3** defaults to `https://keep.fishese.cc/`; saved custom destinations remain unchanged. Both generated targets use the same default and continue to request only the configured PWA host permission from the user's Save gesture.
+The public [extension installation guide](https://keep.fishese.cc/extensions.html), linked from Add link, Settings → About and extension connection settings, describes the preview downloads. Extension **0.1.4** defaults to `https://keep.fishese.cc/`; saved custom destinations remain unchanged. Both generated targets use the same default and continue to request only the configured PWA host permission from the user's Save gesture.
 
 Build and package with:
 
@@ -33,7 +33,7 @@ npm run package:chromium --workspace=@postkeeper/extension
 npm run package:firefox --workspace=@postkeeper/extension
 ```
 
-Outputs are `apps/extension/build/chromium/postkeeper-0.1.3.zip` and `apps/extension/build/firefox/postkeeper-0.1.3.zip`. The versioned GitHub preview release is `extension-v0.1.3`; published assets use the names `postkeeper-chromium-0.1.3.zip` and `postkeeper-firefox-0.1.3.zip` plus `SHA256SUMS.txt`. Chromium desktop uses an extracted folder and Developer mode → Load unpacked. The Firefox ZIP is unsigned and supports only temporary desktop installation through `about:debugging`; it disappears on restart. Mozilla signing/store publication and a supported public Android extension installer are not part of this follow-up. Historical Android runtime compatibility does not imply that a public phone installer has been published.
+Outputs are `apps/extension/build/chromium/postkeeper-0.1.4.zip` and `apps/extension/build/firefox/postkeeper-0.1.4.zip`. The versioned GitHub preview release is `extension-v0.1.4`; published assets use the names `postkeeper-chromium-0.1.4.zip` and `postkeeper-firefox-0.1.4.zip` plus `SHA256SUMS.txt`. Chromium desktop uses an extracted folder and Developer mode → Load unpacked. The Firefox ZIP is unsigned and supports only temporary desktop installation through `about:debugging`; it disappears on restart. Mozilla signing/store publication and a supported public Android extension installer are not part of this follow-up. Historical Android runtime compatibility does not imply that a public phone installer has been published.
 
 Extensions transfer to the configured browser/PWA origin, not to the APK's separate WebView library. The APK uses native sharing and its isolated capture browser; portable backup export/import can move records between libraries. No extension-to-native bridge was added.
 

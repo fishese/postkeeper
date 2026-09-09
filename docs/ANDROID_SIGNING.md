@@ -4,7 +4,15 @@ The manual `Build signed Android APK` workflow builds the release package `cc.fi
 
 The workflow and M6 sources are published on `main` (`c32aae9`, with SDK path fix `f5d139c`). All four repository secret names were confirmed on 2026-09-03 after the user saved them. Saving secrets alone does not start a build. The agent did not request or display their values; signing uses the key only inside the GitHub signing job.
 
-## Current public download: 0.6.4
+## Current public download: 0.6.5
+
+[PostKeeper 0.6.5 preview](https://github.com/fishese/postkeeper/releases/tag/v0.6.5) hosts the signed [APK](https://github.com/fishese/postkeeper/releases/download/v0.6.5/postkeeper-release.apk) and checksum. It fixes long-running native capture, adds bounded image-download progress and improves primary social-image preservation. Source `7bb7107864233307eb75e49c7045b5fa5360797a`, Android versionCode **11**; the bundle links extension 0.1.4.
+
+[Run 34372219140](https://github.com/fishese/postkeeper/actions/runs/34372219140) passed full validation (**126 tests**), Android JVM/lint/release gates and separate-runner signing. Artifact **postkeeper-signed-apk-8**, ID **10112502633**. APK **3,007,175 bytes**, SHA-256 `843d5c4a4683102c4f875f45b3d7fed6c6af7cb5df1c08ef47ebbc36e2b14d44`. Independent verification confirmed `cc.fishese.postkeeper`, version 0.6.5/code 11, non-debuggable, minimum API 28/target 36, v3 signature and the unchanged release certificate. Pages run **34372182924** passed; anonymous requests through the live app received matching APK bytes/hash and found the 0.6.5/0.1.4 links.
+
+Local verification copy: `test-results/release-0.6.5/signed/postkeeper-release.apk` (ignored release staging). No signing values were read/displayed or changed; no phone installation occurred. Native PDF/Drive and other acceptance limitations remain documented in STATUS.md.
+
+## Previous public download: 0.6.4
 
 [PostKeeper 0.6.4 preview](https://github.com/fishese/postkeeper/releases/tag/v0.6.4) hosts the signed [APK](https://github.com/fishese/postkeeper/releases/download/v0.6.4/postkeeper-release.apk) and checksum. It adds the capture/article follow-up and bundles the 0.1.3 extension guide. Source `157c81968b36215472843bcaf42fedfd3233f15b`, Android versionCode **10**.
 
