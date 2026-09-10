@@ -1,5 +1,6 @@
 package cc.fishese.postkeeper;
 
+import android.annotation.SuppressLint;
 import android.app.*;
 import android.content.*;
 import android.os.*;
@@ -29,6 +30,10 @@ public class CaptureActivity extends Activity {
   @Override
   public void onCreate(Bundle state) {
     super.onCreate(state);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+      getOnBackInvokedDispatcher()
+          .registerOnBackInvokedCallback(
+              android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::handleBack);
     startingUrl = getIntent().getStringExtra("url");
     if (!SafeUrls.captureAllowed(startingUrl, BuildConfig.DEBUG)
         || !WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)
@@ -342,7 +347,10 @@ public class CaptureActivity extends Activity {
             finish();
           });
     } catch (Exception ignored) {
-      runOnUiThread(this::failed);
+      runOnUiThread(
+          () -> {
+            if (!isFinishing()) failed();
+          });
     } finally {
       cookies.clear();
     }
@@ -394,6 +402,20 @@ public class CaptureActivity extends Activity {
       }
       return out.toByteArray();
     }
+  }
+
+  private void handleBack() {
+    capturing = false;
+    if (web != null) web.stopLoading();
+    setResult(RESULT_CANCELED);
+    finish();
+  }
+
+  @Override
+  @SuppressLint("GestureBackNavigation")
+  @SuppressWarnings("deprecation")
+  public void onBackPressed() {
+    handleBack();
   }
 
   @Override

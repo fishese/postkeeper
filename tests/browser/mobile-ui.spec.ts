@@ -29,6 +29,23 @@ for (const width of [320, 390]) {
     await expect(page.getByRole('button', { name: 'Back to library' })).toBeVisible();
     await expect(page.getByRole('searchbox')).not.toBeVisible();
     await expect(page.getByTestId('reader-frame')).toHaveAttribute('sandbox', '');
+    expect(
+      await page.evaluate(() => {
+        const event = new Event('postkeeper-native-back', { cancelable: true });
+        window.dispatchEvent(event);
+        return event.defaultPrevented;
+      }),
+    ).toBe(true);
+    await expect(page.getByRole('searchbox')).toBeVisible();
+    await expect(page.getByRole('button', { name: /A public fixture article/ })).toBeFocused();
+    expect(
+      await page.evaluate(() => {
+        const event = new Event('postkeeper-native-back', { cancelable: true });
+        window.dispatchEvent(event);
+        return event.defaultPrevented;
+      }),
+    ).toBe(false);
+    await page.getByRole('button', { name: /A public fixture article/ }).click();
     await page.getByRole('button', { name: 'Favorite', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Unfavorite', exact: true })).toBeVisible();
     await articleDetails(page);
@@ -53,7 +70,7 @@ for (const width of [320, 390]) {
     await openSettings(page, 'About PostKeeper');
     await expect(page.getByRole('link', { name: 'Download for Android' })).toHaveAttribute(
       'href',
-      'https://github.com/fishese/postkeeper/releases/download/v0.6.5/postkeeper-release.apk',
+      'https://github.com/fishese/postkeeper/releases/download/v0.6.6/postkeeper-release.apk',
     );
     await closeSettings(page);
 

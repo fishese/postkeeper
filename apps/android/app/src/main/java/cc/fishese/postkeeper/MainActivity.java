@@ -1,5 +1,6 @@
 package cc.fishese.postkeeper;
 
+import android.annotation.SuppressLint;
 import android.app.*;
 import android.content.*;
 import android.net.Uri;
@@ -24,10 +25,15 @@ public class MainActivity extends Activity {
   private int exportRequestId;
   private ByteArrayOutputStream exportBytes;
   private WebView printView;
+  private boolean backDispatchPending;
 
   @Override
   public void onCreate(Bundle state) {
     super.onCreate(state);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+      getOnBackInvokedDispatcher()
+          .registerOnBackInvokedCallback(
+              android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::handleBack);
     if (!WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)
         || !WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)
         || !WebViewFeature.isFeatureSupported(WebViewFeature.DELETE_BROWSING_DATA)) {
@@ -236,6 +242,30 @@ public class MainActivity extends Activity {
     acceptShare(intent);
     if (web != null)
       web.evaluateJavascript("window.dispatchEvent(new Event('postkeeper-native-share'))", null);
+  }
+
+  private void handleBack() {
+    if (backDispatchPending) return;
+    String url = web == null ? null : web.getUrl();
+    if (url == null || !trustedDocument(Uri.parse(url))) {
+      finish();
+      return;
+    }
+    backDispatchPending = true;
+    web.evaluateJavascript(
+        "(() => { const event = new Event('postkeeper-native-back', { cancelable: true });"
+            + " window.dispatchEvent(event); return event.defaultPrevented; })()",
+        handled -> {
+          backDispatchPending = false;
+          if (!"true".equals(handled)) finish();
+        });
+  }
+
+  @Override
+  @SuppressLint("GestureBackNavigation")
+  @SuppressWarnings("deprecation")
+  public void onBackPressed() {
+    handleBack();
   }
 
   private void acceptShare(Intent intent) {

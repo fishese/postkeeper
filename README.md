@@ -6,7 +6,7 @@ The application code may be hosted as a static Progressive Web App (PWA), but th
 
 ## Current status
 
-The latest published preview is **web/native 0.6.5** (Android versionCode 11) and **extension 0.1.4**, source `7bb7107`. It fixes long-running native capture, Reddit-style primary media, and Chromium mobile standalone-tab lookup. See [Current status and acceptance limits](docs/STATUS.md); Milestone 7 remains untouched.
+The latest published preview is **web/native 0.6.5** (Android versionCode 11) and **extension 0.1.4**, source `7bb7107`. A tested **web/native 0.6.6** (versionCode 12) follow-up makes Android Back return from capture to the article and from the article to its library list. See [Current status and acceptance limits](docs/STATUS.md); Milestone 7 remains untouched.
 
 The published [0.6.5 preview](https://github.com/fishese/postkeeper/releases/tag/v0.6.5) bundles the extension guide alongside the compact mobile library and reader, Settings sheets, reusable CSS tokens, and English localization resources. **Settings → About → Download for Android** links to the matching [signed APK](https://github.com/fishese/postkeeper/releases/download/v0.6.5/postkeeper-release.apk), hosted on GitHub. The [browser extension guide](https://keep.fishese.cc/extensions.html) provides the versioned 0.1.4 downloads and installation steps; fresh extension installs connect to the hosted PWA by default. See [UI and localization](docs/UI_AND_LOCALIZATION.md) for styling and future translation guidance. Milestone 7 remains untouched.
 

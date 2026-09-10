@@ -72,6 +72,7 @@ export function LibraryApp() {
   const [rebuildCount, setRebuildCount] = useState<number | null>(null);
   const [transferStatus, setTransferStatus] = useState<string | null>(null);
   const refreshSequence = useRef(0);
+  const restoreListFocus = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -187,6 +188,33 @@ export function LibraryApp() {
     }
   }, [categories, view]);
 
+  useEffect(() => {
+    const handleNativeBack = (event: Event) => {
+      if (settingsOpen) {
+        event.preventDefault();
+        setSettingsOpen(false);
+      } else if (addOpen) {
+        event.preventDefault();
+        setAddOpen(false);
+      } else if (categoriesOpen) {
+        event.preventDefault();
+        setCategoriesOpen(false);
+      } else if (reading) {
+        event.preventDefault();
+        restoreListFocus.current = true;
+        setReading(false);
+      }
+    };
+    window.addEventListener('postkeeper-native-back', handleNativeBack);
+    return () => window.removeEventListener('postkeeper-native-back', handleNativeBack);
+  }, [addOpen, categoriesOpen, reading, selectedId, settingsOpen]);
+
+  useEffect(() => {
+    if (reading || !restoreListFocus.current) return;
+    restoreListFocus.current = false;
+    requestAnimationFrame(() => document.getElementById('article-' + selectedId)?.focus());
+  }, [reading, selectedId]);
+
   async function importFixture() {
     if (!library) return;
     const article = await library.importTrustedFixture(PUBLIC_FIXTURE);
@@ -291,8 +319,8 @@ export function LibraryApp() {
   }
 
   function backToList() {
+    restoreListFocus.current = true;
     setReading(false);
-    requestAnimationFrame(() => document.getElementById('article-' + selectedId)?.focus());
   }
 
   const categoryButtons = categories.map((category) => (

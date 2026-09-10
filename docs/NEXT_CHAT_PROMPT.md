@@ -1,12 +1,14 @@
 # Next Chat Prompt
 
-Checkpoint: 2026-09-09. Canonical progress is in `STATUS.md`.
+Checkpoint: 2026-09-10. Canonical progress is in `STATUS.md`.
 
 ## Required reading
 
 Workspace `D:\Projects\PostKeeper`, branch `main`, repository `fishese/postkeeper`. Read completely: `README.md`, `docs/PRODUCT_PLAN.md`, `docs/TECHNICAL_ARCHITECTURE.md`, `docs/IMPLEMENTATION_ROADMAP.md`, `docs/DECISIONS.md`, `docs/STATUS.md`, this prompt, `docs/GOOGLE_DRIVE_SETUP.md`, `docs/BACKUP_FORMAT.md`, `docs/ANDROID_SETUP.md`, `docs/ANDROID_SIGNING.md`, `docs/DEPENDENCIES.md`, `docs/UI_AND_LOCALIZATION.md`, and `docs/EXTENSION_COMPATIBILITY.md`. Follow all AGENTS.md restrictions and preserve unrelated changes.
 
 ## Current follow-up
+
+Android Back follow-up is implemented and validated as web/native **0.6.6/code 12**; extension remains **0.1.4**. Android 13+ uses the predictive-back dispatcher and older supported versions use the compatible callback. Back closes an app sheet first, returns article → list with focus restored, and exits only from the list; capture browser Back returns to the underlying article/list. Full validation passes **126 tests / 31 files**; focused Chromium/Firefox mobile tests pass **6/6**; Android JVM/lint/debug/release gates pass. Emulator-5554 acceptance passed capture → same article → Inbox using the preserved 13-item synthetic library. No data clear, dependency/signing/Drive change, phone use or M7/M8 work. Temporary evidence was removed and the emulator stopped without saving its runtime snapshot. Publication is in progress; record immutable evidence when complete.
 
 The user's release follow-up is **complete and published** as source `7bb7107864233307eb75e49c7045b5fa5360797a`, web/native **0.6.5/code 11** and extension **0.1.4**. The published 0.6.4/0.1.3 artifacts were confirmed current, then the user's phone reproduced long-running/invisible native image work, late timeout, wrong advertisement media and missing primary Reddit media. Delete article was present under **Article details**. Chromium mobile's selected tab was still re-resolved by enumerating tabs in the background, retaining the active-window failure. The hotfix uses direct selected-tab lookup, no capture timer while the user browses, specific-post/social-preview media fallback, bounded native image work and visible progress. Full validation passes **126 tests / 31 files**; packaged Chromium **3 passed**; Firefox 155.0 runtime passes and lint has 0 errors/0 notices/2 accepted warnings; Android debug/release/JVM/lint gates pass; the additive emulator run passes direct/redirect images, reload, isolation, full-page and social-preview-image capture. No phone debug install or data clearing. No M7/M8 work.
 
