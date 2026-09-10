@@ -83,6 +83,81 @@ function semanticCandidateScore(element: Element): number {
   );
 }
 
+function redditImagePost(document: Document, pageUrl: string): string | null {
+  const url = new URL(pageUrl);
+  if (!/(^|\.)reddit\.com$/iu.test(url.hostname)) return null;
+  const posts = Array.from(document.querySelectorAll('shreddit-post'));
+  const post =
+    posts.find((candidate) => candidate.getAttribute('permalink') === url.pathname) ?? posts[0];
+  if (!post || post.getAttribute('post-type') !== 'image') return null;
+  const source =
+    absoluteHttpUrl(post.getAttribute('content-href'), pageUrl) ??
+    absoluteHttpUrl(post.querySelector<HTMLImageElement>('#post-image')?.currentSrc, pageUrl) ??
+    absoluteHttpUrl(post.querySelector<HTMLImageElement>('#post-image')?.src, pageUrl);
+  if (!source) return null;
+
+  const article = document.createElement('article');
+  const title = post.getAttribute('post-title')?.trim();
+  if (title) {
+    const heading = document.createElement('h1');
+    heading.textContent = title;
+    article.append(heading);
+  }
+  const figure = document.createElement('figure');
+  const image = document.createElement('img');
+  image.src = source;
+  image.alt = post.querySelector<HTMLImageElement>('#post-image')?.alt || title || '';
+  figure.append(image);
+  article.append(figure);
+
+  const loadedComments = Array.from(document.querySelectorAll('shreddit-comment')).filter(
+    (comment) =>
+      comment.getAttribute('aria-hidden') !== 'true' &&
+      !comment.hasAttribute('collapsed') &&
+      !!comment
+        .querySelector<HTMLElement>(':scope > details [slot="comment"]')
+        ?.textContent?.trim(),
+  );
+  if (loadedComments.length > 0) {
+    const section = document.createElement('section');
+    const commentsHeading = document.createElement('h2');
+    commentsHeading.textContent = 'Comments';
+    section.append(commentsHeading);
+    for (const comment of loadedComments.slice(0, 100)) {
+      const body = comment.querySelector<HTMLElement>(':scope > details [slot="comment"]');
+      if (!body) continue;
+      const entry = document.createElement('article');
+      const depth = Number(comment.getAttribute('depth') ?? 0);
+      if (Number.isFinite(depth) && depth > 0)
+        entry.setAttribute('data-comment-depth', String(depth));
+      const header = document.createElement('p');
+      const author = comment.getAttribute('author')?.trim();
+      const created = comment.getAttribute('created')?.trim();
+      const permalink = absoluteHttpUrl(comment.getAttribute('permalink'), pageUrl);
+      const authorNode = document.createElement('strong');
+      authorNode.textContent = author ? `u/${author}` : 'Reddit comment';
+      if (permalink) {
+        const link = document.createElement('a');
+        link.href = permalink;
+        link.append(authorNode);
+        header.append(link);
+      } else {
+        header.append(authorNode);
+      }
+      if (created) {
+        const time = document.createElement('time');
+        time.dateTime = created;
+        time.textContent = ` · ${created}`;
+        header.append(time);
+      }
+      entry.append(header, body.cloneNode(true));
+      section.append(entry);
+    }
+    article.append(section);
+  }
+  return article.outerHTML;
+}
+
 export function captureRenderedPage(
   document: Document,
   pageUrl = document.location.href,
@@ -125,6 +200,7 @@ export function captureRenderedPage(
   }).parse();
   let readerHtml = readable?.content ?? '';
   const warnings: string[] = readable ? [] : ['producer-extraction-failed'];
+  const redditReaderHtml = redditImagePost(document, pageUrl);
   // Preserve substantial semantic article content when a short app-promotion wins Readability.
   const candidates = Array.from(
     visible.querySelectorAll(
@@ -137,7 +213,10 @@ export function captureRenderedPage(
   const length = readable?.textContent?.trim().length ?? 0;
   const candidateLength = candidate?.textContent?.trim().length ?? 0;
   const candidateHasMedia = !!candidate?.querySelector('img, picture');
-  if (
+  if (redditReaderHtml) {
+    readerHtml = redditReaderHtml;
+    warnings.splice(0, warnings.length, 'producer-primary-media');
+  } else if (
     candidate &&
     length < 300 &&
     (candidateLength > Math.max(300, length * 2) ||

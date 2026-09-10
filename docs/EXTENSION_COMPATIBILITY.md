@@ -1,8 +1,30 @@
 # Extension compatibility matrix
 
-Last updated: 2026-09-09
+Last updated: 2026-09-11
 
 Every required Milestone 3 runtime row has a recorded end-to-end pass. Package validation alone is not treated as runtime evidence.
+
+## 2026-09-11 local 0.1.5 candidate
+
+Extension **0.1.5** is packaged locally but not published. Chromium's toolbar action captures the rendered source before leaving its active tab, then opens a full extension page tied to that draft by a random, ten-minute `storage.session` reference. Save grants the needed hosts and replaces the extension page with the importing PostKeeper PWA. The reference keeps the source URL out of the extension-page URL and the action-page path performs no active/current-window discovery. This covers Kiwi 137's observed failure to inject into the original Reddit tab after the extension page became active.
+
+The pre-captured draft identifies the reader image origins before Save, so the click requests only the configured PWA and those origins. This permits CDN-hosted article images without permanent all-sites access. Asset requests have a five-second per-item timeout and a 30-second total budget. The inspected Reddit page's `shreddit-post` placed a community icon and blurred duplicate before the intended media and also included an advertisement elsewhere. Reddit image-post extraction now uses the exact post's declared `content-href` and appends up to 100 comments already loaded and expanded in `shreddit-comment` elements. Author, timestamp, permalink, nesting depth and sanitized comment body are retained; hidden/collapsed replies are skipped and nothing is expanded. This is covered by a DOM regression based on the supplied page. PostKeeper has no request-blocking API or permission (`declarativeNetRequest` and `webRequest` are absent), so Kiwi's “Chrome is blocking ads” label does not describe a PostKeeper feature.
+
+The Firefox manifest already declared Android support, and 0.1.5 retains `browser_specific_settings.gecko_android.strict_min_version: 142.0`; the bundle targets the lower Firefox desktop minimum, 140. An unsigned ZIP cannot serve as a normal Firefox Android installer. Upload the ZIP to AMO, keep Android compatibility enabled from the manifest, and install Mozilla's signed/listed result. Build-time transformations replace Mozilla Readability's two detached-document `innerHTML` assignments with DOM clone/DOMParser operations while retaining dependency **0.6.0**. Packaged Firefox lint is **0 errors, 0 warnings, 0 notices**.
+
+| Local candidate                 | Bytes   | SHA-256                                                            |
+| ------------------------------- | ------- | ------------------------------------------------------------------ |
+| `postkeeper-chromium-0.1.5.zip` | 124,767 | `1c081b045c188985d7b801ae336a74b094d08de9d71a8098215e4167d264ee83` |
+| `postkeeper-firefox-0.1.5.zip`  | 124,876 | `4b72993a9b72dde6f9a6d12e96e0734edebf78530c37060295c0541f67cbd6ae` |
+
+Evidence: `npm run validate` passes formatting, lint, all type checks, **129 tests / 31 files**, and production builds. Packaged Chromium passes **4/4**, including public, authenticated, standalone-picker, and pre-captured exact-source action-page capture through durable PWA import and queue acknowledgement. Firefox lint is **0 errors / 0 warnings / 0 notices**; the Firefox ZIP manifest, Android minimum and absence of unsafe `innerHTML` assignments were inspected directly. Firefox **155.0.1** passes the disposable-profile runtime with public/authenticated capture, decoded image import, secret filtering, capability-fragment cleanup and queue acknowledgement. Restricted runs discarded the disposable content context; the required host-access run passed after the user's normal Firefox was closed. Actual Reddit capture on Firefox and Android installation still need manual acceptance. Historical 0.1.4 Android runtime evidence remains below.
+
+Wireless phone evidence: the user authorized a scoped check while a LINE call remained ongoing. ADB found Kiwi **137.0.7337.0**, its newly loaded `postkeeper-0.1.5.zip`, and a current PostKeeper action page holding the exact Reddit source token. That page displayed “Could not find an active window,” confirming the error occurred when the old flow tried to inject after moving to the extension page. Kiwi was never foregrounded; only Kiwi package state, matching PostKeeper/Reddit targets and PostKeeper page text were read. LINE and the call were not inspected or touched. The revised ZIP has not yet been manually installed or accepted on Kiwi or Firefox.
+
+Local packages:
+
+- `apps/extension/build/chromium/postkeeper-0.1.5.zip`
+- `apps/extension/build/firefox/postkeeper-0.1.5.zip`
 
 ## 2026-09-09 published follow-up
 

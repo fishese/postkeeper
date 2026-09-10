@@ -12,6 +12,36 @@ const entries = {
   popup: resolve(root, 'src/popup.ts'),
 };
 
+const readabilityDomSafetyPlugin = {
+  name: 'readability-dom-safety',
+  setup(buildContext) {
+    buildContext.onLoad(
+      { filter: /[\\/]@mozilla[\\/]readability[\\/]Readability\.js$/ },
+      async ({ path }) => {
+        let source = await readFile(path, 'utf8');
+        const replacements = [
+          ['var pageCacheHtml = page.innerHTML;', 'var pageCache = page.cloneNode(true);'],
+          [
+            'page.innerHTML = pageCacheHtml;',
+            'page.replaceChildren(...Array.from(pageCache.cloneNode(true).childNodes));',
+          ],
+          [
+            'tmp.innerHTML = noscript.innerHTML;',
+            "tmp.append(...new DOMParser().parseFromString(noscript.textContent || '', 'text/html').body.childNodes);",
+          ],
+        ];
+        for (const [before, after] of replacements) {
+          if (!source.includes(before)) {
+            throw new Error(`Expected Readability statement was not found: ${before}`);
+          }
+          source = source.replace(before, after);
+        }
+        return { contents: source, loader: 'js' };
+      },
+    );
+  },
+};
+
 for (const target of targets) {
   const outdir = resolve(root, `dist-${target}`);
   await rm(outdir, { force: true, recursive: true });
@@ -23,11 +53,12 @@ for (const target of targets) {
       outfile: resolve(outdir, `${name}.js`),
       format: 'iife',
       platform: 'browser',
-      target: target === 'chromium' ? ['chrome120'] : ['firefox121'],
+      target: target === 'chromium' ? ['chrome120'] : ['firefox140'],
       define: { __POSTKEEPER_BROWSER_TARGET__: JSON.stringify(target) },
       legalComments: 'none',
       minify: false,
       sourcemap: true,
+      plugins: [readabilityDomSafetyPlugin],
     });
   }
   for (const file of ['background.html', 'options.html', 'popup.html', 'extension.css']) {

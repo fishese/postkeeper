@@ -7,7 +7,7 @@ import {
   type CaptureAsset,
   type CapturePackage,
 } from '@postkeeper/capture-format';
-import { getExtensionApi, getSettings, injectScript } from './api';
+import { getExtensionApi, getSettings, injectScript, originPattern } from './api';
 import {
   encodeBase64,
   type PageCaptureDraft,
@@ -20,10 +20,87 @@ import { assertAllowedSender, matchesConfiguredPage } from './security';
 const api = getExtensionApi();
 const queue = new PendingTransferQueue();
 const TRANSFER_CHUNK_BYTES = 256 * 1024;
+const ASSET_FETCH_TIMEOUT_MS = 5_000;
+const ASSET_FETCH_BUDGET_MS = 30_000;
 const supportedMedia = new Set<string>(SUPPORTED_CAPTURE_MEDIA_TYPES);
+type ActionSource = { draft: PageCaptureDraft; expiresAt: number; tabId: number; tabUrl: string };
+const actionSources = new Map<string, ActionSource>();
 
 function errorMessage(cause: unknown): string {
   return cause instanceof Error ? cause.message : String(cause);
+}
+
+function actionSourceKey(token: string): string {
+  return `postkeeper-action-source-${token}`;
+}
+
+async function storeActionSource(
+  token: string,
+  source: Omit<ActionSource, 'expiresAt'>,
+): Promise<void> {
+  const value = { ...source, expiresAt: Date.now() + 10 * 60_000 };
+  if (api.storage.session) {
+    await api.storage.session.set({ [actionSourceKey(token)]: value });
+  } else {
+    actionSources.set(token, value);
+  }
+}
+
+async function storedActionSource(token: string): Promise<ActionSource | undefined> {
+  let source = actionSources.get(token);
+  if (api.storage.session) {
+    const stored = (await api.storage.session.get(actionSourceKey(token)))[
+      actionSourceKey(token)
+    ] as ActionSource | undefined;
+    if (
+      stored &&
+      typeof stored.tabId === 'number' &&
+      typeof stored.tabUrl === 'string' &&
+      typeof stored.expiresAt === 'number' &&
+      stored.expiresAt >= Date.now() &&
+      stored.draft &&
+      typeof stored.draft.extractedReaderHtml === 'string'
+    ) {
+      source = stored;
+    }
+  }
+  return source && source.expiresAt >= Date.now() ? source : undefined;
+}
+
+async function inspectActionSource(
+  token: string,
+): Promise<
+  { ok: true; assetOrigins: string[]; tabId: number; tabUrl: string } | { ok: false; error: string }
+> {
+  if (!/^[a-f0-9-]{36}$/iu.test(token)) {
+    return { ok: false, error: 'The source page reference is invalid. Reopen PostKeeper.' };
+  }
+  const source = await storedActionSource(token);
+  return source
+    ? {
+        ok: true,
+        assetOrigins: [
+          ...new Set(
+            source.draft.assetUrls
+              .map((url) => originPattern(url))
+              .filter((origin) => origin.length > 0),
+          ),
+        ],
+        tabId: source.tabId,
+        tabUrl: source.tabUrl,
+      }
+    : { ok: false, error: 'The source page reference expired. Reopen PostKeeper.' };
+}
+
+async function takeActionDraft(token: string): Promise<PageCaptureDraft> {
+  const source = await storedActionSource(token);
+  actionSources.delete(token);
+  if (api.storage.session) {
+    const key = actionSourceKey(token);
+    await api.storage.session.remove(key);
+  }
+  if (!source) throw new Error('The source page reference expired. Reopen PostKeeper.');
+  return source.draft;
 }
 
 async function captureDraft(tabId: number): Promise<PageCaptureDraft> {
@@ -41,9 +118,24 @@ async function fetchAssets(
   const assets: CaptureAsset[] = [];
   const warnings: string[] = [];
   let totalBytes = 0;
+  const deadline = Date.now() + ASSET_FETCH_BUDGET_MS;
   for (const [index, sourceUrl] of urls.entries()) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) {
+      warnings.push('asset-fetch-time-budget-exhausted');
+      break;
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(
+      () => controller.abort(new Error('asset-fetch-timeout')),
+      Math.min(ASSET_FETCH_TIMEOUT_MS, remaining),
+    );
     try {
-      const response = await fetch(sourceUrl, { cache: 'no-store', credentials: 'include' });
+      const response = await fetch(sourceUrl, {
+        cache: 'no-store',
+        credentials: 'include',
+        signal: controller.signal,
+      });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const mediaType = (response.headers.get('content-type') ?? '').split(';')[0]!.toLowerCase();
       if (!supportedMedia.has(mediaType)) {
@@ -69,9 +161,33 @@ async function fetchAssets(
       });
     } catch (cause) {
       warnings.push(`asset-fetch-failed:${errorMessage(cause)}`);
+    } finally {
+      clearTimeout(timeout);
     }
   }
   return { assets, warnings };
+}
+
+async function preparePage(
+  tabId: number,
+  tabUrl: string,
+): Promise<{ ok: true; assetOrigins: string[] } | { ok: false; error: string }> {
+  try {
+    if (!Number.isInteger(tabId) || tabId < 0 || !/^https?:/u.test(tabUrl)) {
+      throw new Error('Open an HTTP(S) page before saving.');
+    }
+    const draft = await captureDraft(tabId);
+    return {
+      ok: true,
+      assetOrigins: [
+        ...new Set(
+          draft.assetUrls.map((url) => originPattern(url)).filter((origin) => origin.length > 0),
+        ),
+      ],
+    };
+  } catch (cause) {
+    return { ok: false, error: errorMessage(cause) };
+  }
 }
 
 async function enqueueCapture(draft: PageCaptureDraft): Promise<PendingTransfer> {
@@ -170,24 +286,79 @@ async function openPostKeeper(transfer: PendingTransfer): Promise<void> {
   await injectBridgeWithRetry(tab.id);
 }
 
+async function replaceWithPostKeeper(tabId: number, transfer: PendingTransfer): Promise<void> {
+  const settings = await getSettings();
+  const destination = new URL(settings.pwaUrl);
+  destination.hash = `pkTransfer=${encodeURIComponent(transfer.id)}&pkSecret=${encodeURIComponent(transfer.secret)}`;
+  const navigation = waitForTabReload(tabId);
+  try {
+    const tab = await api.tabs.update(tabId, { active: true, url: destination.href });
+    if (!tab.id) throw new Error('PostKeeper tab could not be opened.');
+    await navigation.promise;
+    await injectBridgeWithRetry(tab.id);
+  } catch (cause) {
+    navigation.cancel();
+    throw cause;
+  }
+}
+
 async function savePage(
   tabId?: number,
+  tabUrl?: string,
+  deliveryTabId?: number,
+  actionToken?: string,
 ): Promise<{ ok: true; message: string } | { ok: false; error: string }> {
   try {
+    if (actionToken) {
+      const draft = await takeActionDraft(actionToken);
+      const transfer = await enqueueCapture(draft);
+      if (typeof deliveryTabId === 'number') await replaceWithPostKeeper(deliveryTabId, transfer);
+      else await openPostKeeper(transfer);
+      return { ok: true, message: 'Capture queued. PostKeeper will confirm after durable import.' };
+    }
     const tab =
-      typeof tabId === 'number'
-        ? await api.tabs.get(tabId)
-        : (await api.tabs.query({ active: true, currentWindow: true }))[0];
+      typeof tabId === 'number' && tabUrl
+        ? { id: tabId, url: tabUrl }
+        : typeof tabId === 'number'
+          ? await api.tabs.get(tabId)
+          : (await api.tabs.query({ active: true, currentWindow: true }))[0];
     if (!tab?.id || !tab.url || !/^https?:/.test(tab.url)) {
       throw new Error('Open an HTTP(S) page before saving.');
     }
     const draft = await captureDraft(tab.id);
     const transfer = await enqueueCapture(draft);
-    await openPostKeeper(transfer);
+    if (typeof deliveryTabId === 'number') await replaceWithPostKeeper(deliveryTabId, transfer);
+    else await openPostKeeper(transfer);
     return { ok: true, message: 'Capture queued. PostKeeper will confirm after durable import.' };
   } catch (cause) {
     return { ok: false, error: errorMessage(cause) };
   }
+}
+
+if (api.action) {
+  api.action.onClicked.addListener((tab) => {
+    void (async () => {
+      const parameters = new URLSearchParams();
+      if (tab.id !== undefined && tab.url && /^https?:/u.test(tab.url)) {
+        const token = crypto.randomUUID();
+        const draft = await captureDraft(tab.id);
+        await storeActionSource(token, { draft, tabId: tab.id, tabUrl: tab.url });
+        parameters.set('source', token);
+      } else {
+        parameters.set('error', 'Open an HTTP(S) page before saving.');
+      }
+      await api.tabs.create({
+        active: true,
+        url: api.runtime.getURL(`popup.html?${parameters.toString()}`),
+      });
+    })().catch(async (cause: unknown) => {
+      const parameters = new URLSearchParams({ error: errorMessage(cause) });
+      await api.tabs.create({
+        active: true,
+        url: api.runtime.getURL(`popup.html?${parameters.toString()}`),
+      });
+    });
+  });
 }
 
 async function deliverTransfer(
@@ -243,8 +414,17 @@ async function acknowledgeTransfer(
 api.runtime.onMessage.addListener((message: unknown, sender, sendResponse) => {
   const request = message as RuntimeRequest | undefined;
   let response: Promise<unknown> | undefined;
-  if (request?.type === 'postkeeper:save-page') {
-    response = savePage(request.tabId ?? sender.tab?.id);
+  if (request?.type === 'postkeeper:action-source') {
+    response = inspectActionSource(request.token);
+  } else if (request?.type === 'postkeeper:prepare-page') {
+    response = preparePage(request.tabId, request.tabUrl);
+  } else if (request?.type === 'postkeeper:save-page') {
+    response = savePage(
+      request.tabId ?? sender.tab?.id,
+      request.tabUrl,
+      request.replaceSenderTab ? sender.tab?.id : undefined,
+      request.actionToken,
+    );
   } else if (request?.type === 'postkeeper:bridge-config') {
     response = getSettings().then((settings) => ({ ok: true, pwaUrl: settings.pwaUrl }));
   } else if (request?.type === 'postkeeper:transfer-request') {

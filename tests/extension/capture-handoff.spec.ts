@@ -284,3 +284,49 @@ test('popup opened as its own tab saves the explicitly selected original page', 
     await context.close();
   }
 });
+
+test('Chromium toolbar page keeps its exact source and becomes the importing PWA', async () => {
+  const { context, id } = await launchExtension(test.info());
+  try {
+    const article = await context.newPage();
+    const articleUrl = `${fixtureOrigin}/public-article.html`;
+    await article.goto(articleUrl);
+    const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
+    const sourceTabId = await worker.evaluate(async (url) => {
+      const tab = (await chrome.tabs.query({})).find((candidate) => candidate.url === url);
+      if (tab?.id === undefined) throw new Error('Fixture tab was not found.');
+      return tab.id;
+    }, articleUrl);
+    const actionPage = await context.newPage();
+    const token = crypto.randomUUID();
+    await worker.evaluate(
+      async ({ key, source }) => {
+        await chrome.scripting.executeScript({
+          target: { tabId: source.tabId },
+          files: ['capture.js'],
+        });
+        const response = await chrome.tabs.sendMessage(source.tabId, {
+          type: 'postkeeper:capture-page',
+        });
+        if (!response?.ok || !response.draft) throw new Error('Fixture capture failed.');
+        await chrome.storage.session.set({ [key]: { ...source, draft: response.draft } });
+      },
+      {
+        key: `postkeeper-action-source-${token}`,
+        source: { tabId: sourceTabId, tabUrl: articleUrl, expiresAt: Date.now() + 60_000 },
+      },
+    );
+    await actionPage.goto(`chrome-extension://${id}/popup.html?source=${token}`);
+    await expect(actionPage.getByText('Ready.')).toBeVisible();
+
+    await actionPage.getByRole('button', { name: 'Save current page' }).click();
+
+    await actionPage.waitForURL('http://127.0.0.1:4280/');
+    await expect(actionPage.getByTestId('extension-transfer-status')).toContainText(
+      'Imported “Public fixture article”',
+    );
+    await expect.poll(() => pendingTransferCount(context)).toBe(0);
+  } finally {
+    await context.close();
+  }
+});

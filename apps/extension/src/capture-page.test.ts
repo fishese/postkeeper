@@ -51,6 +51,25 @@ describe('extension page capture', () => {
     expect(draft.assetUrls).not.toContain('https://ads.test/ad.jpg');
   });
 
+  it('keeps the declared primary image and only loaded, expanded Reddit comments', () => {
+    const doc = fixture(
+      '<main><shreddit-post id="t3_post" permalink="/r/aww/comments/post/title/" post-type="image" post-title="Two sleeping dogs" content-href="https://i.redd.it/dogs.jpeg"><img src="https://redditstatic.com/community.png"><img src="https://preview.redd.it/blurred.jpeg"><img id="post-image" alt="Two sleeping dogs" src="https://preview.redd.it/dogs.jpeg"></shreddit-post><section><shreddit-comment author="visible-user" created="2026-09-08T18:49:53.912000+0000" depth="0" permalink="/r/aww/comments/post/comment/one/"><details><div slot="comment"><p>Visible first-load comment.</p></div></details></shreddit-comment><shreddit-comment author="nested-user" depth="1" permalink="/r/aww/comments/post/comment/two/"><details><div slot="comment"><p>Loaded reply.</p></div></details></shreddit-comment><shreddit-comment author="collapsed-user" collapsed depth="1"><details><div slot="comment"><p>Collapsed reply.</p></div></details></shreddit-comment><shreddit-comment author="hidden-user" aria-hidden="true"><details><div slot="comment"><p>Hidden comment.</p></div></details></shreddit-comment></section><aside><img src="https://ads.test/ad.jpg"></aside></main>',
+    );
+    const draft = captureRenderedPage(doc, 'https://www.reddit.com/r/aww/comments/post/title/');
+    expect(draft.extractedReaderHtml).toContain('Two sleeping dogs');
+    expect(draft.extractedReaderHtml).toContain('https://i.redd.it/dogs.jpeg');
+    expect(draft.extractedReaderHtml).not.toMatch(/community|blurred|ads\.test/u);
+    expect(draft.extractedReaderHtml).toContain('Visible first-load comment.');
+    expect(draft.extractedReaderHtml).toContain('Loaded reply.');
+    expect(draft.extractedReaderHtml).toContain('data-comment-depth="1"');
+    expect(draft.extractedReaderHtml).toContain(
+      'https://www.reddit.com/r/aww/comments/post/comment/one/',
+    );
+    expect(draft.extractedReaderHtml).not.toMatch(/Collapsed reply|Hidden comment/u);
+    expect(draft.assetUrls).toEqual(['https://i.redd.it/dogs.jpeg']);
+    expect(draft.warnings).toContain('producer-primary-media');
+  });
+
   it('full-page fallback retains loaded content while stripping dialogs and credentials', () => {
     const doc = fixture(
       '<main><p>The actual loaded article.</p></main><aside><p>Additional loaded paragraph.</p></aside><dialog open>Continue reading in the app</dialog><div hidden>Hidden teaser</div><input value="private-entry"><script>secret()</script>',

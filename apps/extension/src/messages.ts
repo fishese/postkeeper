@@ -17,7 +17,15 @@ export type PageCaptureDraft = {
 };
 
 export type RuntimeRequest =
-  | { type: 'postkeeper:save-page'; tabId?: number }
+  | { type: 'postkeeper:action-source'; token: string }
+  | { type: 'postkeeper:prepare-page'; tabId: number; tabUrl: string }
+  | {
+      type: 'postkeeper:save-page';
+      actionToken?: string;
+      tabId?: number;
+      tabUrl?: string;
+      replaceSenderTab?: boolean;
+    }
   | { type: 'postkeeper:capture-page' }
   | { type: 'postkeeper:bridge-config' }
   | {
