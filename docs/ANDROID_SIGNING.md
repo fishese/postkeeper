@@ -4,7 +4,15 @@ The manual `Build signed Android APK` workflow builds the release package `cc.fi
 
 The workflow and M6 sources are published on `main` (`c32aae9`, with SDK path fix `f5d139c`). All four repository secret names were confirmed on 2026-09-03 after the user saved them. Saving secrets alone does not start a build. The agent did not request or display their values; signing uses the key only inside the GitHub signing job.
 
-## Current public download: 0.6.5
+## Current public download: 0.6.6
+
+[PostKeeper 0.6.6 preview](https://github.com/fishese/postkeeper/releases/tag/v0.6.6) hosts the signed [APK](https://github.com/fishese/postkeeper/releases/download/v0.6.6/postkeeper-release.apk) and checksum. It makes Android Back return from capture to the underlying article/list and from an article to its library list. Source `aa3a88e9a2128c1f1a38a9c4a3698436ffa36b5a`, Android versionCode **12**; extension 0.1.4 is unchanged.
+
+[Run 34470943767](https://github.com/fishese/postkeeper/actions/runs/34470943767) passed full validation (**126 tests**), Android JVM/lint/release gates and separate-runner signing. Artifact **postkeeper-signed-apk-9**, ID **10149583747**. APK **3,011,271 bytes**, SHA-256 `93fdf3e913c751ba6eecd9675e1481abbbaf4ed87d6b21fc857a68e6a0dd25dc`. Independent verification confirmed `cc.fishese.postkeeper`, version 0.6.6/code 12, non-debuggable, minimum API 28/target 36, v3 signature and the unchanged release certificate. Pages run **34470931777** passed; an anonymous request received matching APK bytes/hash and the live app exposed the 0.6.6 download.
+
+Local verification copy: `test-results/release-0.6.6/signed/postkeeper-release.apk` (ignored release staging). No signing values were read/displayed or changed; no phone installation occurred.
+
+## Previous public download: 0.6.5
 
 [PostKeeper 0.6.5 preview](https://github.com/fishese/postkeeper/releases/tag/v0.6.5) hosts the signed [APK](https://github.com/fishese/postkeeper/releases/download/v0.6.5/postkeeper-release.apk) and checksum. It fixes long-running native capture, adds bounded image-download progress and improves primary social-image preservation. Source `7bb7107864233307eb75e49c7045b5fa5360797a`, Android versionCode **11**; the bundle links extension 0.1.4.
 
