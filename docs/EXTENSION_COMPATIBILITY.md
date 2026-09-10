@@ -4,9 +4,9 @@ Last updated: 2026-09-11
 
 Every required Milestone 3 runtime row has a recorded end-to-end pass. Package validation alone is not treated as runtime evidence.
 
-## 2026-09-11 local 0.1.5 candidate
+## 2026-09-11 published 0.1.5 follow-up
 
-Extension **0.1.5** is packaged locally but not published. Chromium's toolbar action captures the rendered source before leaving its active tab, then opens a full extension page tied to that draft by a random, ten-minute `storage.session` reference. Save grants the needed hosts and replaces the extension page with the importing PostKeeper PWA. The reference keeps the source URL out of the extension-page URL and the action-page path performs no active/current-window discovery. This covers Kiwi 137's observed failure to inject into the original Reddit tab after the extension page became active.
+Extension **0.1.5** is published from source `1ac36e2b5bbd227134862883e69fe2aceef96bcc`. Chromium's toolbar action captures the rendered source before leaving its active tab, then opens a full extension page tied to that draft by a random, ten-minute `storage.session` reference. Save grants the needed hosts and replaces the extension page with the importing PostKeeper PWA. The reference keeps the source URL out of the extension-page URL and the action-page path performs no active/current-window discovery. This covers Kiwi 137's observed failure to inject into the original Reddit tab after the extension page became active.
 
 The pre-captured draft identifies the reader image origins before Save, so the click requests only the configured PWA and those origins. This permits CDN-hosted article images without permanent all-sites access. Asset requests have a five-second per-item timeout and a 30-second total budget. The inspected Reddit page's `shreddit-post` placed a community icon and blurred duplicate before the intended media and also included an advertisement elsewhere. Reddit image-post extraction now uses the exact post's declared `content-href` and appends up to 100 comments already loaded and expanded in `shreddit-comment` elements. Author, timestamp, permalink, nesting depth and sanitized comment body are retained; hidden/collapsed replies are skipped and nothing is expanded. This is covered by a DOM regression based on the supplied page. PostKeeper has no request-blocking API or permission (`declarativeNetRequest` and `webRequest` are absent), so Kiwi's “Chrome is blocking ads” label does not describe a PostKeeper feature.
 
@@ -18,6 +18,8 @@ The Firefox manifest already declared Android support, and 0.1.5 retains `browse
 | `postkeeper-firefox-0.1.5.zip`  | 124,876 | `4b72993a9b72dde6f9a6d12e96e0734edebf78530c37060295c0541f67cbd6ae` |
 
 Evidence: `npm run validate` passes formatting, lint, all type checks, **129 tests / 31 files**, and production builds. Packaged Chromium passes **4/4**, including public, authenticated, standalone-picker, and pre-captured exact-source action-page capture through durable PWA import and queue acknowledgement. Firefox lint is **0 errors / 0 warnings / 0 notices**; the Firefox ZIP manifest, Android minimum and absence of unsafe `innerHTML` assignments were inspected directly. Firefox **155.0.1** passes the disposable-profile runtime with public/authenticated capture, decoded image import, secret filtering, capability-fragment cleanup and queue acknowledgement. Restricted runs discarded the disposable content context; the required host-access run passed after the user's normal Firefox was closed. Actual Reddit capture on Firefox and Android installation still need manual acceptance. Historical 0.1.4 Android runtime evidence remains below.
+
+Publication: [extension-v0.1.5](https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.5) targets source `1ac36e2b5bbd227134862883e69fe2aceef96bcc` and includes both browser-qualified ZIPs plus `SHA256SUMS.txt`. Pages run **34508243000** passed. The live guide exposes the 0.1.5 links, and fresh anonymous downloads matched both local byte counts and SHA-256 hashes.
 
 Wireless phone evidence: the user authorized a scoped check while a LINE call remained ongoing. ADB found Kiwi **137.0.7337.0**, its newly loaded `postkeeper-0.1.5.zip`, and a current PostKeeper action page holding the exact Reddit source token. That page displayed “Could not find an active window,” confirming the error occurred when the old flow tried to inject after moving to the extension page. Kiwi was never foregrounded; only Kiwi package state, matching PostKeeper/Reddit targets and PostKeeper page text were read. LINE and the call were not inspected or touched. The revised ZIP has not yet been manually installed or accepted on Kiwi or Firefox.
 
@@ -36,7 +38,7 @@ Packaged Chromium runtime: **3 passed**, including public recapture, authenticat
 
 ## Installation and distribution
 
-Current preview: **0.1.4**, source `7bb7107864233307eb75e49c7045b5fa5360797a`, [GitHub release](https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.4). It adds direct chosen-tab lookup and the specific-post/social-preview media fallback to the 0.1.3 capture and installation work. Historical Android runtime evidence below remains separate.
+Current preview: **0.1.5**, source `1ac36e2b5bbd227134862883e69fe2aceef96bcc`, [GitHub release](https://github.com/fishese/postkeeper/releases/tag/extension-v0.1.5). It adds Firefox Android packaging, warning-free AMO lint, Reddit primary-image/comment capture and Kiwi-compatible exact-source handoff. Manual Android acceptance remains separate.
 
 | Download                        | Bytes   | SHA-256                                                            |
 | ------------------------------- | ------- | ------------------------------------------------------------------ |
@@ -45,7 +47,7 @@ Current preview: **0.1.4**, source `7bb7107864233307eb75e49c7045b5fa5360797a`, [
 
 The production default, saved-destination preservation, temporary unsigned Firefox installation, and separate APK storage boundaries introduced in 0.1.1 continue to apply. Previous 0.1.1 artifacts and evidence below are retained for reproducibility.
 
-The public [extension installation guide](https://keep.fishese.cc/extensions.html), linked from Add link, Settings → About and extension connection settings, describes the preview downloads. Extension **0.1.4** defaults to `https://keep.fishese.cc/`; saved custom destinations remain unchanged. Both generated targets use the same default and continue to request only the configured PWA host permission from the user's Save gesture.
+The public [extension installation guide](https://keep.fishese.cc/extensions.html), linked from Add link, Settings → About and extension connection settings, describes the preview downloads. Extension **0.1.5** defaults to `https://keep.fishese.cc/`; saved custom destinations remain unchanged. Both generated targets use the same default and continue to request only the configured PWA host permission from the user's Save gesture.
 
 Build and package with:
 
@@ -55,7 +57,7 @@ npm run package:chromium --workspace=@postkeeper/extension
 npm run package:firefox --workspace=@postkeeper/extension
 ```
 
-Outputs are `apps/extension/build/chromium/postkeeper-0.1.4.zip` and `apps/extension/build/firefox/postkeeper-0.1.4.zip`. The versioned GitHub preview release is `extension-v0.1.4`; published assets use the names `postkeeper-chromium-0.1.4.zip` and `postkeeper-firefox-0.1.4.zip` plus `SHA256SUMS.txt`. Chromium desktop uses an extracted folder and Developer mode → Load unpacked. The Firefox ZIP is unsigned and supports only temporary desktop installation through `about:debugging`; it disappears on restart. Mozilla signing/store publication and a supported public Android extension installer are not part of this follow-up. Historical Android runtime compatibility does not imply that a public phone installer has been published.
+Outputs are `apps/extension/build/chromium/postkeeper-0.1.5.zip` and `apps/extension/build/firefox/postkeeper-0.1.5.zip`. The versioned GitHub preview release is `extension-v0.1.5`; published assets use the names `postkeeper-chromium-0.1.5.zip` and `postkeeper-firefox-0.1.5.zip` plus `SHA256SUMS.txt`. Chromium desktop uses an extracted folder and Developer mode → Load unpacked. The Firefox ZIP is unsigned and supports only temporary desktop installation through `about:debugging`; it disappears on restart. Mozilla signing/store publication and a supported public Android extension installer are not part of this follow-up. Historical Android runtime compatibility does not imply that a public phone installer has been published.
 
 Extensions transfer to the configured browser/PWA origin, not to the APK's separate WebView library. The APK uses native sharing and its isolated capture browser; portable backup export/import can move records between libraries. No extension-to-native bridge was added.
 
