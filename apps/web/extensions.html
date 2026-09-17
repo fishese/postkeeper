@@ -43,8 +43,8 @@
           <code>https://keep.fishese.cc/</code> and save.
         </p>
         <p>
-          These downloads are developer packages. Chromium requires Developer mode, and the unsigned
-          Firefox build is temporary. Store-signed installation is not available yet.
+          Chromium remains a developer package that requires Developer mode. Firefox now has a
+          Mozilla-signed XPI for normal installation on supported desktop and Android versions.
         </p>
       </div>
 
@@ -91,32 +91,28 @@
       <section aria-labelledby="firefox">
         <div class="section-heading">
           <div>
-            <p class="step-label">Temporary developer install</p>
-            <h2 id="firefox">Firefox desktop</h2>
+            <p class="step-label">Mozilla-signed install</p>
+            <h2 id="firefox">Firefox desktop and Android</h2>
           </div>
           <a
-            class="secondary-button"
-            href="https://github.com/fishese/postkeeper/releases/download/extension-v0.1.5/postkeeper-firefox-0.1.5.zip"
-            >Download Firefox ZIP</a
+            class="download-button"
+            href="https://github.com/fishese/postkeeper/releases/download/extension-v0.1.5/postkeeper-firefox-0.1.5.xpi"
+            >Install signed Firefox XPI</a
           >
         </div>
         <ol class="steps">
-          <li>Download the ZIP.</li>
-          <li>Open <code>about:debugging</code>, then choose <strong>This Firefox</strong>.</li>
-          <li>Choose <strong>Load Temporary Add-on</strong> and select the downloaded ZIP.</li>
+          <li>Open the signed XPI download in Firefox.</li>
+          <li>Review Firefox's permission prompt, then choose <strong>Add</strong>.</li>
+          <li>On desktop, pin PostKeeper to the toolbar if you want it to remain visible.</li>
           <li>
             Use the PostKeeper toolbar button and approve the PWA connection permission when asked.
           </li>
         </ol>
         <p class="note">
-          Firefox removes this temporary add-on when the browser restarts. Standard Firefox requires
-          Mozilla to sign persistent add-ons. See Mozilla's
-          <a
-            href="https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/"
-            >temporary installation guide</a
-          >
-          and
-          <a href="https://support.mozilla.org/kb/add-on-signing-in-firefox">signing explanation</a
+          This XPI is signed by Mozilla and declares Firefox desktop 140+ and Firefox for Android
+          142+ compatibility. See Mozilla's
+          <a href="https://support.mozilla.org/kb/find-and-install-add-ons-add-features-to-firefox"
+            >add-on installation guide</a
           >.
         </p>
       </section>
@@ -127,9 +123,8 @@
           <article>
             <h3>Browser extension on Android</h3>
             <p>
-              PostKeeper has passed compatibility tests in extension-capable Android browsers, but
-              there is no supported public phone installer in this preview. The desktop ZIP steps
-              above do not apply to official Chrome for Android.
+              The Mozilla-signed Firefox XPI above declares Firefox for Android 142+ support.
+              Official Chrome for Android does not install desktop Chrome extensions.
             </p>
           </article>
           <article>

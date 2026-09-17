@@ -59,8 +59,9 @@ describe('extension installation document', () => {
       document.querySelector('a[href$="/extension-v0.1.5/postkeeper-chromium-0.1.5.zip"]'),
     ).not.toBeNull();
     expect(
-      document.querySelector('a[href$="/extension-v0.1.5/postkeeper-firefox-0.1.5.zip"]'),
+      document.querySelector('a[href$="/extension-v0.1.5/postkeeper-firefox-0.1.5.xpi"]'),
     ).not.toBeNull();
+    expect(document.body.textContent).toContain('Mozilla-signed');
     expect(document.body.textContent).not.toMatch(/TODO|\[your|placeholder/iu);
   });
 });

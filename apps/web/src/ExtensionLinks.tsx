@@ -22,7 +22,7 @@ export function ExtensionLinks() {
         </a>
         {' · '}
         <a
-          href="https://github.com/fishese/postkeeper/releases/download/extension-v0.1.5/postkeeper-firefox-0.1.5.zip"
+          href="https://github.com/fishese/postkeeper/releases/download/extension-v0.1.5/postkeeper-firefox-0.1.5.xpi"
           target="_blank"
           rel="noopener noreferrer"
         >
