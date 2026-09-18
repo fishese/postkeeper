@@ -166,10 +166,14 @@
           your recovery key.
         </p>
         <p>
-          The server URL and account identity are stored on your device. The PocketBase password and
-          access token are held in memory for the current app session and are discarded when you
-          disconnect or reload. The server operator can observe account, IP/network, access-log,
-          object-path, size, and timing information and controls retention and backups.
+          The server URL and account identity are stored on your device. The PocketBase password is
+          not saved. If you select Remember this trusted device, the authorization token and library
+          key material are encrypted under a non-exportable device key in local browser storage so
+          the app can reconnect after a reload; the recovery key is not retained. Disconnect removes
+          that trusted-device session. Code executing under the PostKeeper application origin could
+          still use locally available content and credentials. The server operator can observe
+          account, IP/network, access-log, object-path, size, and timing information and controls
+          retention and backups.
         </p>
         <p>
           PostKeeper requires HTTPS except for local loopback testing. If you use Tailscale, its

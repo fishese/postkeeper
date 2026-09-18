@@ -5,8 +5,10 @@ import {
   encodeEnvelope,
   encryptRemoteObject,
   recoverMasterKey,
+  recoveryKeyLibraryId,
   remoteBlobId,
   verifyRecoveryKey,
+  verifyMasterKeyLibraryId,
   type LibraryKeyMaterial,
   type WrappedMasterKeyEnvelope,
 } from './crypto';
@@ -21,7 +23,23 @@ import { SyncProviderError, type SyncObjectStore } from './provider';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true });
-export const REMOTE_LIBRARY_METADATA_PATH = 'library-metadata/root.json';
+export const LEGACY_REMOTE_LIBRARY_METADATA_PATH = 'library-metadata/root.json';
+
+export function remoteLibraryMetadataPath(
+  libraryId: string,
+  layout: LibraryKeyMaterial['remoteLayout'] = 'namespaced',
+): string {
+  return layout === 'legacy'
+    ? LEGACY_REMOTE_LIBRARY_METADATA_PATH
+    : `libraries/${libraryId}/library-metadata/root.json`;
+}
+
+function remoteLibraryPrefix(
+  libraryId: string,
+  layout: LibraryKeyMaterial['remoteLayout'] = 'namespaced',
+): string {
+  return layout === 'legacy' ? '' : `libraries/${libraryId}/`;
+}
 
 export type SyncRunResult = {
   state: 'synced' | 'conflict';
@@ -38,8 +56,12 @@ export type RetryOptions = {
   sleep?: (milliseconds: number) => Promise<void>;
 };
 
-function operationPath(operation: SyncOperation): string {
-  return `devices/${operation.deviceId}/operations/${String(operation.sequence).padStart(16, '0')}.json`;
+function operationPath(
+  libraryId: string,
+  operation: SyncOperation,
+  layout: LibraryKeyMaterial['remoteLayout'] = 'namespaced',
+): string {
+  return `${remoteLibraryPrefix(libraryId, layout)}devices/${operation.deviceId}/operations/${String(operation.sequence).padStart(16, '0')}.json`;
 }
 
 async function retryProviderCall<T>(
@@ -76,18 +98,18 @@ export async function initializeRemoteLibrary(
   keys: LibraryKeyMaterial,
   retryOptions?: RetryOptions,
 ): Promise<void> {
-  if (!(await verifyRecoveryKey(keys.recoveryKey, keys.wrappedMasterKey))) {
+  const validKeys = keys.recoveryKey
+    ? await verifyRecoveryKey(keys.recoveryKey, keys.wrappedMasterKey)
+    : await verifyMasterKeyLibraryId(keys.masterKey, keys.libraryId);
+  if (!validKeys) {
     throw new Error('Recovery key verification failed before remote initialization.');
   }
+  const path = remoteLibraryMetadataPath(keys.libraryId, keys.remoteLayout);
   const encoded = encodeEnvelope(keys.wrappedMasterKey);
-  const result = await retryProviderCall(
-    () => provider.putImmutable(REMOTE_LIBRARY_METADATA_PATH, encoded),
-    retryOptions,
-  );
+  const result = await retryProviderCall(() => provider.putImmutable(path, encoded), retryOptions);
   if (result.status === 'existing') {
     const existing = decodeWrappedMasterKeyEnvelope(
-      (await retryProviderCall(() => provider.get(REMOTE_LIBRARY_METADATA_PATH), retryOptions))
-        .bytes,
+      (await retryProviderCall(() => provider.get(path), retryOptions)).bytes,
     );
     if (existing.libraryId !== keys.libraryId) {
       throw new SyncProviderError(
@@ -95,7 +117,10 @@ export async function initializeRemoteLibrary(
         'This provider already contains a different PostKeeper library.',
       );
     }
-    if (!(await verifyRecoveryKey(keys.recoveryKey, existing))) {
+    const validExisting = keys.recoveryKey
+      ? await verifyRecoveryKey(keys.recoveryKey, existing)
+      : JSON.stringify(existing) === JSON.stringify(keys.wrappedMasterKey);
+    if (!validExisting) {
       throw new SyncProviderError(
         'conflict',
         'The remote recovery envelope is damaged or does not match this session.',
@@ -112,14 +137,18 @@ export async function restoreLibraryKey(
   masterKey: Uint8Array;
   libraryId: string;
   wrappedMasterKey: WrappedMasterKeyEnvelope;
+  remoteLayout: LibraryKeyMaterial['remoteLayout'];
 }> {
-  const remote = await retryProviderCall(
-    () => provider.get(REMOTE_LIBRARY_METADATA_PATH),
-    retryOptions,
-  );
+  const locator = recoveryKeyLibraryId(recoveryKey);
+  const remoteLayout = locator ? 'namespaced' : 'legacy';
+  const path = remoteLibraryMetadataPath(locator ?? '', remoteLayout);
+  const remote = await retryProviderCall(() => provider.get(path), retryOptions);
   const wrappedMasterKey = decodeWrappedMasterKeyEnvelope(remote.bytes);
+  if (locator && wrappedMasterKey.libraryId !== locator) {
+    throw new Error('Recovery key does not identify this encrypted library.');
+  }
   const masterKey = await recoverMasterKey(recoveryKey, wrappedMasterKey);
-  return { masterKey, libraryId: wrappedMasterKey.libraryId, wrappedMasterKey };
+  return { masterKey, libraryId: wrappedMasterKey.libraryId, wrappedMasterKey, remoteLayout };
 }
 
 async function listEveryObject(provider: SyncObjectStore, prefix: string): Promise<string[]> {
@@ -145,8 +174,12 @@ export async function downloadRemoteOperations(
   masterKey: Uint8Array,
   libraryId: string,
   retryOptions?: RetryOptions,
+  remoteLayout: LibraryKeyMaterial['remoteLayout'] = 'namespaced',
 ): Promise<SyncOperation[]> {
-  const paths = await retryProviderCall(() => listEveryObject(provider, 'devices/'), retryOptions);
+  const paths = await retryProviderCall(
+    () => listEveryObject(provider, `${remoteLibraryPrefix(libraryId, remoteLayout)}devices/`),
+    retryOptions,
+  );
   const operations: SyncOperation[] = [];
   for (const path of paths) {
     const remote = await retryProviderCall(() => provider.get(path), retryOptions);
@@ -158,7 +191,7 @@ export async function downloadRemoteOperations(
     );
     const operation = JSON.parse(decoder.decode(plaintext)) as unknown;
     assertSyncOperation(operation);
-    if (operationPath(operation) !== path) {
+    if (operationPath(libraryId, operation, remoteLayout) !== path) {
       throw new Error('Remote operation was stored at an invalid path.');
     }
     operations.push(operation);
@@ -172,11 +205,12 @@ export async function syncOperationLog(
   libraryId: string,
   localOperations: readonly SyncOperation[],
   retryOptions?: RetryOptions,
+  remoteLayout: LibraryKeyMaterial['remoteLayout'] = 'namespaced',
 ): Promise<SyncRunResult> {
   const local = mergeOperationLogs(localOperations);
   let uploaded = 0;
   for (const operation of local) {
-    const path = operationPath(operation);
+    const path = operationPath(libraryId, operation, remoteLayout);
     const encrypted = encodeEnvelope(
       await encryptRemoteObject(
         masterKey,
@@ -196,6 +230,7 @@ export async function syncOperationLog(
     masterKey,
     libraryId,
     retryOptions,
+    remoteLayout,
   );
   const operations = mergeOperationLogs(local, remoteOperations);
   const materialized = materializeOperations(operations);
@@ -218,9 +253,10 @@ export async function uploadEncryptedBlob(
   plaintextHash: string,
   bytes: Uint8Array,
   retryOptions?: RetryOptions,
+  remoteLayout: LibraryKeyMaterial['remoteLayout'] = 'namespaced',
 ): Promise<string> {
   const id = await remoteBlobId(masterKey, plaintextHash);
-  const path = `blobs/${id}`;
+  const path = `${remoteLibraryPrefix(libraryId, remoteLayout)}blobs/${id}`;
   const envelope = encodeEnvelope(await encryptRemoteObject(masterKey, libraryId, path, bytes));
   await retryProviderCall(() => provider.putImmutable(path, envelope), retryOptions);
   return path;
@@ -232,8 +268,11 @@ export async function downloadEncryptedBlob(
   libraryId: string,
   path: string,
   retryOptions?: RetryOptions,
+  remoteLayout: LibraryKeyMaterial['remoteLayout'] = 'namespaced',
 ): Promise<Uint8Array> {
-  if (!path.startsWith('blobs/')) throw new Error('Invalid remote blob path.');
+  if (!path.startsWith(`${remoteLibraryPrefix(libraryId, remoteLayout)}blobs/`)) {
+    throw new Error('Invalid remote blob path.');
+  }
   const remote = await retryProviderCall(() => provider.get(path), retryOptions);
   return decryptRemoteObject(
     masterKey,

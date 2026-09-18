@@ -4,11 +4,11 @@ migrate(
   (app) => {
     let users;
     try {
-      users = app.findCollectionByNameOrId('postkeeper_users');
+      users = app.findCollectionByNameOrId('users');
     } catch {
       users = new Collection({
         type: 'auth',
-        name: 'postkeeper_users',
+        name: 'users',
         listRule: 'id = @request.auth.id',
         viewRule: 'id = @request.auth.id',
         createRule: null,
@@ -21,6 +21,12 @@ migrate(
       });
       app.save(users);
     }
+    users.listRule = 'id = @request.auth.id';
+    users.viewRule = 'id = @request.auth.id';
+    users.createRule = null;
+    users.updateRule = 'id = @request.auth.id';
+    users.deleteRule = null;
+    app.save(users);
 
     const objects = new Collection({
       type: 'base',
@@ -63,10 +69,7 @@ migrate(
     } catch {
       // Already removed.
     }
-    try {
-      app.delete(app.findCollectionByNameOrId('postkeeper_users'));
-    } catch {
-      // Already removed.
-    }
+    // The shared auth collection may be used by other applications and is not
+    // deleted when the PostKeeper storage migration is rolled back.
   },
 );

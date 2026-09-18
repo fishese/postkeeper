@@ -15,8 +15,18 @@ import {
   PocketBasePasswordAuthorizer,
 } from '@postkeeper/sync-http';
 import { loadGoogleIdentityServices } from './googleIdentity';
-import { restoreLibraryFromRemote, synchronizeLibrary } from './librarySync';
+import {
+  previewLibraryMerge,
+  restoreLibraryFromRemote,
+  synchronizeLibrary,
+  type LibraryMergePreview,
+} from './librarySync';
 import { isNativeAndroid, nativeRequest } from './nativeBridge';
+import {
+  clearTrustedPocketBaseSession,
+  loadTrustedPocketBaseSession,
+  saveTrustedPocketBaseSession,
+} from './trustedDevice';
 
 type SyncPhase = 'local' | 'pending' | 'synced' | 'error' | 'conflict' | 'reconnect-required';
 type SyncProviderKind = 'google-drive' | 'self-hosted';
@@ -46,6 +56,8 @@ export function SyncPanel({
   const authorizer = useRef<GoogleIdentityAuthorizer | null>(null);
   const pocketBaseAuthorizer = useRef<PocketBasePasswordAuthorizer | null>(null);
   const provider = useRef<SyncObjectStore | null>(null);
+  const syncInFlight = useRef(false);
+  const automaticSync = useRef<() => Promise<void>>(async () => undefined);
   const [providerKind, setProviderKind] = useState<SyncProviderKind>(() =>
     native ? 'self-hosted' : 'google-drive',
   );
@@ -65,9 +77,70 @@ export function SyncPanel({
     savedSetting(SELF_HOSTED_IDENTITY_KEY),
   );
   const [selfHostedPassword, setSelfHostedPassword] = useState('');
+  const [rememberDevice, setRememberDevice] = useState(true);
+  const [mergePreview, setMergePreview] = useState<LibraryMergePreview | null>(null);
   useEffect(() => {
     onDiagnosticsChange?.({ phase, connected, lastSuccess });
   }, [phase, connected, lastSuccess, onDiagnosticsChange]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const saved = await loadTrustedPocketBaseSession();
+      if (!saved || cancelled) return;
+      const auth = new PocketBasePasswordAuthorizer({ endpoint: saved.endpoint });
+      auth.restore(saved.token);
+      await auth.refresh();
+      if (cancelled) return;
+      pocketBaseAuthorizer.current = auth;
+      provider.current = new HttpSyncObjectStore({
+        endpoint: saved.endpoint,
+        accessToken: () => auth.token(),
+      });
+      setProviderKind('self-hosted');
+      setSelfHostedEndpoint(saved.endpoint);
+      setSelfHostedIdentity(saved.identity);
+      setKeys(saved.keys ? { ...saved.keys, recoveryKey: '' } : null);
+      setConfirmedRecovery(Boolean(saved.keys));
+      setConnected(true);
+      setPhase('local');
+      setMessage(t('syncPanel.rememberedDeviceReconnected'));
+      await saveTrustedPocketBaseSession({ ...saved, token: auth.token() });
+    })().catch(async (cause: unknown) => {
+      if (cancelled) return;
+      await clearTrustedPocketBaseSession().catch(() => undefined);
+      if (cause instanceof SyncProviderError && cause.code === 'auth-required') {
+        setPhase('reconnect-required');
+        setMessage(t('syncPanel.rememberedSessionExpired'));
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function rememberPocketBase(keysToSave: LibraryKeyMaterial | null = keys) {
+    const auth = pocketBaseAuthorizer.current;
+    if (!rememberDevice || !auth || !selfHostedEndpoint || !selfHostedIdentity) return;
+    try {
+      await saveTrustedPocketBaseSession({
+        endpoint: normalizeSelfHostedEndpoint(selfHostedEndpoint),
+        identity: selfHostedIdentity.trim(),
+        token: auth.token(),
+        keys: keysToSave
+          ? {
+              masterKey: keysToSave.masterKey,
+              libraryId: keysToSave.libraryId,
+              remoteLayout: keysToSave.remoteLayout,
+              wrappedMasterKey: keysToSave.wrappedMasterKey,
+            }
+          : null,
+      });
+    } catch {
+      setRememberDevice(false);
+      setMessage(t('syncPanel.couldNotRememberDevice'));
+    }
+  }
 
   function showError(cause: unknown) {
     const text = cause instanceof Error ? cause.message : String(cause);
@@ -130,6 +203,7 @@ export function SyncPanel({
       setConnected(true);
       setPhase('local');
       setMessage(t('syncPanel.selfHostedConnectedLocalDataRemains'));
+      await rememberPocketBase();
     } catch (cause) {
       showError(cause);
     }
@@ -137,7 +211,8 @@ export function SyncPanel({
 
   async function createRecovery() {
     try {
-      setKeys(await createLibraryKeyMaterial());
+      const created = await createLibraryKeyMaterial();
+      setKeys(created);
       setConfirmedRecovery(false);
       setPhase('local');
       setMessage(t('syncPanel.recoveryKeyCreatedInMemorySave'));
@@ -147,7 +222,8 @@ export function SyncPanel({
   }
 
   async function syncNow() {
-    if (!provider.current || !keys) return;
+    if (!provider.current || !keys || syncInFlight.current) return;
+    syncInFlight.current = true;
     setPhase('pending');
     setMessage(t('syncPanel.encryptingLocalChangesAndSynchronizing'));
     try {
@@ -167,17 +243,47 @@ export function SyncPanel({
           blobs: result.restoredBlobs,
         }),
       );
+      await rememberPocketBase(keys);
       await onLibraryChanged();
     } catch (cause) {
       showError(cause);
+    } finally {
+      syncInFlight.current = false;
     }
   }
+
+  automaticSync.current = syncNow;
+
+  useEffect(() => {
+    if (!connected || !keys || !confirmedRecovery) return;
+    const run = () => void automaticSync.current();
+    const becameVisible = () => {
+      if (document.visibilityState === 'visible') run();
+    };
+    const initial = window.setTimeout(run, 1_000);
+    const interval = window.setInterval(run, 5 * 60 * 1_000);
+    window.addEventListener('online', run);
+    document.addEventListener('visibilitychange', becameVisible);
+    return () => {
+      window.clearTimeout(initial);
+      window.clearInterval(interval);
+      window.removeEventListener('online', run);
+      document.removeEventListener('visibilitychange', becameVisible);
+    };
+  }, [connected, confirmedRecovery, keys]);
 
   async function restore() {
     if (!provider.current || !recoveryInput.trim()) return;
     setPhase('pending');
     setMessage(t('syncPanel.verifyingTheRecoveryKeyAndRestoring'));
     try {
+      const stats = await library.getStats();
+      if (stats.articles > 0 || stats.snapshots > 0) {
+        setMergePreview(await previewLibraryMerge(library, provider.current, recoveryInput.trim()));
+        setPhase('local');
+        setMessage(t('syncPanel.mergePreviewReady'));
+        return;
+      }
       const restored = await restoreLibraryFromRemote(
         library,
         provider.current,
@@ -197,6 +303,41 @@ export function SyncPanel({
           blobs: restored.result.restoredBlobs,
         }),
       );
+      await rememberPocketBase(restored.keys);
+      await onLibraryChanged();
+    } catch (cause) {
+      showError(cause);
+    }
+  }
+
+  async function confirmMerge() {
+    if (!provider.current || !recoveryInput.trim() || !mergePreview) return;
+    setPhase('pending');
+    setMessage(t('syncPanel.mergingLibraries'));
+    try {
+      const restored = await restoreLibraryFromRemote(
+        library,
+        provider.current,
+        recoveryInput.trim(),
+        undefined,
+        { allowMerge: true },
+      );
+      setKeys(restored.keys);
+      setMergePreview(null);
+      if (restored.result.state === 'conflict') {
+        setPhase('conflict');
+        setMessage(t('syncPanel.restoreRetainedConflictingSnapshotVariantsFor'));
+        return;
+      }
+      setPhase('synced');
+      setLastSuccess(new Date().toISOString());
+      setMessage(
+        t('sync.restored', {
+          operations: restored.result.operations.length,
+          blobs: restored.result.restoredBlobs,
+        }),
+      );
+      await rememberPocketBase(restored.keys);
       await onLibraryChanged();
     } catch (cause) {
       showError(cause);
@@ -209,6 +350,7 @@ export function SyncPanel({
     authorizer.current = null;
     pocketBaseAuthorizer.current = null;
     provider.current = null;
+    await clearTrustedPocketBaseSession();
     setConnected(false);
     setIdentityReady(false);
     setPhase('local');
@@ -315,6 +457,16 @@ export function SyncPanel({
               />
             </label>
           )}
+          {!connected && (
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={rememberDevice}
+                onChange={(event) => setRememberDevice(event.target.checked)}
+              />
+              {t('syncPanel.rememberThisDevice')}
+            </label>
+          )}
           <div className="sync-actions">
             <button
               type="button"
@@ -337,24 +489,28 @@ export function SyncPanel({
       </div>
       {keys && (
         <div className="recovery-key-box">
-          <label>
-            {t('syncPanel.recoveryKeyStoreThisSomewhereSafe')}
-            <textarea readOnly value={keys.recoveryKey} rows={3} data-testid="recovery-key" />
-          </label>
-          <button
-            type="button"
-            onClick={() => void navigator.clipboard?.writeText(keys.recoveryKey)}
-          >
-            {t('syncPanel.copyRecoveryKey')}
-          </button>
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={confirmedRecovery}
-              onChange={(event) => setConfirmedRecovery(event.target.checked)}
-            />
-            {t('syncPanel.iSavedTheRecoveryKeyLosing')}
-          </label>
+          {keys.recoveryKey && (
+            <>
+              <label>
+                {t('syncPanel.recoveryKeyStoreThisSomewhereSafe')}
+                <textarea readOnly value={keys.recoveryKey} rows={3} data-testid="recovery-key" />
+              </label>
+              <button
+                type="button"
+                onClick={() => void navigator.clipboard?.writeText(keys.recoveryKey!)}
+              >
+                {t('syncPanel.copyRecoveryKey')}
+              </button>
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={confirmedRecovery}
+                  onChange={(event) => setConfirmedRecovery(event.target.checked)}
+                />
+                {t('syncPanel.iSavedTheRecoveryKeyLosing')}
+              </label>
+            </>
+          )}
           <button
             type="button"
             disabled={!connected || !confirmedRecovery || phase === 'pending'}
@@ -382,12 +538,35 @@ export function SyncPanel({
         >
           {t('syncPanel.verifyAndRestore')}
         </button>
+        {mergePreview && (
+          <div className="stack" role="status" data-testid="merge-preview">
+            <p>
+              {t('syncPanel.mergePreviewSummary', {
+                localArticles: mergePreview.localArticles,
+                localSnapshots: mergePreview.localSnapshots,
+                remoteArticles: mergePreview.remoteArticles,
+                remoteDeleted: mergePreview.remoteDeletedArticles,
+                remoteSnapshots: mergePreview.remoteSnapshots,
+                operations: mergePreview.remoteOperations,
+                conflicts: mergePreview.conflicts,
+              })}
+            </p>
+            <div className="sync-actions">
+              <button type="button" onClick={() => void confirmMerge()}>
+                {t('syncPanel.mergeAndEnableSync')}
+              </button>
+              <button type="button" onClick={() => setMergePreview(null)}>
+                {t('syncPanel.cancelMerge')}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       {native && (
         <div className="sync-actions">
           <p>{t('syncPanel.optionalDeviceCopyAndroidEncryptsYour')}</p>
           <button
-            disabled={!recoveryInput.trim() && !keys}
+            disabled={!recoveryInput.trim() && !keys?.recoveryKey}
             onClick={() =>
               void nativeRequest('saveKey', {
                 key: recoveryInput.trim() || keys?.recoveryKey,

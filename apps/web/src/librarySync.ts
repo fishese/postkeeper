@@ -1,7 +1,9 @@
 import { requiredSyncBlobs, type Library } from '@postkeeper/local-store';
 import {
   downloadEncryptedBlob,
+  downloadRemoteOperations,
   initializeRemoteLibrary,
+  materializeOperations,
   remoteBlobId,
   restoreLibraryKey,
   syncOperationLog,
@@ -14,23 +16,63 @@ import {
 
 export type LibrarySyncResult = SyncRunResult & { restoredBlobs: number };
 
+export type LibraryMergePreview = {
+  localArticles: number;
+  localSnapshots: number;
+  remoteArticles: number;
+  remoteDeletedArticles: number;
+  remoteSnapshots: number;
+  remoteOperations: number;
+  conflicts: number;
+};
+
+export async function previewLibraryMerge(
+  library: Library,
+  provider: SyncObjectStore,
+  recoveryKey: string,
+  retryOptions?: RetryOptions,
+): Promise<LibraryMergePreview> {
+  const restored = await restoreLibraryKey(provider, recoveryKey, retryOptions);
+  const operations = await downloadRemoteOperations(
+    provider,
+    restored.masterKey,
+    restored.libraryId,
+    retryOptions,
+    restored.remoteLayout,
+  );
+  const state = materializeOperations(operations);
+  const local = await library.getStats();
+  const remoteArticles = Object.values(state.articles);
+  return {
+    localArticles: local.articles,
+    localSnapshots: local.snapshots,
+    remoteArticles: remoteArticles.filter((article) => !article.deleted).length,
+    remoteDeletedArticles: remoteArticles.filter((article) => article.deleted).length,
+    remoteSnapshots: Object.keys(state.snapshots).length,
+    remoteOperations: operations.length,
+    conflicts: state.conflicts.length,
+  };
+}
+
 async function restoreMissingBlobs(
   library: Library,
   provider: SyncObjectStore,
-  keys: Pick<LibraryKeyMaterial, 'masterKey' | 'libraryId'>,
+  keys: Pick<LibraryKeyMaterial, 'masterKey' | 'libraryId' | 'remoteLayout'>,
   result: SyncRunResult,
   retryOptions?: RetryOptions,
 ): Promise<number> {
   let restored = 0;
   for (const blob of requiredSyncBlobs(result.materialized)) {
     if (await library.hasSyncBlob(blob.id)) continue;
-    const path = `blobs/${await remoteBlobId(keys.masterKey, blob.id)}`;
+    const prefix = keys.remoteLayout === 'legacy' ? '' : `libraries/${keys.libraryId}/`;
+    const path = `${prefix}blobs/${await remoteBlobId(keys.masterKey, blob.id)}`;
     const bytes = await downloadEncryptedBlob(
       provider,
       keys.masterKey,
       keys.libraryId,
       path,
       retryOptions,
+      keys.remoteLayout,
     );
     await library.importSyncedBlob(blob.id, blob.mediaType, bytes);
     restored += 1;
@@ -59,6 +101,7 @@ export async function synchronizeLibrary(
       blob.id,
       blob.bytes,
       retryOptions,
+      keys.remoteLayout,
     );
   }
   const result = await syncOperationLog(
@@ -67,6 +110,7 @@ export async function synchronizeLibrary(
     keys.libraryId,
     operations,
     retryOptions,
+    keys.remoteLayout,
   );
   if (result.state === 'conflict') {
     await library.storeSyncOperations(result.operations);
@@ -82,6 +126,7 @@ export async function restoreLibraryFromRemote(
   provider: SyncObjectStore,
   recoveryKey: string,
   retryOptions?: RetryOptions,
+  options: { allowMerge?: boolean } = {},
 ): Promise<{ keys: LibraryKeyMaterial; result: LibrarySyncResult }> {
   const restored = await restoreLibraryKey(provider, recoveryKey, retryOptions);
   const keys: LibraryKeyMaterial = { ...restored, recoveryKey };
@@ -91,7 +136,7 @@ export async function restoreLibraryFromRemote(
   }
   if (!associatedLibrary) {
     const stats = await library.getStats();
-    if (stats.articles > 0 || stats.snapshots > 0) {
+    if ((stats.articles > 0 || stats.snapshots > 0) && !options.allowMerge) {
       throw new Error(
         'Restore requires a clean local library. Start sync from this device instead of merging an unrelated library.',
       );

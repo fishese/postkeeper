@@ -7,6 +7,7 @@ import {
   initializeRemoteLibrary,
   MemorySyncObjectStore,
   restoreLibraryKey,
+  remoteLibraryMetadataPath,
   syncOperationLog,
   uploadEncryptedBlob,
 } from './index';
@@ -103,19 +104,58 @@ describe('sync integration', () => {
     const remote = new MemorySyncObjectStore();
     const keys = await createLibraryKeyMaterial();
     await initializeRemoteLibrary(remote, keys);
-    const current = await remote.get('library-metadata/root.json');
+    const metadataPath = remoteLibraryMetadataPath(keys.libraryId);
+    const current = await remote.get(metadataPath);
     const damaged = JSON.parse(new TextDecoder().decode(current.bytes)) as {
       cipher: { ciphertext: string };
     };
     const last = damaged.cipher.ciphertext.at(-1);
     damaged.cipher.ciphertext = `${damaged.cipher.ciphertext.slice(0, -1)}${last === 'A' ? 'B' : 'A'}`;
     await remote.putConditional(
-      'library-metadata/root.json',
+      metadataPath,
       new TextEncoder().encode(JSON.stringify(damaged)),
       current.etag,
     );
     await expect(initializeRemoteLibrary(remote, keys)).rejects.toMatchObject({
       code: 'conflict',
     });
+  });
+
+  it('keeps legacy pk1 libraries on their original root object layout', async () => {
+    const remote = new MemorySyncObjectStore();
+    const created = await createLibraryKeyMaterial();
+    const legacyRecovery = `pk1_${created.recoveryKey.split('.')[1]}`;
+    const legacy = { ...created, recoveryKey: legacyRecovery, remoteLayout: 'legacy' as const };
+    await initializeRemoteLibrary(remote, legacy);
+    const log = createDeviceOperationLog('legacy-device');
+    appendOperation(log, {
+      kind: 'entity.field.set',
+      entityType: 'article',
+      entityId: 'legacy-article',
+      field: 'title',
+      value: 'Legacy data',
+    });
+    await syncOperationLog(
+      remote,
+      legacy.masterKey,
+      legacy.libraryId,
+      log.operations,
+      undefined,
+      'legacy',
+    );
+    expect((await remote.list('devices/')).objects).toHaveLength(1);
+    expect((await remote.list('libraries/')).objects).toHaveLength(0);
+
+    const restored = await restoreLibraryKey(remote, legacyRecovery);
+    expect(restored.remoteLayout).toBe('legacy');
+    const result = await syncOperationLog(
+      remote,
+      restored.masterKey,
+      restored.libraryId,
+      [],
+      undefined,
+      restored.remoteLayout,
+    );
+    expect(result.materialized.articles['legacy-article']?.values.title).toBe('Legacy data');
   });
 });

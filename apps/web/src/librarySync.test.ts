@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { openLibrary } from '@postkeeper/local-store';
 import { PUBLIC_FIXTURE } from '@postkeeper/test-fixtures';
 import { createLibraryKeyMaterial, MemorySyncObjectStore } from '@postkeeper/sync-core';
-import { restoreLibraryFromRemote, synchronizeLibrary } from './librarySync';
+import { previewLibraryMerge, restoreLibraryFromRemote, synchronizeLibrary } from './librarySync';
 
 function dbName(label: string): string {
   return `postkeeper-sync-${label}-${crypto.randomUUID()}`;
@@ -40,7 +40,7 @@ describe('library sync bridge', () => {
     const originalPut = remote.putImmutable.bind(remote);
     let edited = false;
     vi.spyOn(remote, 'putImmutable').mockImplementation(async (...args) => {
-      if (!edited && args[0].startsWith('blobs/')) {
+      if (!edited && args[0].includes('/blobs/')) {
         edited = true;
         await source.updateArticle(article.id, { isFavorite: true });
       }
@@ -152,5 +152,41 @@ describe('library sync bridge', () => {
     expect(await unrelated.listArticles('all')).toHaveLength(1);
     await source.close();
     await unrelated.close();
+  });
+
+  it('previews and then merges nonempty local and remote libraries without replacing either side', async () => {
+    const remote = new MemorySyncObjectStore();
+    const source = await openLibrary({ name: dbName('merge-source') });
+    const local = await openLibrary({ name: dbName('merge-local') });
+    const keys = await createLibraryKeyMaterial();
+    try {
+      await source.importTrustedFixture(PUBLIC_FIXTURE);
+      await synchronizeLibrary(source, remote, keys);
+      await local.importTrustedFixture({
+        ...PUBLIC_FIXTURE,
+        originalUrl: 'https://fixtures.postkeeper.local/local-only',
+        canonicalUrl: 'https://fixtures.postkeeper.local/local-only',
+        title: 'Local-only article',
+      });
+
+      const preview = await previewLibraryMerge(local, remote, keys.recoveryKey);
+      expect(preview).toMatchObject({
+        localArticles: 1,
+        remoteArticles: 1,
+        remoteDeletedArticles: 0,
+      });
+      expect(await local.listArticles('all')).toHaveLength(1);
+
+      await restoreLibraryFromRemote(local, remote, keys.recoveryKey, undefined, {
+        allowMerge: true,
+      });
+      expect((await local.listArticles('all')).map((article) => article.title).sort()).toEqual([
+        'A public fixture article',
+        'Local-only article',
+      ]);
+    } finally {
+      source.close();
+      local.close();
+    }
   });
 });

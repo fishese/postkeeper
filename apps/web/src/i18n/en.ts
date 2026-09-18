@@ -179,11 +179,24 @@ export const en = {
     'Google Drive connected. Local data remains authoritative until you sync.',
   'syncPanel.selfHostedConnectedLocalDataRemains':
     'Self-hosted server connected. Local data remains authoritative until you sync.',
+  'syncPanel.rememberedDeviceReconnected':
+    'This trusted device reconnected. Local data remains available offline.',
+  'syncPanel.rememberedSessionExpired':
+    'The remembered server session expired. Sign in again; your local library is unchanged.',
+  'syncPanel.rememberThisDevice': 'Remember this trusted device',
+  'syncPanel.couldNotRememberDevice':
+    'Connected, but this browser could not retain the trusted-device session. Sign in again after reloading.',
   'syncPanel.recoveryKeyCreatedInMemorySave':
     'Recovery key created in memory. Save it before the first upload.',
   'syncPanel.encryptingLocalChangesAndSynchronizing': 'Encrypting local changes and synchronizing…',
   'syncPanel.verifyingTheRecoveryKeyAndRestoring':
     'Verifying the recovery key and restoring encrypted data…',
+  'syncPanel.mergePreviewReady': 'Review the local and remote library summary before merging.',
+  'syncPanel.mergingLibraries': 'Merging the local and remote libraries…',
+  'syncPanel.mergePreviewSummary':
+    'Local: {localArticles} articles and {localSnapshots} snapshots. Remote: {remoteArticles} active articles, {remoteDeleted} deleted articles, {remoteSnapshots} snapshots, and {operations} operations. Immutable conflicts detected: {conflicts}.',
+  'syncPanel.mergeAndEnableSync': 'Merge and enable sync',
+  'syncPanel.cancelMerge': 'Cancel merge',
   'syncPanel.restoreRetainedConflictingSnapshotVariantsFor':
     'Restore retained conflicting snapshot variants for review.',
   'syncPanel.disconnectedTheLocalLibraryIsStill':
@@ -198,7 +211,7 @@ export const en = {
   'syncPanel.googleDrive': 'Google Drive',
   'syncPanel.selfHostedPocketBase': 'Self-hosted PocketBase',
   'syncPanel.selfHostedConnectionHint':
-    'Connect to a PostKeeper PocketBase adapter over HTTPS. The endpoint and identity are remembered on this device; the password and access token stay in memory only.',
+    'Connect to a PostKeeper PocketBase adapter over HTTPS. Public account creation is disabled. A trusted device can retain an encrypted session; the password is never saved.',
   'syncPanel.serverUrl': 'Server URL',
   'syncPanel.serverUrlExample': 'https://postkeeper.example.ts.net/',
   'syncPanel.identity': 'Email or username',
@@ -228,5 +241,5 @@ export const en = {
   'syncPanel.driveReceivesEncryptedObjectsInIts':
     'Drive receives encrypted objects in its hidden app-data folder. Keys and access tokens stay in memory for this session unless you explicitly save an encrypted Android device copy.',
   'syncPanel.selfHostedReceivesOnlyEncryptedObjects':
-    'The self-hosted server receives opaque encrypted objects. Your recovery key, password, and decrypted article content are not uploaded. The access token stays in memory for this session.',
+    'The self-hosted server receives opaque encrypted objects. Your recovery key, password, and decrypted article content are not uploaded. Trusted-device access can be removed with Disconnect.',
 } as const;

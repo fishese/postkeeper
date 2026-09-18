@@ -39,7 +39,7 @@ final class KeyVault {
   }
 
   void save(String recovery) throws Exception {
-    if (!recovery.matches("pk1_[A-Za-z0-9_-]{43}"))
+    if (!recovery.matches("pk(?:1_[A-Za-z0-9_-]{43}|2_[A-Za-z0-9_-]{24}\\.[A-Za-z0-9_-]{43})"))
       throw new IllegalArgumentException("Enter a valid PostKeeper recovery key.");
     Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
     cipher.init(Cipher.ENCRYPT_MODE, key());

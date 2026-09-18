@@ -14,7 +14,9 @@ test('encrypted sync setup requires recovery-key confirmation and connection', a
   ).toBeVisible();
 
   await page.getByRole('button', { name: 'Create library recovery key' }).click();
-  await expect(page.getByTestId('recovery-key')).toHaveValue(/^pk1_[A-Za-z0-9_-]{43}$/u);
+  await expect(page.getByTestId('recovery-key')).toHaveValue(
+    /^pk2_[A-Za-z0-9_-]{24}\.[A-Za-z0-9_-]{43}$/u,
+  );
   const syncButton = page.getByRole('button', { name: 'Sync now' });
   await expect(syncButton).toBeDisabled();
   await page.getByRole('checkbox', { name: /I saved the recovery key/u }).check();

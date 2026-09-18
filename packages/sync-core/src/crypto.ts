@@ -1,12 +1,14 @@
 const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true });
 
-export const RECOVERY_KEY_PREFIX = 'pk1_';
+export const RECOVERY_KEY_PREFIX = 'pk2_';
+export const LEGACY_RECOVERY_KEY_PREFIX = 'pk1_';
 
 export type LibraryKeyMaterial = {
   masterKey: Uint8Array;
   recoveryKey: string;
   libraryId: string;
+  remoteLayout: 'legacy' | 'namespaced';
   wrappedMasterKey: WrappedMasterKeyEnvelope;
 };
 
@@ -114,11 +116,36 @@ async function deriveLibraryId(masterKey: Uint8Array): Promise<string> {
   return toBase64Url(new Uint8Array(signature).slice(0, 18));
 }
 
+export async function verifyMasterKeyLibraryId(
+  masterKey: Uint8Array,
+  libraryId: string,
+): Promise<boolean> {
+  return masterKey.byteLength === 32 && (await deriveLibraryId(masterKey)) === libraryId;
+}
+
 function recoveryBytes(recoveryKey: string): Uint8Array<ArrayBuffer> {
-  if (!recoveryKey.startsWith(RECOVERY_KEY_PREFIX)) throw new Error('Invalid recovery key format.');
-  const bytes = fromBase64Url(recoveryKey.slice(RECOVERY_KEY_PREFIX.length), 'Recovery key');
+  const encoded = recoveryKey.startsWith(LEGACY_RECOVERY_KEY_PREFIX)
+    ? recoveryKey.slice(LEGACY_RECOVERY_KEY_PREFIX.length)
+    : recoveryKey.startsWith(RECOVERY_KEY_PREFIX)
+      ? recoveryKey.slice(RECOVERY_KEY_PREFIX.length).split('.')[1]
+      : undefined;
+  if (!encoded) throw new Error('Invalid recovery key format.');
+  const bytes = fromBase64Url(encoded, 'Recovery key');
   if (bytes.byteLength !== 32) throw new Error('Invalid recovery key format.');
   return bytes;
+}
+
+/** Returns the opaque remote-library locator embedded in version-2 recovery keys. */
+export function recoveryKeyLibraryId(recoveryKey: string): string | null {
+  if (recoveryKey.startsWith(LEGACY_RECOVERY_KEY_PREFIX)) return null;
+  if (!recoveryKey.startsWith(RECOVERY_KEY_PREFIX)) throw new Error('Invalid recovery key format.');
+  const [libraryId, secret, extra] = recoveryKey.slice(RECOVERY_KEY_PREFIX.length).split('.');
+  if (extra !== undefined || !libraryId || !secret) throw new Error('Invalid recovery key format.');
+  if (!/^[A-Za-z0-9_-]{24}$/u.test(libraryId)) throw new Error('Invalid recovery key format.');
+  if (fromBase64Url(secret, 'Recovery key').byteLength !== 32) {
+    throw new Error('Invalid recovery key format.');
+  }
+  return libraryId;
 }
 
 function recoveryAdditionalData(libraryId: string): Uint8Array<ArrayBuffer> {
@@ -129,12 +156,13 @@ function recoveryAdditionalData(libraryId: string): Uint8Array<ArrayBuffer> {
 
 export async function createLibraryKeyMaterial(): Promise<LibraryKeyMaterial> {
   const masterKey = randomBytes(32);
-  const recoveryKey = `${RECOVERY_KEY_PREFIX}${toBase64Url(randomBytes(32))}`;
   const libraryId = await deriveLibraryId(masterKey);
+  const recoveryKey = `${RECOVERY_KEY_PREFIX}${libraryId}.${toBase64Url(randomBytes(32))}`;
   return {
     masterKey,
     recoveryKey,
     libraryId,
+    remoteLayout: 'namespaced',
     wrappedMasterKey: await wrapMasterKey(masterKey, recoveryKey, libraryId),
   };
 }

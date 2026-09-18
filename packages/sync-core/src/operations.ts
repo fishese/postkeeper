@@ -252,13 +252,10 @@ export function materializeOperations(operations: readonly SyncOperation[]): Mat
     const values = Object.fromEntries(
       [...registers].map(([field, register]) => [field, register.value]),
     );
-    const newestField = [...registers.values()]
-      .map((register) => register.operation)
-      .sort(compareOperations)
-      .at(-1);
-    const deleted = Boolean(
-      tombstone && (!newestField || compareOperations(newestField, tombstone) <= 0),
-    );
+    // Deletion is intentionally permanent and delete-wins. A stale device may emit
+    // newer field operations after reconnecting, but ordinary edits must never
+    // resurrect an entity. A future undo feature needs an explicit restore operation.
+    const deleted = Boolean(tombstone);
     (entityType === 'article' ? articles : categories)[id] = { id, values, deleted };
   }
 

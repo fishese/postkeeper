@@ -13,10 +13,13 @@ The DS720+ uses a 64-bit Intel processor, matching PocketBase's Linux `amd64` bu
 After the container starts:
 
 1. Open the PocketBase superuser setup URL shown in the container log from a trusted device.
-2. In the PocketBase dashboard, open the `postkeeper_users` collection and create your user. Public registration is disabled.
-3. Keep `pb_data` on persistent NAS storage and include it in NAS backups.
-4. Enable PocketBase rate limiting. Configure SMTP only if you want PocketBase password-reset email.
-5. Expose the service through HTTPS. Do not expose port 8090 directly to the internet.
+2. Confirm the startup log applied the migrations from `pb_migrations` and loaded `pb_hooks/postkeeper.pb.js`. The dashboard should show the shared `users` auth collection and `postkeeper_objects` base collection.
+3. In the PocketBase dashboard, open `users` and create an ordinary user for the app. Do not enter the PocketBase superuser credentials in PostKeeper. Public registration is disabled. Other self-hosted apps may authenticate against this collection, but each app must keep its own locked data collections and routes.
+4. Keep `pb_data` on persistent NAS storage and include it in NAS backups.
+5. Enable PocketBase rate limiting. Configure SMTP only if you want PocketBase password-reset email.
+6. Expose the service through HTTPS. Do not expose port 8090 directly to the internet.
+
+If upgrading an existing PostKeeper deployment, stop PocketBase, back up `pb_data`, replace the repository-managed migrations/hooks, and restart it. Migration `1758240000_shared_users.js` renames a legacy `postkeeper_users` auth collection to `users` without replacing its accounts. It deliberately aborts if both collections already exist so an administrator can reconcile them without silent account loss.
 
 ## Tailscale
 
@@ -52,5 +55,7 @@ Authenticated routes are under `/api/postkeeper/v1/`:
 - `PUT object?path=` with `If-Match: <etag>` performs an atomic conditional update.
 
 The adapter caps each encrypted object at 16 MiB and defaults each user to 2 GiB. Set `POSTKEEPER_MAX_USER_BYTES` to another positive byte count if needed. Server or NAS loss never prevents PostKeeper from opening content already present in a device's local library.
+
+New recovery keys contain an opaque library identifier, and their objects are stored beneath `libraries/<library-id>/`. This permits multiple PostKeeper libraries under one shared account without exposing library contents. Legacy recovery keys continue using the original root object layout. Each `postkeeper_objects` record is owned by exactly one authenticated `users` record, and collection API rules deny cross-account list, view, create, update, and delete access independently of client filtering; the custom routes repeat the same authenticated-owner checks.
 
 Nextcloud/WebDAV is not included because browser CORS behavior and atomic conditional writes vary by deployment. A future adapter can implement this same protocol without changing PostKeeper's local model or encrypted sync format.

@@ -41,7 +41,7 @@ routerAdd(
         : {}),
     });
   },
-  $apis.requireAuth('postkeeper_users'),
+  $apis.requireAuth('users'),
 );
 
 routerAdd(
@@ -71,7 +71,7 @@ routerAdd(
       if (filesystem) filesystem.close();
     }
   },
-  $apis.requireAuth('postkeeper_users'),
+  $apis.requireAuth('users'),
 );
 
 routerAdd(
@@ -120,6 +120,6 @@ routerAdd(
     });
     return e.json(result.status === 'created' ? 201 : 200, result);
   },
-  $apis.requireAuth('postkeeper_users'),
+  $apis.requireAuth('users'),
   $apis.bodyLimit(MAX_OBJECT_BYTES + 1),
 );

@@ -91,7 +91,7 @@ describe('operation merge', () => {
     ).toBe('B');
   });
 
-  it('retains tombstones and permits only a later explicit field operation to resurrect', () => {
+  it('keeps tombstones delete-wins when a stale device emits a later field edit', () => {
     const log = createDeviceOperationLog('device');
     appendOperation(
       log,
@@ -126,7 +126,7 @@ describe('operation merge', () => {
       '2026-09-01T02:00:00.000Z',
     );
     expect(materializeOperations(log.operations).articles.a).toMatchObject({
-      deleted: false,
+      deleted: true,
       values: { title: 'restored' },
     });
   });

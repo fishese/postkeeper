@@ -15,12 +15,67 @@ export class PocketBasePasswordAuthorizer {
 
   constructor(options: PocketBasePasswordAuthorizerOptions) {
     this.endpoint = normalizeSelfHostedEndpoint(options.endpoint);
-    this.collection = options.collection ?? 'postkeeper_users';
+    this.collection = options.collection ?? 'users';
     this.fetcher = options.fetch ?? globalThis.fetch.bind(globalThis);
   }
 
   token(): string {
     return this.accessToken;
+  }
+
+  restore(token: string): void {
+    if (!token.trim()) throw new Error('A saved PocketBase token is required.');
+    this.accessToken = token.trim();
+  }
+
+  async refresh(): Promise<void> {
+    if (!this.accessToken) {
+      throw new SyncProviderError('auth-required', 'PocketBase sign-in has expired.');
+    }
+    const url = new URL(
+      `api/collections/${encodeURIComponent(this.collection)}/auth-refresh`,
+      this.endpoint,
+    );
+    const response = await this.fetcher(url, {
+      method: 'POST',
+      credentials: 'omit',
+      headers: { Authorization: this.accessToken },
+    });
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new SyncProviderError(
+          'invalid-response',
+          'PocketBase is reachable, but the shared users auth collection is missing. Install the PostKeeper server migrations and hooks.',
+        );
+      }
+      if (response.status === 400 || response.status === 401 || response.status === 403) {
+        this.disconnect();
+        throw new SyncProviderError('auth-required', 'PocketBase sign-in has expired.');
+      }
+      if (response.status === 429 || response.status >= 500) {
+        throw new SyncProviderError(
+          'retryable',
+          `PocketBase session refresh failed (${response.status}).`,
+        );
+      }
+      throw new SyncProviderError(
+        'invalid-response',
+        `PocketBase session refresh failed (${response.status}).`,
+      );
+    }
+    let body: { token?: unknown };
+    try {
+      body = (await response.json()) as { token?: unknown };
+    } catch {
+      throw new SyncProviderError('invalid-response', 'PocketBase returned invalid refresh JSON.');
+    }
+    if (typeof body.token !== 'string' || !body.token) {
+      throw new SyncProviderError(
+        'invalid-response',
+        'PocketBase did not refresh the access token.',
+      );
+    }
+    this.accessToken = body.token;
   }
 
   async connect(identity: string, password: string): Promise<void> {
@@ -37,6 +92,12 @@ export class PocketBasePasswordAuthorizer {
       body: JSON.stringify({ identity: identity.trim(), password }),
     });
     if (!response.ok) {
+      if (response.status === 404) {
+        throw new SyncProviderError(
+          'invalid-response',
+          'PocketBase is reachable, but the shared users auth collection is missing. Install the PostKeeper server migrations and hooks.',
+        );
+      }
       if (response.status === 400 || response.status === 401 || response.status === 403) {
         throw new SyncProviderError(
           'auth-required',
