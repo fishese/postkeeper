@@ -1,6 +1,6 @@
 # Adopted dependencies
 
-Only the dependencies below are intentionally adopted. Version ranges are pinned by `package-lock.json` after installation; maintenance was reviewed from the project release streams on 2026-08-21.
+Only the dependencies below are intentionally adopted. Version ranges are pinned by `package-lock.json` after installation; maintenance was reviewed from the project release streams on 2026-08-21 unless a later section says otherwise.
 
 | Dependency              | License    | Maintenance status                        | Why it is used                                                              |
 | ----------------------- | ---------- | ----------------------------------------- | --------------------------------------------------------------------------- |
@@ -56,3 +56,9 @@ Build tooling pins Android Gradle Plugin 8.13.0 and Gradle 8.14.3 (Apache-2.0); 
 Resolved Android runtime transitive dependencies are AndroidX annotations 1.8.1, annotation-experimental 1.4.1, core 1.1.0, lifecycle/common and arch.core 2.0.0, versionedparcelable 1.1.0, collection 1.0.0; Kotlin standard library/common 1.7.10, JetBrains annotations 13.0, and JSpecify 1.0.0. These use Apache-2.0. `apps/android/NOTICE.txt` and the full Apache license are appended to the APK's shared runtime notices. Gradle's dependency report is the authoritative resolved graph; future upgrades need regression and license review. Android Lint's upgrade suggestions are documented, not automatically applied.
 
 References: [AndroidX WebKit releases](https://developer.android.com/jetpack/androidx/releases/webkit), [AGP 8.13 requirements](https://developer.android.com/build/releases/agp-8-13-0-release-notes), and [Android setup](ANDROID_SETUP.md).
+
+## Milestone 7 additions
+
+The client adds no third-party runtime dependency. `packages/sync-http` uses the standard Fetch API and the existing encrypted sync core.
+
+The optional self-hosted server pins PocketBase 0.40.4 (MIT), reviewed from the official release and documentation on 2026-09-18. The Dockerfile downloads the official Linux amd64 archive and verifies SHA-256 `9042ec818570e79c3628dadcd0a756c1496d9e1173918ec409d133c02f82e5fa`. PocketBase is actively developed but remains pre-1.0; administrators must back up `pb_data`, pin versions, and review migrations and release notes before upgrades. PocketBase is deployed by the user and is not bundled in the web app or Android APK. Tailscale is an optional deployment service and no Tailscale library is linked into PostKeeper.

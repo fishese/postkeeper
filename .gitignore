@@ -1,4 +1,6 @@
 node_modules/
+servers/pocketbase/data/
+servers/pocketbase/pb_data/
 dist/
 dist-*/
 apps/extension/build/

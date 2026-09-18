@@ -127,7 +127,7 @@ Self-contained HTML export may follow after PDF/print. Public hosted sharing lin
 
 - The application works without any synchronization provider.
 - Initial provider: direct Google Drive API or a provider selected in the decision log before the sync milestone begins.
-- Planned second provider: self-hosted PostKeeper sync API or a compatible file/object server.
+- Second provider: the PostKeeper opaque-object HTTPS protocol, with PocketBase as its first server adapter.
 - Remote representations are encrypted before upload.
 - A live browser database is never synchronized as a single file.
 - Content blobs are immutable and verified by hash.

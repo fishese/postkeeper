@@ -6,13 +6,31 @@ import {
   createLibraryKeyMaterial,
   SyncProviderError,
   type LibraryKeyMaterial,
+  type SyncObjectStore,
 } from '@postkeeper/sync-core';
 import { GoogleDriveObjectStore, GoogleIdentityAuthorizer } from '@postkeeper/sync-google-drive';
+import {
+  HttpSyncObjectStore,
+  normalizeSelfHostedEndpoint,
+  PocketBasePasswordAuthorizer,
+} from '@postkeeper/sync-http';
 import { loadGoogleIdentityServices } from './googleIdentity';
 import { restoreLibraryFromRemote, synchronizeLibrary } from './librarySync';
 import { isNativeAndroid, nativeRequest } from './nativeBridge';
 
 type SyncPhase = 'local' | 'pending' | 'synced' | 'error' | 'conflict' | 'reconnect-required';
+type SyncProviderKind = 'google-drive' | 'self-hosted';
+
+const SELF_HOSTED_ENDPOINT_KEY = 'postkeeper.selfHosted.endpoint';
+const SELF_HOSTED_IDENTITY_KEY = 'postkeeper.selfHosted.identity';
+
+function savedSetting(key: string): string {
+  try {
+    return localStorage.getItem(key) ?? '';
+  } catch {
+    return '';
+  }
+}
 
 export function SyncPanel({
   library,
@@ -26,9 +44,13 @@ export function SyncPanel({
   const native = isNativeAndroid();
   const clientId = native ? '' : (import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() ?? '');
   const authorizer = useRef<GoogleIdentityAuthorizer | null>(null);
-  const provider = useRef<GoogleDriveObjectStore | null>(null);
+  const pocketBaseAuthorizer = useRef<PocketBasePasswordAuthorizer | null>(null);
+  const provider = useRef<SyncObjectStore | null>(null);
+  const [providerKind, setProviderKind] = useState<SyncProviderKind>(() =>
+    native ? 'self-hosted' : 'google-drive',
+  );
   const [phase, setPhase] = useState<SyncPhase>('local');
-  const [message, setMessage] = useState(t('syncPanel.localOnlyGoogleDriveSyncIs'));
+  const [message, setMessage] = useState(t('syncPanel.localOnlySyncIsOptional'));
   const [connected, setConnected] = useState(false);
   const [identityReady, setIdentityReady] = useState(false);
   const [loadingIdentity, setLoadingIdentity] = useState(false);
@@ -36,6 +58,13 @@ export function SyncPanel({
   const [recoveryInput, setRecoveryInput] = useState('');
   const [confirmedRecovery, setConfirmedRecovery] = useState(false);
   const [lastSuccess, setLastSuccess] = useState<string | null>(null);
+  const [selfHostedEndpoint, setSelfHostedEndpoint] = useState(() =>
+    savedSetting(SELF_HOSTED_ENDPOINT_KEY),
+  );
+  const [selfHostedIdentity, setSelfHostedIdentity] = useState(() =>
+    savedSetting(SELF_HOSTED_IDENTITY_KEY),
+  );
+  const [selfHostedPassword, setSelfHostedPassword] = useState('');
   useEffect(() => {
     onDiagnosticsChange?.({ phase, connected, lastSuccess });
   }, [phase, connected, lastSuccess, onDiagnosticsChange]);
@@ -65,7 +94,7 @@ export function SyncPanel({
     }
   }
 
-  async function connect() {
+  async function connectGoogleDrive() {
     const auth = authorizer.current;
     if (!auth) return;
     try {
@@ -75,6 +104,32 @@ export function SyncPanel({
       setConnected(true);
       setPhase('local');
       setMessage(t('syncPanel.googleDriveConnectedLocalDataRemains'));
+    } catch (cause) {
+      showError(cause);
+    }
+  }
+
+  async function connectSelfHosted() {
+    try {
+      const endpoint = normalizeSelfHostedEndpoint(selfHostedEndpoint);
+      const auth = new PocketBasePasswordAuthorizer({ endpoint });
+      await auth.connect(selfHostedIdentity, selfHostedPassword);
+      pocketBaseAuthorizer.current = auth;
+      provider.current = new HttpSyncObjectStore({
+        endpoint,
+        accessToken: () => auth.token(),
+      });
+      try {
+        localStorage.setItem(SELF_HOSTED_ENDPOINT_KEY, endpoint);
+        localStorage.setItem(SELF_HOSTED_IDENTITY_KEY, selfHostedIdentity.trim());
+      } catch {
+        // Connection remains usable when preferences cannot be persisted.
+      }
+      setSelfHostedEndpoint(endpoint);
+      setSelfHostedPassword('');
+      setConnected(true);
+      setPhase('local');
+      setMessage(t('syncPanel.selfHostedConnectedLocalDataRemains'));
     } catch (cause) {
       showError(cause);
     }
@@ -150,12 +205,19 @@ export function SyncPanel({
 
   async function disconnect() {
     await authorizer.current?.disconnect();
+    pocketBaseAuthorizer.current?.disconnect();
     authorizer.current = null;
+    pocketBaseAuthorizer.current = null;
     provider.current = null;
     setConnected(false);
     setIdentityReady(false);
     setPhase('local');
-    setMessage(t('syncPanel.disconnectedFromGoogleDriveTheLocal'));
+    setMessage(t('syncPanel.disconnectedTheLocalLibraryIsStill'));
+  }
+
+  function chooseProvider(next: SyncProviderKind) {
+    void disconnect();
+    setProviderKind(next);
   }
 
   return (
@@ -167,7 +229,7 @@ export function SyncPanel({
         <strong>{t(`sync.phase.${phase}`)}</strong> · {message}
       </p>
       <p className="sync-note">
-        {t('syncPanel.optionalSyncSendsEncryptedLibraryData')}{' '}
+        {t('syncPanel.optionalSyncSendsEncryptedLibraryDataTo')}{' '}
         <a
           href={`${import.meta.env.BASE_URL}privacy.html`}
           target="_blank"
@@ -181,31 +243,91 @@ export function SyncPanel({
         </a>{' '}
         {t('syncPanel.openInANewTab')}
       </p>
-      {!clientId ? (
-        <p>
-          {native ? (
-            t('syncPanel.googleDriveSyncIsAvailableIn')
-          ) : (
-            <>{t('syncPanel.googleDriveSyncIsNotConfigured')}</>
-          )}
-        </p>
+      <label>
+        {t('syncPanel.provider')}
+        <select
+          value={providerKind}
+          disabled={connected || phase === 'pending'}
+          onChange={(event) => chooseProvider(event.target.value as SyncProviderKind)}
+        >
+          {!native && <option value="google-drive">{t('syncPanel.googleDrive')}</option>}
+          <option value="self-hosted">{t('syncPanel.selfHostedPocketBase')}</option>
+        </select>
+      </label>
+      {providerKind === 'google-drive' ? (
+        !clientId ? (
+          <p>{t('syncPanel.googleDriveSyncIsNotConfigured')}</p>
+        ) : (
+          <div className="sync-actions">
+            {identityReady ? (
+              <button
+                type="button"
+                onClick={() => void (connected ? disconnect() : connectGoogleDrive())}
+              >
+                {connected
+                  ? t('syncPanel.disconnectGoogleDrive')
+                  : t('syncPanel.connectGoogleDrive')}
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled={loadingIdentity}
+                onClick={() => void prepareConnection()}
+              >
+                {loadingIdentity
+                  ? t('syncPanel.loadingGoogleSignIn')
+                  : t('syncPanel.loadGoogleSignIn')}
+              </button>
+            )}
+          </div>
+        )
       ) : (
-        <div className="sync-actions">
-          {identityReady ? (
-            <button type="button" onClick={() => void (connected ? disconnect() : connect())}>
-              {connected ? t('syncPanel.disconnectGoogleDrive') : t('syncPanel.connectGoogleDrive')}
-            </button>
-          ) : (
+        <div className="stack self-hosted-connection">
+          <p>{t('syncPanel.selfHostedConnectionHint')}</p>
+          <label>
+            {t('syncPanel.serverUrl')}
+            <input
+              type="url"
+              value={selfHostedEndpoint}
+              disabled={connected}
+              placeholder={t('syncPanel.serverUrlExample')}
+              onChange={(event) => setSelfHostedEndpoint(event.target.value)}
+              autoComplete="url"
+            />
+          </label>
+          <label>
+            {t('syncPanel.identity')}
+            <input
+              value={selfHostedIdentity}
+              disabled={connected}
+              onChange={(event) => setSelfHostedIdentity(event.target.value)}
+              autoComplete="username"
+            />
+          </label>
+          {!connected && (
+            <label>
+              {t('syncPanel.password')}
+              <input
+                type="password"
+                value={selfHostedPassword}
+                onChange={(event) => setSelfHostedPassword(event.target.value)}
+                autoComplete="current-password"
+              />
+            </label>
+          )}
+          <div className="sync-actions">
             <button
               type="button"
-              disabled={loadingIdentity}
-              onClick={() => void prepareConnection()}
+              disabled={
+                phase === 'pending' ||
+                (!connected &&
+                  (!selfHostedEndpoint.trim() || !selfHostedIdentity.trim() || !selfHostedPassword))
+              }
+              onClick={() => void (connected ? disconnect() : connectSelfHosted())}
             >
-              {loadingIdentity
-                ? t('syncPanel.loadingGoogleSignIn')
-                : t('syncPanel.loadGoogleSignIn')}
+              {connected ? t('syncPanel.disconnectSelfHosted') : t('syncPanel.connectSelfHosted')}
             </button>
-          )}
+          </div>
         </div>
       )}
       <div className="sync-actions">
@@ -296,7 +418,11 @@ export function SyncPanel({
           </button>
         </div>
       )}
-      <p className="sync-note">{t('syncPanel.driveReceivesEncryptedObjectsInIts')}</p>
+      <p className="sync-note">
+        {providerKind === 'google-drive'
+          ? t('syncPanel.driveReceivesEncryptedObjectsInIts')
+          : t('syncPanel.selfHostedReceivesOnlyEncryptedObjects')}
+      </p>
     </section>
   );
 }

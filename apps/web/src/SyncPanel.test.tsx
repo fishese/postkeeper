@@ -17,6 +17,47 @@ afterEach(async () => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.clearAllMocks();
+  localStorage.clear();
+});
+
+test('connects PocketBase while retaining only endpoint and identity preferences', async () => {
+  vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
+  const fetcher = vi.fn(async () => Response.json({ token: 'session-only-token' }));
+  vi.stubGlobal('fetch', fetcher);
+  const host = document.createElement('div');
+  document.body.append(host);
+  root = createRoot(host);
+  await act(async () => {
+    root!.render(<SyncPanel library={{} as Library} onLibraryChanged={vi.fn()} />);
+  });
+
+  const change = (input: HTMLInputElement | HTMLSelectElement, value: string) => {
+    const setter = Object.getOwnPropertyDescriptor(
+      input instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype,
+      'value',
+    )?.set;
+    setter?.call(input, value);
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+  await act(async () => {
+    change(host.querySelector('select')!, 'self-hosted');
+  });
+  const inputs = host.querySelectorAll('input');
+  await act(async () => {
+    change(inputs[0]!, 'https://nas.example.test');
+    change(inputs[1]!, 'person@example.test');
+    change(inputs[2]!, 'do-not-store');
+  });
+  const connect = [...host.querySelectorAll('button')].find(
+    (button) => button.textContent === 'Connect self-hosted server',
+  )!;
+  await act(async () => connect.click());
+
+  expect(fetcher).toHaveBeenCalledOnce();
+  expect(localStorage.getItem('postkeeper.selfHosted.endpoint')).toBe('https://nas.example.test/');
+  expect(localStorage.getItem('postkeeper.selfHosted.identity')).toBe('person@example.test');
+  expect(JSON.stringify(localStorage)).not.toContain('do-not-store');
+  expect(host.querySelector('input[type="password"]')).toBeNull();
 });
 
 test('prepares Google separately and requests the popup synchronously on the next click', async () => {

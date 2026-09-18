@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="How PostKeeper handles local libraries, optional encrypted Google Drive sync, hosting requests, and support information."
+      content="How PostKeeper handles local libraries, optional encrypted sync, hosting requests, and support information."
     />
     <meta
       http-equiv="Content-Security-Policy"
@@ -30,18 +30,18 @@
     <main id="content">
       <p class="eyebrow">Your library, on your devices</p>
       <h1>Privacy Policy</h1>
-      <p class="updated">Last updated: <time datetime="2026-09-02">2 September 2026</time></p>
+      <p class="updated">Last updated: <time datetime="2026-09-18">18 September 2026</time></p>
       <div class="summary">
         <p>
           <strong>We do not operate a server that collects or stores your library.</strong>
-          PostKeeper processes saved content on your device. If you choose Google Drive sync,
-          encrypted copies are stored in your own Google account—not in a maintainer-controlled
-          library service.
+          PostKeeper processes saved content on your device. If you choose sync, encrypted copies
+          are stored in your own Google account or self-hosted PocketBase server—not in a
+          maintainer-controlled library service.
         </p>
         <p>
           This does not mean that no data exists or that no provider processes information. Your
-          device stores your library, Google handles optional authorization and sync, GitHub hosts
-          the website, and support issues are public.
+          device stores your library, your chosen sync provider handles optional remote storage,
+          GitHub hosts the website, and support issues are public.
         </p>
       </div>
 
@@ -54,10 +54,7 @@
           <a href="https://github.com/fishese/postkeeper">fishese/postkeeper project</a>.
           Independently hosted or modified copies may have different operators and policies.
         </p>
-        <p>
-          PostKeeper is a development preview. This policy describes implemented features; a
-          self-hosted sync service remains planned.
-        </p>
+        <p>PostKeeper is a development preview. This policy describes implemented features.</p>
       </section>
 
       <section aria-labelledby="local">
@@ -159,8 +156,30 @@
         </p>
       </section>
 
+      <section aria-labelledby="self-hosted">
+        <h2 id="self-hosted">4. Optional self-hosted PocketBase sync</h2>
+        <p>
+          You can connect PostKeeper to a PocketBase server operated by you or another provider.
+          PostKeeper sends the account identity, bearer authorization token, encrypted objects,
+          object paths, sizes, and request timing to that server. Article text, URLs, images, and
+          library metadata are encrypted on your device before upload. The server does not receive
+          your recovery key.
+        </p>
+        <p>
+          The server URL and account identity are stored on your device. The PocketBase password and
+          access token are held in memory for the current app session and are discarded when you
+          disconnect or reload. The server operator can observe account, IP/network, access-log,
+          object-path, size, and timing information and controls retention and backups.
+        </p>
+        <p>
+          PostKeeper requires HTTPS except for local loopback testing. If you use Tailscale, its
+          network and HTTPS services also process connection metadata under your Tailscale account
+          and policies. The project maintainer cannot administer or delete data from your server.
+        </p>
+      </section>
+
       <section aria-labelledby="providers">
-        <h2 id="providers">4. Hosting, cookies, and support</h2>
+        <h2 id="providers">5. Hosting, cookies, and support</h2>
         <p>
           GitHub Pages serves the app files. Like other web hosts, GitHub processes technical
           request information, such as IP addresses, browser information, requested paths, and
@@ -190,7 +209,7 @@
       </section>
 
       <section aria-labelledby="controls">
-        <h2 id="controls">5. Retention, revocation, and deletion</h2>
+        <h2 id="controls">6. Retention, revocation, and deletion</h2>
         <ul>
           <li>
             <strong>Local copies:</strong> use your browser's site-data controls for the exact
@@ -211,6 +230,12 @@
             irreversible and removes the remote recovery copy.
           </li>
           <li>
+            <strong>Self-hosted copies:</strong> disconnect PostKeeper, then ask the server
+            administrator to delete the PocketBase account or its objects. Stop sync on every device
+            first. Removing the server or its data can be irreversible and does not remove
+            device-local or separately backed-up copies.
+          </li>
+          <li>
             <strong>History:</strong> the current sync format retains operations, snapshot versions,
             and deletion markers. Removing something from a visible view is not a secure erasure of
             its history. Automatic history purging and an in-app remote wipe are not currently
@@ -219,13 +244,13 @@
         </ul>
         <p>
           Retention of local copies depends on your actions and browser storage policies; browsers
-          can also evict data. Google controls retention of data in its systems. We cannot delete
-          copies on your devices or in your Google account on your behalf.
+          can also evict data. Google or your self-hosted operator controls retention in its
+          systems. We cannot delete copies on your devices or provider accounts on your behalf.
         </p>
       </section>
 
       <section aria-labelledby="security">
-        <h2 id="security">6. Security and policy changes</h2>
+        <h2 id="security">7. Security and policy changes</h2>
         <p>
           HTTPS, encrypted sync, and an isolated reader reduce risks but do not guarantee security
           or prevent every loss. An unlocked device, malicious extension, compromised software, or
@@ -239,7 +264,7 @@
       </section>
 
       <section aria-labelledby="contact">
-        <h2 id="contact">7. Questions and privacy requests</h2>
+        <h2 id="contact">8. Questions and privacy requests</h2>
         <p>
           Contact the maintainer through the
           <a href="https://github.com/fishese/postkeeper/issues">PostKeeper issue tracker</a>.
@@ -250,8 +275,8 @@
         <p>
           Depending on applicable law, you may have rights concerning your personal information. We
           can address information you have provided to the project, but do not possess your local
-          library or encrypted Drive account data. Direct provider-held data requests to Google or
-          GitHub as appropriate.
+          library or encrypted provider account data. Direct provider-held data requests to Google,
+          your self-hosted operator, or GitHub as appropriate.
         </p>
       </section>
     </main>

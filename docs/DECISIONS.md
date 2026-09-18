@@ -4,6 +4,16 @@ This file distinguishes accepted decisions from questions that must be resolved 
 
 ## Accepted decisions
 
+### D-028 — PocketBase implements a generic self-hosted opaque-object protocol
+
+Date: 2026-09-18
+Status: accepted
+Context: The user explicitly started Milestone 7, plans to run PocketBase on a Synology DS720+ behind Tailscale, and asked for other services only when trivial.
+Decision: Keep the existing `SyncObjectStore` boundary and add a narrow authenticated HTTP protocol for listing, reading, immutable creation, and ETag-conditional updates of encrypted objects. Ship PocketBase 0.40.4 hooks and migrations as the first server adapter, pinned and hash-verified for Linux amd64. Require HTTPS outside loopback, retain the server password and token only in memory, save only endpoint and identity preferences, and keep Google Drive available in the browser/PWA. Use Tailscale Serve as deployment-level private HTTPS without adding a Tailscale SDK. Do not add Nextcloud/WebDAV until a deployment-independent CORS and atomic-write contract can be guaranteed.
+Consequences: PocketBase observes the account, object paths, ciphertext sizes, timestamps, IP/network metadata and access logs, but not plaintext library content or the recovery key. The app CSP permits outbound HTTPS connections so a user-selected server origin can work; script and frame origins remain restricted, and saved readers retain `connect-src 'none'`. The DS720+ can use the included Container Manager project. PocketBase remains pre-1.0, so its data directory must be backed up and upgrades reviewed. The Android wrapper can use PocketBase without embedded Google OAuth. Milestone 7 remains in progress until the user's NAS/Tailscale deployment passes connection, upload, clean restore, provider-switch and failure acceptance.
+
+References: [Self-hosted sync](SELF_HOSTED_SYNC.md), [PocketBase adapter](../servers/pocketbase/README.md).
+
 ### D-027 — Capture fallbacks and article removal follow-up
 
 Date: 2026-09-09
@@ -221,9 +231,7 @@ Decision deadline: before Milestone 6.
 
 ### O-006 — First self-hosted provider
 
-Choose whether to build a minimal PostKeeper server or target an existing protocol such as WebDAV with a compatibility layer.
-
-Decision deadline: before Milestone 7.
+Resolved by D-028: use the PostKeeper opaque-object HTTPS protocol with PocketBase 0.40.4 as the first server adapter. Defer WebDAV until its deployment-dependent CORS and conditional-write behavior can meet the same contract.
 
 ### O-007 — Product name and licensing
 

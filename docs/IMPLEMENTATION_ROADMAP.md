@@ -205,6 +205,8 @@ Use a stronger review pass for cryptography, conflict resolution, and OAuth. A s
 
 ## 9. Milestone 7 — Self-hosted sync provider
 
+Status: **In progress**. The generic HTTPS provider, PocketBase 0.40.4 adapter, app settings, documentation and local live restore test are implemented. Synology/Tailscale deployment, clean-client restore, provider switching and failure acceptance remain pending until the user's NAS is available.
+
 ### Scope
 
 - Document and implement the minimal opaque-object sync protocol.

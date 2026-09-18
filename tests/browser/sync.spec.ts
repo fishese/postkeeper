@@ -21,6 +21,39 @@ test('encrypted sync setup requires recovery-key confirmation and connection', a
   await expect(syncButton).toBeDisabled();
 });
 
+test('connects to a configured HTTPS PocketBase endpoint without persisting its password', async ({
+  page,
+}) => {
+  let authenticationBody = '';
+  await page.route('https://nas.example.test/**', async (route) => {
+    authenticationBody = route.request().postData() ?? '';
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ token: 'browser-session-token' }),
+    });
+  });
+  await page.goto('/');
+  await openSettings(page, 'Encrypted sync');
+  await page.getByLabel('Sync provider').selectOption('self-hosted');
+  await page.getByLabel('Server URL').fill('https://nas.example.test');
+  await page.getByLabel('Email or username').fill('person@example.test');
+  await page.getByLabel('Password').fill('browser-only-password');
+  await page.getByRole('button', { name: 'Connect self-hosted server' }).click();
+
+  await expect(page.getByTestId('sync-state')).toContainText('Self-hosted server connected');
+  expect(authenticationBody).toContain('person@example.test');
+  expect(authenticationBody).toContain('browser-only-password');
+  await expect(page.getByLabel('Password')).toHaveCount(0);
+  const saved = await page.evaluate(() => ({
+    endpoint: localStorage.getItem('postkeeper.selfHosted.endpoint'),
+    identity: localStorage.getItem('postkeeper.selfHosted.identity'),
+    serialized: JSON.stringify(localStorage),
+  }));
+  expect(saved.endpoint).toBe('https://nas.example.test/');
+  expect(saved.identity).toBe('person@example.test');
+  expect(saved.serialized).not.toContain('browser-only-password');
+});
+
 test('production CSP permits GIS and Drive while the saved reader remains network-isolated', async ({
   page,
 }) => {

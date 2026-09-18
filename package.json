@@ -16,7 +16,7 @@
     "format": "prettier --check .",
     "format:write": "prettier --write .",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit -p packages/domain --pretty false && tsc --noEmit -p packages/capture-format --pretty false && tsc --noEmit -p packages/capture-processing --pretty false && tsc --noEmit -p packages/local-store --pretty false && tsc --noEmit -p packages/sync-core --pretty false && tsc --noEmit -p packages/sync-google-drive --pretty false && tsc --noEmit -p packages/test-fixtures --pretty false && tsc --noEmit -p apps/web --pretty false && tsc --noEmit -p apps/extension --pretty false",
+    "typecheck": "tsc --noEmit -p packages/domain --pretty false && tsc --noEmit -p packages/capture-format --pretty false && tsc --noEmit -p packages/capture-processing --pretty false && tsc --noEmit -p packages/local-store --pretty false && tsc --noEmit -p packages/sync-core --pretty false && tsc --noEmit -p packages/sync-google-drive --pretty false && tsc --noEmit -p packages/sync-http --pretty false && tsc --noEmit -p packages/test-fixtures --pretty false && tsc --noEmit -p apps/web --pretty false && tsc --noEmit -p apps/extension --pretty false",
     "test": "vitest run --passWithNoTests",
     "test:browser": "playwright test",
     "test:extension:firefox-lint": "web-ext lint --source-dir apps/extension/dist-firefox --no-config-discovery --no-input",

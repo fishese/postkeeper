@@ -58,4 +58,4 @@ Website login credentials remain in the browser or the optional capture-browser 
 
 PostKeeper is free software licensed under the GNU General Public License, version 3 or (at your option) any later version. See [LICENSE](LICENSE). It is provided without any warranty. Third-party dependencies retain their own licenses; bundled notices are provided with the web build.
 
-This is a development preview, not an accepted initial release. Milestones 0–6 are complete locally; self-hosted sync and release hardening remain unfinished. Use harmless test data for now.
+This is a development preview, not an accepted initial release. Milestones 0–6 are complete; Milestone 7 self-hosted sync is implemented locally and awaits NAS acceptance, while release hardening remains unfinished. Use harmless test data for now.

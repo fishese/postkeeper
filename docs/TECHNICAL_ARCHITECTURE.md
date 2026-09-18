@@ -313,9 +313,11 @@ The provider must handle token expiry, consent revocation, rate limits, paginati
 
 ### Self-hosted provider
 
-A generic static file server is insufficient unless it supplies the necessary HTTPS, authentication, CORS, listing, conditional-write, and version behavior.
+Per D-028, `packages/sync-http` implements the same `SyncObjectStore` boundary as Drive over an authenticated HTTPS API. The client stores the endpoint and account identity locally; passwords, bearer tokens and unwrapped library keys remain in memory. Plain HTTP is rejected except on loopback test hosts.
 
-A minimal PostKeeper sync API should store opaque encrypted objects. It should not receive website credentials or need to parse article content.
+`servers/pocketbase` is the first adapter. PocketBase 0.40.4 migrations create a closed auth collection and a private object collection. Hooks provide paginated prefix listing, byte reads with ETags, immutable creation, atomic conditional updates, per-object limits and per-user quotas. The server receives opaque encrypted bytes and never parses article content or receives website credentials or recovery keys.
+
+Tailscale is a deployment boundary, not an application dependency. Tailscale Serve can provide a browser-trusted private HTTPS hostname for the NAS. The app shell permits outbound HTTPS connections for the configured provider while retaining fixed script/frame origins; saved readers remain unable to connect to any network. A generic static server or WebDAV service is insufficient unless it guarantees the protocol's authentication, CORS, listing and atomic conditional-write behavior. See [Self-hosted sync](SELF_HOSTED_SYNC.md).
 
 ## 10. Encryption and keys
 

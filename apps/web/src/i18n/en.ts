@@ -172,11 +172,13 @@ export const en = {
   'backupPanel.reviewLocalDiagnostics': 'Review local diagnostics',
   'backupPanel.exportRedactedDiagnostics': 'Export redacted diagnostics',
   'backupPanel.workingLocally': 'Working locally…',
-  'syncPanel.localOnlyGoogleDriveSyncIs': 'Local only. Google Drive sync is optional.',
+  'syncPanel.localOnlySyncIsOptional': 'Local only. Encrypted sync is optional.',
   'syncPanel.googleSignInIsReadySelect':
     'Google sign-in is ready. Select Connect Google Drive to authorize.',
   'syncPanel.googleDriveConnectedLocalDataRemains':
     'Google Drive connected. Local data remains authoritative until you sync.',
+  'syncPanel.selfHostedConnectedLocalDataRemains':
+    'Self-hosted server connected. Local data remains authoritative until you sync.',
   'syncPanel.recoveryKeyCreatedInMemorySave':
     'Recovery key created in memory. Save it before the first upload.',
   'syncPanel.encryptingLocalChangesAndSynchronizing': 'Encrypting local changes and synchronizing…',
@@ -184,16 +186,25 @@ export const en = {
     'Verifying the recovery key and restoring encrypted data…',
   'syncPanel.restoreRetainedConflictingSnapshotVariantsFor':
     'Restore retained conflicting snapshot variants for review.',
-  'syncPanel.disconnectedFromGoogleDriveTheLocal':
-    'Disconnected from Google Drive. The local library is still usable.',
+  'syncPanel.disconnectedTheLocalLibraryIsStill':
+    'Disconnected. The local library is still usable.',
   'syncPanel.encryptedSync': 'Encrypted sync',
-  'syncPanel.optionalSyncSendsEncryptedLibraryData':
-    'Optional sync sends encrypted library data to your Google Drive.',
+  'syncPanel.optionalSyncSendsEncryptedLibraryDataTo':
+    'Optional sync sends encrypted library data to the provider you select.',
   'syncPanel.openInANewTab': '(open in a new tab).',
-  'syncPanel.googleDriveSyncIsAvailableIn':
-    'Google Drive sync is available in the browser/PWA. This Android preview keeps its own local library; use a portable backup to transfer it.',
   'syncPanel.googleDriveSyncIsNotConfigured':
     'Google Drive sync is not configured for this build. Your local library is ready to use.',
+  'syncPanel.provider': 'Sync provider',
+  'syncPanel.googleDrive': 'Google Drive',
+  'syncPanel.selfHostedPocketBase': 'Self-hosted PocketBase',
+  'syncPanel.selfHostedConnectionHint':
+    'Connect to a PostKeeper PocketBase adapter over HTTPS. The endpoint and identity are remembered on this device; the password and access token stay in memory only.',
+  'syncPanel.serverUrl': 'Server URL',
+  'syncPanel.serverUrlExample': 'https://postkeeper.example.ts.net/',
+  'syncPanel.identity': 'Email or username',
+  'syncPanel.password': 'Password',
+  'syncPanel.connectSelfHosted': 'Connect self-hosted server',
+  'syncPanel.disconnectSelfHosted': 'Disconnect self-hosted server',
   'syncPanel.disconnectGoogleDrive': 'Disconnect Google Drive',
   'syncPanel.connectGoogleDrive': 'Connect Google Drive',
   'syncPanel.loadingGoogleSignIn': 'Loading Google sign-in…',
@@ -207,7 +218,7 @@ export const en = {
   'syncPanel.restoreOrUnlockWithARecovery': 'Restore or unlock with a recovery key',
   'syncPanel.verifyAndRestore': 'Verify and restore',
   'syncPanel.optionalDeviceCopyAndroidEncryptsYour':
-    'Optional device copy: Android encrypts your recovery key with Keystore. Keep a separate recovery copy. This does not enable Drive sync in the wrapper.',
+    'Optional device copy: Android encrypts your recovery key with Keystore. Keep a separate recovery copy.',
   'syncPanel.recoveryKeyEncryptedOnThisDevice': 'Recovery key encrypted on this device.',
   'syncPanel.saveKeyOnThisDevice': 'Save key on this device',
   'syncPanel.deviceKeyLoadedIntoTheRecovery': 'Device key loaded into the recovery field.',
@@ -216,4 +227,6 @@ export const en = {
   'syncPanel.forgetDeviceKey': 'Forget device key',
   'syncPanel.driveReceivesEncryptedObjectsInIts':
     'Drive receives encrypted objects in its hidden app-data folder. Keys and access tokens stay in memory for this session unless you explicitly save an encrypted Android device copy.',
+  'syncPanel.selfHostedReceivesOnlyEncryptedObjects':
+    'The self-hosted server receives opaque encrypted objects. Your recovery key, password, and decrypted article content are not uploaded. The access token stays in memory for this session.',
 } as const;
