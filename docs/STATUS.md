@@ -1,8 +1,10 @@
 # Project Status
 
-Last updated: 2026-09-18
+Last updated: 2026-09-19
 
 ## Current state
+
+- **2026-09-19 sync load reduction: complete.** Established-library sync now lists deterministic remote paths once, uploads only missing immutable blobs and operations, downloads only operations absent from the local log, and skips the local materialization rewrite when neither side changed. A regression check proves an unchanged fixture library makes one metadata read and one list request with no object upload, operation download, or state rewrite. Automatic checks run after startup, five seconds after genuine local library changes, and hourly while the app stays open; visibility and generic online events no longer trigger checks. The settings action is now **Check now** and explains that it is bidirectional. Full validation passes formatting, lint, typechecking, **145 tests** with one opt-in live test skipped, and web/extension production builds. This is a client-only change: the deployed PocketBase hook, migrations, Compose project, container, and stored records require no change.
 
 - **2026-09-18 Milestone 7 self-hosted sync: in progress.** The user explicitly started the milestone for a planned Synology DS720+ deployment. D-028 adds a provider-neutral authenticated HTTPS object-store client and a PocketBase 0.40.4 server adapter while retaining the existing encrypted sync format and local domain model. The web/PWA can choose Google Drive or self-hosted PocketBase; the Android wrapper uses PocketBase because embedded Google authorization remains unavailable. PocketBase authentication uses the closed shared `users` collection so the same identity can serve future apps whose data collections remain isolated. Passwords and recovery keys are never saved. An opted-in trusted device encrypts its refreshable bearer token and master-key material under a non-exportable WebCrypto key in a separate IndexedDB database and removes both on disconnect. Production endpoints require HTTPS, with plain HTTP limited to loopback tests.
 

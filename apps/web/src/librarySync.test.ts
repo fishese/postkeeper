@@ -76,6 +76,65 @@ describe('library sync bridge', () => {
     await target.close();
   });
 
+  it('checks an unchanged library without replaying immutable objects', async () => {
+    const library = await openLibrary({ name: dbName('unchanged') });
+    const remote = new MemorySyncObjectStore();
+    const keys = await createLibraryKeyMaterial();
+    try {
+      await library.importTrustedFixture(PUBLIC_FIXTURE);
+      await synchronizeLibrary(library, remote, keys);
+      const get = vi.spyOn(remote, 'get');
+      const list = vi.spyOn(remote, 'list');
+      const put = vi.spyOn(remote, 'putImmutable');
+      const apply = vi.spyOn(library, 'applySyncState');
+
+      const result = await synchronizeLibrary(library, remote, keys);
+
+      expect(result).toMatchObject({ uploaded: 0, downloaded: 0, restoredBlobs: 0 });
+      expect(get).toHaveBeenCalledOnce();
+      expect(get.mock.calls[0]?.[0]).toContain('/library-metadata/root.json');
+      expect(list).toHaveBeenCalledOnce();
+      expect(put).not.toHaveBeenCalled();
+      expect(apply).not.toHaveBeenCalled();
+    } finally {
+      await library.close();
+    }
+  });
+
+  it('downloads only operations that are not already stored locally', async () => {
+    const source = await openLibrary({ name: dbName('incremental-source') });
+    const target = await openLibrary({ name: dbName('incremental-target') });
+    const remote = new MemorySyncObjectStore();
+    const keys = await createLibraryKeyMaterial();
+    try {
+      const article = await source.importTrustedFixture(PUBLIC_FIXTURE);
+      await synchronizeLibrary(source, remote, keys);
+      await restoreLibraryFromRemote(target, remote, keys.recoveryKey);
+      await source.updateArticle(article.id, { isFavorite: true });
+      await synchronizeLibrary(source, remote, keys);
+      const targetOperationIds = new Set(
+        (await target.getSyncOperations()).map((operation) => operation.operationId),
+      );
+      const expectedDownloads = (await source.getSyncOperations()).filter(
+        (operation) => !targetOperationIds.has(operation.operationId),
+      ).length;
+
+      const get = vi.spyOn(remote, 'get');
+      const list = vi.spyOn(remote, 'list');
+      const put = vi.spyOn(remote, 'putImmutable');
+      const result = await synchronizeLibrary(target, remote, keys);
+
+      expect(result.downloaded).toBe(expectedDownloads);
+      expect(get).toHaveBeenCalledTimes(expectedDownloads + 1);
+      expect(list).toHaveBeenCalledOnce();
+      expect(put).not.toHaveBeenCalled();
+      expect((await target.listArticles('all'))[0]).toMatchObject({ isFavorite: true });
+    } finally {
+      await source.close();
+      await target.close();
+    }
+  });
+
   it('serializes operation preparation across two connections to the same local database', async () => {
     const name = dbName('parallel');
     const first = await openLibrary({ name });

@@ -3,8 +3,10 @@ import {
   downloadEncryptedBlob,
   downloadRemoteOperations,
   initializeRemoteLibrary,
+  listRemoteObjectPaths,
   materializeOperations,
   remoteBlobId,
+  remoteLibraryPrefix,
   restoreLibraryKey,
   syncOperationLog,
   uploadEncryptedBlob,
@@ -92,8 +94,17 @@ export async function synchronizeLibrary(
     throw new Error('This local library is associated with a different encrypted sync library.');
   }
   await initializeRemoteLibrary(provider, keys, retryOptions);
+  const storedOperations = await library.getSyncOperations();
   const operations = await library.prepareSyncOperations();
+  const storedOperationIds = new Set(storedOperations.map((operation) => operation.operationId));
+  const hasNewLocalOperations = operations.some(
+    (operation) => !storedOperationIds.has(operation.operationId),
+  );
+  const prefix = remoteLibraryPrefix(keys.libraryId, keys.remoteLayout);
+  const remotePaths = new Set(await listRemoteObjectPaths(provider, prefix, retryOptions));
   for (const blob of await library.listSyncBlobs()) {
+    const path = `${prefix}blobs/${await remoteBlobId(keys.masterKey, blob.id)}`;
+    if (remotePaths.has(path)) continue;
     await uploadEncryptedBlob(
       provider,
       keys.masterKey,
@@ -103,6 +114,7 @@ export async function synchronizeLibrary(
       retryOptions,
       keys.remoteLayout,
     );
+    remotePaths.add(path);
   }
   const result = await syncOperationLog(
     provider,
@@ -111,6 +123,7 @@ export async function synchronizeLibrary(
     operations,
     retryOptions,
     keys.remoteLayout,
+    remotePaths,
   );
   if (result.state === 'conflict') {
     await library.storeSyncOperations(result.operations);
@@ -118,7 +131,9 @@ export async function synchronizeLibrary(
     return { ...result, restoredBlobs: 0 };
   }
   const restoredBlobs = await restoreMissingBlobs(library, provider, keys, result, retryOptions);
-  await library.applySyncState(result.materialized, result.operations);
+  if (hasNewLocalOperations || result.downloaded > 0 || restoredBlobs > 0) {
+    await library.applySyncState(result.materialized, result.operations);
+  }
   // Do not persist the association until the remote library has been read
   // successfully. A failed first transfer must remain safely retryable.
   await library.associateSyncLibrary(keys.libraryId, Boolean(options.allowReassociate));

@@ -34,7 +34,7 @@ export function remoteLibraryMetadataPath(
     : `libraries/${libraryId}/library-metadata/root.json`;
 }
 
-function remoteLibraryPrefix(
+export function remoteLibraryPrefix(
   libraryId: string,
   layout: LibraryKeyMaterial['remoteLayout'] = 'namespaced',
 ): string {
@@ -106,11 +106,25 @@ export async function initializeRemoteLibrary(
   }
   const path = remoteLibraryMetadataPath(keys.libraryId, keys.remoteLayout);
   const encoded = encodeEnvelope(keys.wrappedMasterKey);
-  const result = await retryProviderCall(() => provider.putImmutable(path, encoded), retryOptions);
-  if (result.status === 'existing') {
-    const existing = decodeWrappedMasterKeyEnvelope(
+  let existing: WrappedMasterKeyEnvelope | null = null;
+  try {
+    existing = decodeWrappedMasterKeyEnvelope(
       (await retryProviderCall(() => provider.get(path), retryOptions)).bytes,
     );
+  } catch (cause) {
+    if (!(cause instanceof SyncProviderError) || cause.code !== 'not-found') throw cause;
+    const result = await retryProviderCall(
+      () => provider.putImmutable(path, encoded),
+      retryOptions,
+    );
+    // Another client may have initialized the same library after our missing-object read.
+    if (result.status === 'existing') {
+      existing = decodeWrappedMasterKeyEnvelope(
+        (await retryProviderCall(() => provider.get(path), retryOptions)).bytes,
+      );
+    }
+  }
+  if (existing) {
     if (existing.libraryId !== keys.libraryId) {
       throw new SyncProviderError(
         'conflict',
@@ -169,17 +183,22 @@ async function listEveryObject(provider: SyncObjectStore, prefix: string): Promi
   return [...new Set(paths)].sort();
 }
 
-export async function downloadRemoteOperations(
+export function listRemoteObjectPaths(
+  provider: SyncObjectStore,
+  prefix: string,
+  retryOptions?: RetryOptions,
+): Promise<string[]> {
+  return retryProviderCall(() => listEveryObject(provider, prefix), retryOptions);
+}
+
+async function downloadOperationPaths(
   provider: SyncObjectStore,
   masterKey: Uint8Array,
   libraryId: string,
+  paths: readonly string[],
   retryOptions?: RetryOptions,
   remoteLayout: LibraryKeyMaterial['remoteLayout'] = 'namespaced',
 ): Promise<SyncOperation[]> {
-  const paths = await retryProviderCall(
-    () => listEveryObject(provider, `${remoteLibraryPrefix(libraryId, remoteLayout)}devices/`),
-    retryOptions,
-  );
   const operations: SyncOperation[] = [];
   for (const path of paths) {
     const remote = await retryProviderCall(() => provider.get(path), retryOptions);
@@ -199,6 +218,21 @@ export async function downloadRemoteOperations(
   return mergeOperationLogs(operations);
 }
 
+export async function downloadRemoteOperations(
+  provider: SyncObjectStore,
+  masterKey: Uint8Array,
+  libraryId: string,
+  retryOptions?: RetryOptions,
+  remoteLayout: LibraryKeyMaterial['remoteLayout'] = 'namespaced',
+): Promise<SyncOperation[]> {
+  const paths = await listRemoteObjectPaths(
+    provider,
+    `${remoteLibraryPrefix(libraryId, remoteLayout)}devices/`,
+    retryOptions,
+  );
+  return downloadOperationPaths(provider, masterKey, libraryId, paths, retryOptions, remoteLayout);
+}
+
 export async function syncOperationLog(
   provider: SyncObjectStore,
   masterKey: Uint8Array,
@@ -206,11 +240,17 @@ export async function syncOperationLog(
   localOperations: readonly SyncOperation[],
   retryOptions?: RetryOptions,
   remoteLayout: LibraryKeyMaterial['remoteLayout'] = 'namespaced',
+  knownRemotePaths?: ReadonlySet<string>,
 ): Promise<SyncRunResult> {
   const local = mergeOperationLogs(localOperations);
+  const operationPrefix = `${remoteLibraryPrefix(libraryId, remoteLayout)}devices/`;
+  const remotePaths = knownRemotePaths
+    ? new Set([...knownRemotePaths].filter((path) => path.startsWith(operationPrefix)))
+    : new Set(await listRemoteObjectPaths(provider, operationPrefix, retryOptions));
   let uploaded = 0;
   for (const operation of local) {
     const path = operationPath(libraryId, operation, remoteLayout);
+    if (remotePaths.has(path)) continue;
     const encrypted = encodeEnvelope(
       await encryptRemoteObject(
         masterKey,
@@ -224,11 +264,16 @@ export async function syncOperationLog(
       retryOptions,
     );
     if (result.status === 'created') uploaded += 1;
+    remotePaths.add(path);
   }
-  const remoteOperations = await downloadRemoteOperations(
+  const localPaths = new Set(
+    local.map((operation) => operationPath(libraryId, operation, remoteLayout)),
+  );
+  const remoteOperations = await downloadOperationPaths(
     provider,
     masterKey,
     libraryId,
+    [...remotePaths].filter((path) => !localPaths.has(path)).sort(),
     retryOptions,
     remoteLayout,
   );
@@ -238,9 +283,7 @@ export async function syncOperationLog(
     state: materialized.conflicts.length ? 'conflict' : 'synced',
     pending: 0,
     uploaded,
-    downloaded: remoteOperations.filter(
-      (remote) => !local.some((operation) => operation.operationId === remote.operationId),
-    ).length,
+    downloaded: remoteOperations.length,
     operations,
     materialized,
   };

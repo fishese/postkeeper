@@ -71,6 +71,7 @@ export function LibraryApp() {
   const [storage, setStorage] = useState<StorageStatus | null>(null);
   const [rebuildCount, setRebuildCount] = useState<number | null>(null);
   const [transferStatus, setTransferStatus] = useState<string | null>(null);
+  const [localChangeVersion, setLocalChangeVersion] = useState(0);
   const refreshSequence = useRef(0);
   const restoreListFocus = useRef(false);
 
@@ -125,6 +126,14 @@ export function LibraryApp() {
     );
   }, []);
 
+  const refreshAfterLocalChange = useCallback(
+    async (open: Library, nextView: LibraryView, nextQuery: string) => {
+      await refresh(open, nextView, nextQuery);
+      setLocalChangeVersion((version) => version + 1);
+    },
+    [refresh],
+  );
+
   const onSharedSaved = useCallback(
     async (article: ArticleListItem | { id: ArticleListItem['id'] }) => {
       if (!library) return;
@@ -132,11 +141,11 @@ export function LibraryApp() {
       setQuery('');
       setSelectedId(article.id);
       selectedIdRef.current = article.id;
-      await refresh(library, 'inbox', '');
+      await refreshAfterLocalChange(library, 'inbox', '');
       setReading(true);
       setAddOpen(false);
     },
-    [library, refresh],
+    [library, refreshAfterLocalChange],
   );
 
   useEffect(() => {
@@ -148,12 +157,12 @@ export function LibraryApp() {
         setQuery('');
         setSelectedId(article.id);
         selectedIdRef.current = article.id;
-        await refresh(library, 'inbox', '');
+        await refreshAfterLocalChange(library, 'inbox', '');
         setReading(true);
       },
       setTransferStatus,
     );
-  }, [library, refresh]);
+  }, [library, refreshAfterLocalChange]);
 
   useEffect(() => {
     if (!library) return;
@@ -221,7 +230,7 @@ export function LibraryApp() {
     setQuery('');
     setSelectedId(article.id);
     selectedIdRef.current = article.id;
-    await refresh(library, view, '');
+    await refreshAfterLocalChange(library, view, '');
     setSettingsOpen(false);
     setReading(true);
   }
@@ -232,7 +241,7 @@ export function LibraryApp() {
     setQuery('');
     setSelectedId(article.id);
     selectedIdRef.current = article.id;
-    await refresh(library, view, '');
+    await refreshAfterLocalChange(library, view, '');
     setSettingsOpen(false);
     setReading(true);
   }
@@ -241,14 +250,14 @@ export function LibraryApp() {
     if (!library) return;
     await library.createCategory(newCategory);
     setNewCategory('');
-    await refresh(library, view, query);
+    await refreshAfterLocalChange(library, view, query);
     setCategoriesOpen(false);
   }
 
   async function renameSelectedCategory() {
     if (!library || typeof view !== 'object' || !renameValue.trim()) return;
     await library.renameCategory(view.categoryId, renameValue);
-    await refresh(library, view, query);
+    await refreshAfterLocalChange(library, view, query);
   }
 
   async function moveCategory(direction: -1 | 1) {
@@ -262,20 +271,20 @@ export function LibraryApp() {
     if (!moved) return;
     next.splice(target, 0, moved);
     await library.reorderCategories(next);
-    await refresh(library, view, query);
+    await refreshAfterLocalChange(library, view, query);
   }
 
   async function deleteSelectedCategory() {
     if (!library || typeof view !== 'object') return;
     await library.deleteCategory(view.categoryId);
     setView('inbox');
-    await refresh(library, 'inbox', query);
+    await refreshAfterLocalChange(library, 'inbox', query);
   }
 
   async function toggleMembership(categoryId: Category['id'], member: boolean) {
     if (!library || !selectedId) return;
     await library.setMembership(selectedId as ArticleListItem['id'], categoryId, member);
-    await refresh(library, view, query);
+    await refreshAfterLocalChange(library, view, query);
   }
 
   async function patchSelected(
@@ -283,7 +292,7 @@ export function LibraryApp() {
   ) {
     if (!library || !selectedId) return;
     await library.updateArticle(selectedId as ArticleListItem['id'], patch);
-    await refresh(library, view, query);
+    await refreshAfterLocalChange(library, view, query);
   }
 
   async function rebuild() {
@@ -304,7 +313,7 @@ export function LibraryApp() {
         setSelectedId(null);
         setReading(false);
       }
-      await refresh(library, view, query);
+      await refreshAfterLocalChange(library, view, query);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     }
@@ -724,6 +733,7 @@ export function LibraryApp() {
           </summary>
           <SyncPanel
             library={library}
+            localChangeVersion={localChangeVersion}
             onLibraryChanged={() => refresh(library, view, query)}
             onDiagnosticsChange={setSyncDiagnostics}
           />
@@ -736,7 +746,7 @@ export function LibraryApp() {
           <BackupPanel
             library={library}
             sync={syncDiagnostics}
-            onLibraryChanged={() => refresh(library, view, query)}
+            onLibraryChanged={() => refreshAfterLocalChange(library, view, query)}
           />
         </details>
         <details className="settings-group">
@@ -785,7 +795,7 @@ export function LibraryApp() {
                   const article = await library.importTrustedFixture(LONG_PRINTABLE_FIXTURE);
                   setSelectedId(article.id);
                   selectedIdRef.current = article.id;
-                  await refresh(library, view, query);
+                  await refreshAfterLocalChange(library, view, query);
                   setSettingsOpen(false);
                   setReading(true);
                 })()

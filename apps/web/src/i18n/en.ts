@@ -195,7 +195,7 @@ export const en = {
     'Connected, but this browser could not retain the trusted-device session. Sign in again after reloading.',
   'syncPanel.recoveryKeyCreatedInMemorySave':
     'Recovery key created in memory. Save it before the first upload.',
-  'syncPanel.encryptingLocalChangesAndSynchronizing': 'Encrypting local changes and synchronizing…',
+  'syncPanel.checkingForEncryptedChanges': 'Checking for encrypted changes…',
   'syncPanel.verifyingTheRecoveryKeyAndRestoring':
     'Verifying the recovery key and restoring encrypted data…',
   'syncPanel.mergePreviewReady': 'Review the local and remote library summary before merging.',
@@ -234,7 +234,9 @@ export const en = {
   'syncPanel.copyRecoveryKey': 'Copy recovery key',
   'syncPanel.iSavedTheRecoveryKeyLosing':
     'I saved the recovery key. Losing every copy makes remote data unrecoverable.',
-  'syncPanel.syncNow': 'Sync now',
+  'syncPanel.checkNow': 'Check now',
+  'syncPanel.automaticCheckSchedule':
+    'Checks automatically when PostKeeper opens, shortly after local changes, and about once an hour while it remains open. Check now also uploads local changes.',
   'syncPanel.restoreOrUnlockWithARecovery': 'Restore or unlock with a recovery key',
   'syncPanel.verifyAndRestore': 'Verify and restore',
   'syncPanel.optionalDeviceCopyAndroidEncryptsYour':

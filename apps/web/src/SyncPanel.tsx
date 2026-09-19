@@ -33,6 +33,7 @@ type SyncProviderKind = 'google-drive' | 'self-hosted';
 
 const SELF_HOSTED_ENDPOINT_KEY = 'postkeeper.selfHosted.endpoint';
 const SELF_HOSTED_IDENTITY_KEY = 'postkeeper.selfHosted.identity';
+const AUTO_SYNC_INTERVAL_MS = 60 * 60 * 1_000;
 
 function savedSetting(key: string): string {
   try {
@@ -44,10 +45,12 @@ function savedSetting(key: string): string {
 
 export function SyncPanel({
   library,
+  localChangeVersion = 0,
   onLibraryChanged,
   onDiagnosticsChange,
 }: {
   library: Library;
+  localChangeVersion?: number;
   onLibraryChanged: () => Promise<void>;
   onDiagnosticsChange?: (value: SyncDiagnostics) => void;
 }) {
@@ -58,6 +61,7 @@ export function SyncPanel({
   const provider = useRef<SyncObjectStore | null>(null);
   const syncInFlight = useRef(false);
   const automaticSync = useRef<() => Promise<void>>(async () => undefined);
+  const observedLocalChangeVersion = useRef(localChangeVersion);
   const [providerKind, setProviderKind] = useState<SyncProviderKind>(() =>
     native ? 'self-hosted' : 'google-drive',
   );
@@ -225,7 +229,7 @@ export function SyncPanel({
     if (!provider.current || !keys || syncInFlight.current) return;
     syncInFlight.current = true;
     setPhase('pending');
-    setMessage(t('syncPanel.encryptingLocalChangesAndSynchronizing'));
+    setMessage(t('syncPanel.checkingForEncryptedChanges'));
     try {
       // Once the user has confirmed the recovery key, retain the trusted-device
       // copy before network work so an interrupted first sync stays retryable.
@@ -247,7 +251,7 @@ export function SyncPanel({
         }),
       );
       await rememberPocketBase(keys);
-      await onLibraryChanged();
+      if (result.downloaded > 0 || result.restoredBlobs > 0) await onLibraryChanged();
     } catch (cause) {
       showError(cause);
     } finally {
@@ -260,20 +264,21 @@ export function SyncPanel({
   useEffect(() => {
     if (!connected || !keys || !confirmedRecovery) return;
     const run = () => void automaticSync.current();
-    const becameVisible = () => {
-      if (document.visibilityState === 'visible') run();
-    };
     const initial = window.setTimeout(run, 1_000);
-    const interval = window.setInterval(run, 5 * 60 * 1_000);
-    window.addEventListener('online', run);
-    document.addEventListener('visibilitychange', becameVisible);
+    const interval = window.setInterval(run, AUTO_SYNC_INTERVAL_MS);
     return () => {
       window.clearTimeout(initial);
       window.clearInterval(interval);
-      window.removeEventListener('online', run);
-      document.removeEventListener('visibilitychange', becameVisible);
     };
   }, [connected, confirmedRecovery, keys]);
+
+  useEffect(() => {
+    const changed = observedLocalChangeVersion.current !== localChangeVersion;
+    observedLocalChangeVersion.current = localChangeVersion;
+    if (!changed || !connected || !keys || !confirmedRecovery) return;
+    const pending = window.setTimeout(() => void automaticSync.current(), 5_000);
+    return () => window.clearTimeout(pending);
+  }, [connected, confirmedRecovery, keys, localChangeVersion]);
 
   async function restore() {
     if (!provider.current || !recoveryInput.trim()) return;
@@ -519,8 +524,9 @@ export function SyncPanel({
             disabled={!connected || !confirmedRecovery || phase === 'pending'}
             onClick={() => void syncNow()}
           >
-            {t('syncPanel.syncNow')}
+            {t('syncPanel.checkNow')}
           </button>
+          <p className="sync-note">{t('syncPanel.automaticCheckSchedule')}</p>
         </div>
       )}
       <div className="restore-box">
