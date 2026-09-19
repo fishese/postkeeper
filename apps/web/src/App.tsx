@@ -28,7 +28,13 @@ export default function App() {
     <>
       {updateAvailable && (
         <p className="update-banner" role="status">
-          {t('app.aNewerAppVersionIsReady')}
+          <span>{t('app.aNewerAppVersionIsReady')}</span>{' '}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event('postkeeper:apply-update'))}
+          >
+            {t('app.updateNow')}
+          </button>
         </p>
       )}
       {hash === '#feasibility' || hash === '#/feasibility' ? <FeasibilityApp /> : <LibraryApp />}

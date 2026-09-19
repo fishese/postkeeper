@@ -1147,10 +1147,10 @@ export class Library {
     return (await this.get<SyncMetaRecord<string>>('syncMeta', 'library-id'))?.value ?? null;
   }
 
-  async associateSyncLibrary(libraryId: string): Promise<void> {
+  async associateSyncLibrary(libraryId: string, allowReplace = false): Promise<void> {
     if (!/^[A-Za-z0-9_-]+$/u.test(libraryId)) throw new Error('Invalid sync library ID.');
     const existing = await this.getSyncLibraryId();
-    if (existing && existing !== libraryId) {
+    if (existing && existing !== libraryId && !allowReplace) {
       throw new Error('This local library is already associated with a different sync library.');
     }
     await this.put('syncMeta', { key: 'library-id', value: libraryId });

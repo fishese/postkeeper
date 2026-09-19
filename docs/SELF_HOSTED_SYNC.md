@@ -12,6 +12,8 @@ Tailscale needs no app integration. Expose PocketBase at a browser-trusted HTTPS
 
 Open **Settings → Sync**, select **Self-hosted PocketBase**, and enter the server URL, account email, and password. Accounts are administrator-created in the shared `users` auth collection; public registration is disabled. With **Remember this trusted device** selected, PostKeeper encrypts the PocketBase token and master-key material under a non-exportable device key in a separate local IndexedDB database. The password and recovery key are not saved. The token is refreshed on startup and discarded, together with the device key, when the user disconnects. Browser-origin compromise can still use locally accessible credentials and content, so the normal PWA origin remains a security boundary.
 
+The PocketBase object-download route exposes `ETag` and `Last-Modified` to browser JavaScript. Updated clients also recover the ETag from authenticated object-list metadata when connecting to an older hook deployment. This compatibility path keeps restores and interrupted-sync retries working while the server hooks are being upgraded.
+
 New recovery keys contain an opaque library locator and store objects under `libraries/<library-id>/...`, allowing the same account identity to be reused by other applications and allowing later support for more than one PostKeeper library. Existing `pk1_` recovery keys and their original root object layout remain readable and writable without migration.
 
 The Android wrapper supports self-hosted sync through the same HTTPS API. Google authorization remains browser/PWA only.

@@ -85,13 +85,13 @@ export async function synchronizeLibrary(
   provider: SyncObjectStore,
   keys: LibraryKeyMaterial,
   retryOptions?: RetryOptions,
+  options: { allowReassociate?: boolean } = {},
 ): Promise<LibrarySyncResult> {
   const associatedLibrary = await library.getSyncLibraryId();
-  if (associatedLibrary && associatedLibrary !== keys.libraryId) {
+  if (associatedLibrary && associatedLibrary !== keys.libraryId && !options.allowReassociate) {
     throw new Error('This local library is associated with a different encrypted sync library.');
   }
   await initializeRemoteLibrary(provider, keys, retryOptions);
-  await library.associateSyncLibrary(keys.libraryId);
   const operations = await library.prepareSyncOperations();
   for (const blob of await library.listSyncBlobs()) {
     await uploadEncryptedBlob(
@@ -114,10 +114,14 @@ export async function synchronizeLibrary(
   );
   if (result.state === 'conflict') {
     await library.storeSyncOperations(result.operations);
+    await library.associateSyncLibrary(keys.libraryId, Boolean(options.allowReassociate));
     return { ...result, restoredBlobs: 0 };
   }
   const restoredBlobs = await restoreMissingBlobs(library, provider, keys, result, retryOptions);
   await library.applySyncState(result.materialized, result.operations);
+  // Do not persist the association until the remote library has been read
+  // successfully. A failed first transfer must remain safely retryable.
+  await library.associateSyncLibrary(keys.libraryId, Boolean(options.allowReassociate));
   return { ...result, restoredBlobs };
 }
 
@@ -131,7 +135,7 @@ export async function restoreLibraryFromRemote(
   const restored = await restoreLibraryKey(provider, recoveryKey, retryOptions);
   const keys: LibraryKeyMaterial = { ...restored, recoveryKey };
   const associatedLibrary = await library.getSyncLibraryId();
-  if (associatedLibrary && associatedLibrary !== keys.libraryId) {
+  if (associatedLibrary && associatedLibrary !== keys.libraryId && !options.allowMerge) {
     throw new Error('This local library is associated with a different encrypted sync library.');
   }
   if (!associatedLibrary) {
@@ -143,5 +147,10 @@ export async function restoreLibraryFromRemote(
     }
   }
   // Unlocking an existing device must upload newly captured blobs before their operations too.
-  return { keys, result: await synchronizeLibrary(library, provider, keys, retryOptions) };
+  return {
+    keys,
+    result: await synchronizeLibrary(library, provider, keys, retryOptions, {
+      allowReassociate: Boolean(options.allowMerge),
+    }),
+  };
 }

@@ -189,4 +189,41 @@ describe('library sync bridge', () => {
       local.close();
     }
   });
+
+  it('allows an explicitly previewed merge to replace a stale library association', async () => {
+    const oldRemote = new MemorySyncObjectStore();
+    const newRemote = new MemorySyncObjectStore();
+    const local = await openLibrary({ name: dbName('reassociate-local') });
+    const remoteSource = await openLibrary({ name: dbName('reassociate-remote') });
+    const oldKeys = await createLibraryKeyMaterial();
+    const newKeys = await createLibraryKeyMaterial();
+    try {
+      await local.importTrustedFixture(PUBLIC_FIXTURE);
+      await synchronizeLibrary(local, oldRemote, oldKeys);
+      await remoteSource.importTrustedFixture({
+        ...PUBLIC_FIXTURE,
+        originalUrl: 'https://fixtures.postkeeper.local/new-remote',
+        canonicalUrl: 'https://fixtures.postkeeper.local/new-remote',
+        title: 'New remote article',
+      });
+      await synchronizeLibrary(remoteSource, newRemote, newKeys);
+
+      await expect(restoreLibraryFromRemote(local, newRemote, newKeys.recoveryKey)).rejects.toThrow(
+        /different encrypted sync library/u,
+      );
+      await expect(
+        restoreLibraryFromRemote(local, newRemote, newKeys.recoveryKey, undefined, {
+          allowMerge: true,
+        }),
+      ).resolves.toBeDefined();
+      expect(await local.getSyncLibraryId()).toBe(newKeys.libraryId);
+      expect((await local.listArticles('all')).map((article) => article.title).sort()).toEqual([
+        'A public fixture article',
+        'New remote article',
+      ]);
+    } finally {
+      await local.close();
+      await remoteSource.close();
+    }
+  });
 });

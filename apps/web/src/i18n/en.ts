@@ -111,7 +111,14 @@ export const en = {
   'fixture.development': 'Import development fixture',
   'fixture.public': 'Import public capture package',
   'fixture.hostile': 'Import hostile capture package',
-  'app.aNewerAppVersionIsReady': 'A newer app version is ready; reload when convenient.',
+  'app.aNewerAppVersionIsReady': 'A newer app version is ready.',
+  'app.updateNow': 'Update now',
+  'app.checkForUpdates': 'Check for web update',
+  'app.checkingForUpdates': 'Checking for updates…',
+  'app.updateCheckComplete': 'Update check complete. An update prompt will appear if one is ready.',
+  'app.updateCheckFailed': 'Could not check for an update. Try again when online.',
+  'app.updatePreservesLibrary':
+    'Updating reloads the app files but keeps saved articles and settings on this device.',
   'about.saveWebpagesForOfflineReadingAnd':
     'Save webpages for offline reading and organization, with optional encrypted Google Drive sync.',
   'about.developmentPreviewReleaseHardeningIsPending':

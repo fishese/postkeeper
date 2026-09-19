@@ -64,6 +64,9 @@ routerAdd(
       }
       e.response.header().set('ETag', utils.quotedEtag(record));
       e.response.header().set('Last-Modified', record.getString('updated'));
+      // PocketBase returns these headers cross-origin, but browsers only make
+      // safelisted response headers visible unless they are explicitly exposed.
+      e.response.header().set('Access-Control-Expose-Headers', 'ETag, Last-Modified');
       e.response.header().set('Cache-Control', 'no-store');
       return e.blob(200, 'application/octet-stream', bytes);
     } finally {

@@ -728,6 +728,9 @@ legend {
   font-size: 0.8rem;
   overflow-wrap: anywhere;
 }
+.update-banner button {
+  margin-inline-start: var(--space-2);
+}
 .startup {
   padding: var(--space-6);
 }

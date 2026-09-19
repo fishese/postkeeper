@@ -9,11 +9,29 @@ import { locale, direction } from './i18n';
 document.documentElement.lang = locale;
 document.documentElement.dir = direction;
 
-if (!isNativeAndroid())
-  registerSW({
+if (!isNativeAndroid()) {
+  let registration: ServiceWorkerRegistration | undefined;
+  const updateServiceWorker = registerSW({
     immediate: false,
     onNeedRefresh: () => window.dispatchEvent(new Event('postkeeper:update')),
+    onRegisteredSW: (_scriptUrl, registered) => {
+      registration = registered;
+    },
   });
+  window.addEventListener('postkeeper:apply-update', () => {
+    void updateServiceWorker(true);
+  });
+  window.addEventListener('postkeeper:check-update', () => {
+    void (async () => {
+      try {
+        await registration?.update();
+        window.dispatchEvent(new Event('postkeeper:update-check-complete'));
+      } catch {
+        window.dispatchEvent(new Event('postkeeper:update-check-failed'));
+      }
+    })();
+  });
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

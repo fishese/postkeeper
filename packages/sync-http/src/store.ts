@@ -177,20 +177,27 @@ export class HttpSyncObjectStore implements SyncObjectStore {
     url.searchParams.set('path', path);
     const response = await this.request(url);
     const bytes = new Uint8Array(await response.arrayBuffer());
-    const etag = response.headers.get('etag');
+    let etag = response.headers.get('etag');
+    let listedMetadata: RemoteObjectMetadata | undefined;
     if (!etag) {
-      throw new SyncProviderError(
-        'invalid-response',
-        'Self-hosted server omitted the object ETag.',
-      );
+      // Older PostKeeper PocketBase hooks returned ETag without exposing it to
+      // cross-origin browser JavaScript. The authenticated list response carries
+      // the same value, so use it as a compatibility fallback.
+      listedMetadata = (await this.list(path)).objects.find((object) => object.path === path);
+      etag = listedMetadata?.etag ?? null;
+      if (!etag) {
+        throw new SyncProviderError(
+          'invalid-response',
+          'Self-hosted server omitted the object ETag.',
+        );
+      }
     }
+    const lastModified = response.headers.get('last-modified') ?? listedMetadata?.updatedAt;
     return {
       path,
       etag,
       byteLength: bytes.byteLength,
-      ...(response.headers.get('last-modified')
-        ? { updatedAt: response.headers.get('last-modified')! }
-        : {}),
+      ...(lastModified ? { updatedAt: lastModified } : {}),
       bytes,
     };
   }

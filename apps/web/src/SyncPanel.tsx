@@ -227,6 +227,9 @@ export function SyncPanel({
     setPhase('pending');
     setMessage(t('syncPanel.encryptingLocalChangesAndSynchronizing'));
     try {
+      // Once the user has confirmed the recovery key, retain the trusted-device
+      // copy before network work so an interrupted first sync stays retryable.
+      await rememberPocketBase(keys);
       const result = await synchronizeLibrary(library, provider.current, keys);
       if (result.state === 'conflict') {
         setPhase('conflict');

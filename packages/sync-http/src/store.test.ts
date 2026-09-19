@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { SyncProviderError } from '@postkeeper/sync-core';
 import { HttpSyncObjectStore, normalizeSelfHostedEndpoint } from './store';
 
@@ -85,5 +85,36 @@ describe('HttpSyncObjectStore', () => {
     expect((await codeFor(507)).code).toBe('quota');
     expect((await codeFor(503)).code).toBe('retryable');
     expect((await codeFor(401)).message).not.toContain('token-that-must-not-leak');
+  });
+
+  it('recovers an ETag from object metadata when an older CORS response hides the header', async () => {
+    const fetcher = vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith('/objects')) {
+        return json({
+          objects: [
+            {
+              path: 'library-metadata/root.json',
+              etag: '"listed-etag"',
+              byteLength: 3,
+              updatedAt: '2026-09-19T00:00:00.000Z',
+            },
+          ],
+        });
+      }
+      return new Response(new Uint8Array([1, 2, 3]));
+    }) as typeof fetch;
+    const provider = new HttpSyncObjectStore({
+      endpoint: 'https://nas.example.test',
+      accessToken: () => 'token',
+      fetch: fetcher,
+    });
+
+    await expect(provider.get('library-metadata/root.json')).resolves.toMatchObject({
+      etag: '"listed-etag"',
+      updatedAt: '2026-09-19T00:00:00.000Z',
+      bytes: new Uint8Array([1, 2, 3]),
+    });
+    expect(fetcher).toHaveBeenCalledTimes(2);
   });
 });
