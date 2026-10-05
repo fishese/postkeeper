@@ -9,6 +9,14 @@ body {
     serif;
   overflow-wrap: anywhere;
 }
+article > section + section,
+article > h2 + section {
+  border-block-start: 1px solid #dce3dd;
+  padding-block-start: 1rem;
+}
+article > section {
+  margin-block-end: 1.25rem;
+}
 body {
   padding-block-end: 1.5rem;
 }

@@ -43,9 +43,22 @@ final class SafeUrls {
   }
 
   static String profile(String url) {
+    return profileForOrigin(sessionOrigin(url));
+  }
+
+  static String sessionOrigin(String url) {
+    String value = origin(url);
+    // Threads' legacy/share URLs redirect to www.threads.com. They must reuse
+    // the same isolated browser session, including its Instagram sign-in flow.
+    if (value.matches("https://(www\\.)?threads\\.(com|net)"))
+      return "https://www.threads.com";
+    return value;
+  }
+
+  static String profileForOrigin(String value) {
     try {
       byte[] bytes =
-          MessageDigest.getInstance("SHA-256").digest(origin(url).getBytes(StandardCharsets.UTF_8));
+          MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
       StringBuilder hex = new StringBuilder("capture-");
       for (byte b : bytes) hex.append(String.format("%02x", b & 255));
       return hex.toString();

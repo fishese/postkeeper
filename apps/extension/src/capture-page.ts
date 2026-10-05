@@ -1,6 +1,7 @@
 import { Readability } from '@mozilla/readability';
 import { CAPTURE_LIMITS } from '@postkeeper/capture-format';
 import type { PageCaptureDraft } from './messages';
+import { extractThreadsPosts } from './capture-threads';
 
 const SENSITIVE_PATTERN = /(authorization|cookie|csrf|password|secret|session|token)/i;
 
@@ -24,7 +25,9 @@ function absoluteHttpUrl(value: string | null | undefined, baseUrl: string): str
 
 export function createCredentialScrubbedClone(document: Document): Document {
   const clone = document.cloneNode(true) as Document;
-  for (const element of Array.from(clone.querySelectorAll('script, input, textarea, select'))) {
+  for (const element of Array.from(
+    clone.querySelectorAll('script, input, textarea, select, [contenteditable], [role="textbox"]'),
+  )) {
     element.remove();
   }
   for (const meta of Array.from(clone.querySelectorAll('meta'))) {
@@ -201,6 +204,7 @@ export function captureRenderedPage(
   let readerHtml = readable?.content ?? '';
   const warnings: string[] = readable ? [] : ['producer-extraction-failed'];
   const redditReaderHtml = redditImagePost(document, pageUrl);
+  const threadsReaderHtml = extractThreadsPosts(visible, pageUrl);
   // Preserve substantial semantic article content when a short app-promotion wins Readability.
   const candidates = Array.from(
     visible.querySelectorAll(
@@ -213,7 +217,10 @@ export function captureRenderedPage(
   const length = readable?.textContent?.trim().length ?? 0;
   const candidateLength = candidate?.textContent?.trim().length ?? 0;
   const candidateHasMedia = !!candidate?.querySelector('img, picture');
-  if (redditReaderHtml) {
+  if (threadsReaderHtml) {
+    readerHtml = threadsReaderHtml;
+    warnings.splice(0, warnings.length);
+  } else if (redditReaderHtml) {
     readerHtml = redditReaderHtml;
     warnings.splice(0, warnings.length, 'producer-primary-media');
   } else if (
@@ -232,7 +239,7 @@ export function captureRenderedPage(
     warnings.splice(0, warnings.length, 'producer-full-page-copy');
   }
   const readerDocument = new DOMParser().parseFromString(readerHtml, 'text/html');
-  if (collectAssetUrls(readerDocument, pageUrl).length === 0) {
+  if (!threadsReaderHtml && collectAssetUrls(readerDocument, pageUrl).length === 0) {
     const socialImage = absoluteHttpUrl(
       firstMeta(
         document,

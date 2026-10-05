@@ -29,4 +29,15 @@ public class SafeUrlsTest {
         SafeUrls.profile("https://example.com"), SafeUrls.profile("https://other.example.com"));
     assertTrue(SafeUrls.profile("https://example.com").matches("capture-[a-f0-9]{64}"));
   }
+
+  @Test
+  public void threadsAliasesReuseOneSessionWithoutGroupingOtherSites() {
+    String expected = SafeUrls.profile("https://www.threads.com/@reader/post/abc");
+    for (String host : new String[] {"threads.com", "www.threads.com", "threads.net", "www.threads.net"})
+      assertEquals(expected, SafeUrls.profile("https://" + host + "/@reader/post/other"));
+    assertNotEquals(expected, SafeUrls.profile("https://www.instagram.com"));
+    assertNotEquals(expected, SafeUrls.profile("https://evil.threads.com"));
+    assertNotEquals(expected, SafeUrls.profile("https://www.threads.com:8443"));
+    assertNotEquals(expected, SafeUrls.profile("https://threads.com.evil.test"));
+  }
 }

@@ -86,8 +86,11 @@ public class CaptureActivity extends Activity {
               menu.show();
             });
     web = findViewById(R.id.capture_web);
-    WebViewCompat.setProfile(web, SafeUrls.profile(startingUrl));
+    WebViewCompat.setProfile(web, captureProfileName(startingUrl));
     profile = WebViewCompat.getProfile(web);
+    profile.getCookieManager().setAcceptCookie(true);
+    // Cross-site sign-in stays inside this site's isolated capture profile.
+    profile.getCookieManager().setAcceptThirdPartyCookies(web, true);
     web.getSettings().setJavaScriptEnabled(true);
     web.getSettings().setDomStorageEnabled(true);
     web.getSettings().setAllowFileAccess(false);
@@ -155,6 +158,30 @@ public class CaptureActivity extends Activity {
           }
         });
     web.loadUrl(startingUrl);
+  }
+
+  private String captureProfileName(String url) {
+    String preferred = SafeUrls.profile(url);
+    ProfileStore store = ProfileStore.getInstance();
+    // Reuse a pre-existing Threads alias profile on upgrade without copying
+    // cookies or discarding the user's session. The chosen name is remembered.
+    if (SafeUrls.sessionOrigin(url).equals("https://www.threads.com")) {
+      android.content.SharedPreferences settings = getSharedPreferences("capture-sessions", MODE_PRIVATE);
+      String existing = settings.getString("threads-profile", null);
+      if (existing != null && store.getProfile(existing) != null) return existing;
+      if (store.getProfile(preferred) == null) {
+        for (String origin : new String[] {"https://threads.com", "https://www.threads.net", "https://threads.net"}) {
+          String name = SafeUrls.profileForOrigin(origin);
+          Profile candidate = store.getProfile(name);
+          if (candidate != null && candidate.getCookieManager().hasCookies()) {
+            preferred = name;
+            break;
+          }
+        }
+      }
+      settings.edit().putString("threads-profile", preferred).apply();
+    }
+    return preferred;
   }
 
   private void confirmClear(boolean all) {
@@ -416,6 +443,14 @@ public class CaptureActivity extends Activity {
   @SuppressWarnings("deprecation")
   public void onBackPressed() {
     handleBack();
+  }
+
+  @Override
+  protected void onPause() {
+    // Flush the profile's cookie jar before returning to the library or leaving
+    // the app. Never use the library/default CookieManager for capture sessions.
+    if (profile != null) profile.getCookieManager().flush();
+    super.onPause();
   }
 
   @Override
